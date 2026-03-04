@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="resources/Citadel Banners/3.png" alt="Citadel Logo" width="450" height="auto" />
+  <img src="resources/Citadel Banners/2.png" alt="Citadel Logo" width="450" height="auto" />
   <br>
 
   ![Build Citadel](https://github.com/iwannabebot/citadel/actions/workflows/build.yml/badge.svg)

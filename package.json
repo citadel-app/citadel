@@ -1,5 +1,5 @@
 {
-  "name": "codex",
+  "name": "citadel",
   "version": "1.0.0",
   "description": "a hackable second brain for software developers",
   "main": "./out/main/index.js",
