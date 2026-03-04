@@ -1,6 +1,6 @@
 {
   "name": "codex",
-  "version": "1.0.0-alpha.1",
+  "version": "1.0.0",
   "description": "a hackable second brain for software developers",
   "main": "./out/main/index.js",
   "author": "Citadel",
