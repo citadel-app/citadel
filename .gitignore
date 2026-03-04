@@ -11,8 +11,8 @@ env/
 build/
 .DS_Store
 .idea/
-.vscode/
 .vs/
+# .vscode is deliberately not ignored to allow for extension recommendations
 .codex/
 Thumbs.db
 data-sources/
