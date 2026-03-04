@@ -5,7 +5,7 @@ import { useConfig } from '../context/ConfigContext';
 import { PRESETS, WorkspacePreset } from '../config/presets';
 import { DynamicIcon } from '../components/IconRegistry';
 import { DEFAULT_WORKSPACE_CONFIG } from '../config/entry-types';
-import logoMain from '../assets/branding/logo-main.png';
+import logoMain from '../assets/branding/banner-inverted.png';
 
 type WelcomeStep = 'auth-gate' | 'logged-in-setup' | 'offline-setup' | 'configure-workspace' | 'create-repo' | 'pick-repo' | 'clone-remote';
 
@@ -511,10 +511,8 @@ export const WelcomePage: React.FC<WelcomePageProps> = ({ initialStep }) => {
     // --- Header with Logo ---
     const PageHeader = ({ subtitle }: { subtitle?: string }) => (
         <div className="flex flex-col items-center gap-3">
-            <img src={logoMain} alt="Citadel" className="w-16 h-16 object-contain drop-shadow-lg" />
-            <h1 className="text-3xl sm:text-4xl font-black tracking-tight bg-gradient-to-br from-primary via-primary/80 to-purple-500/50 bg-clip-text text-transparent" style={{ fontFamily: "'Cinzel Decorative', serif" }}>
-                Citadel
-            </h1>
+            <img src={logoMain} alt="Citadel" className="w-96 object-contain drop-shadow-lg" />
+
             {subtitle && (
                 <p className="text-muted-foreground text-sm max-w-md text-center font-medium opacity-80" style={{ fontFamily: "'Cinzel', serif" }}>
                     {subtitle}
