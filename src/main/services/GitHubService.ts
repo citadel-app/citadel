@@ -88,11 +88,29 @@ export class GitHubService {
       const data = await response.json();
 
       if (!response.ok) {
-        console.error('[GitHubService] GitHub API Error:', data);
-        throw new Error(data.message || 'Failed to create repository on GitHub');
-      }
+      console.error('[GitHubService] GitHub API Error:', data);
+      throw new Error(data.message || 'Failed to create repository on GitHub');
+    }
 
-      console.log(`[GitHubService] Repository created successfully: ${data.html_url}`);
+    // Add topics
+    try {
+      await net.fetch(`https://api.github.com/repos/${data.full_name}/topics`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `token ${token}`,
+          'Accept': 'application/vnd.github.mercy-preview+json',
+          'Content-Type': 'application/json',
+          'User-Agent': 'Citadel-App'
+        },
+        body: JSON.stringify({
+          names: ['citadel-workspace', 'codex-workspace']
+        })
+      });
+    } catch (err) {
+      console.warn('[GitHubService] Failed to set topics:', err);
+    }
+
+    console.log(`[GitHubService] Repository created successfully: ${data.html_url}`);
       return {
         id: data.id,
         name: data.name,

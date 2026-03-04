@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="" alt="Citadel Logo" width="120" />
+  <img src="/images/2.png" alt="Citadel Logo" width="420" />
 </div>
 
 <h1 align="center">{{WORKSPACE_NAME}}</h1>
@@ -12,14 +12,12 @@
 <br>
 
 <div align="center">
-  <a href="citadel://clone?url={{CLONE_URL}}">
-    <img src="https://img.shields.io/badge/Open%20in-Citadel-5b4dff?style=for-the-badge&logo=electron" alt="Open in Citadel" />
-  </a>
+  <code>citadel://clone?url={{CLONE_URL}}</code><br>
+  <em>(Copy and paste this URL into your browser to clone within Citadel)</em>
 </div>
 
 ---
 
-![Citadel Logo](./images/icon.png)
 
 ## 🚀 Quick Start
 
@@ -27,7 +25,7 @@
 
 1. **Download** [Citadel](https://github.com/iwannabebot/codex/releases/latest) (portable executable, no installation needed)
 2. **Launch** the app and sign in with GitHub
-3. **Click** the "Open in Citadel" badge above, or manually choose "Open Existing Repo" and select `{{WORKSPACE_NAME}}`
+3. **Choose** "Clone Repository Here" or paste the deep-link in your browser: `citadel://clone?url={{CLONE_URL}}`
 
 ### Manual Clone
 
@@ -58,5 +56,5 @@ The `README.md` and associated visual assets (such as banner images) are designe
 ---
 
 <div align="center">
-  <sub>⚡ Powered by <a href="https://github.com/iwannabebot/codex">Citadel</a></sub>
+  <sub>⚡ Powered by <a href="https://github.com/iwannabebot/citadel">Citadel</a></sub>
 </div>
