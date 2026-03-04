@@ -58,6 +58,7 @@ export interface CustomAPI {
   }
   github: {
     createRepository: (token: string, name: string, description: string, isPrivate: boolean) => Promise<any>
+    forkRepository: (token: string, owner: string, repo: string) => Promise<any>
     startDeviceFlow: () => Promise<{ device_code: string; user_code: string; verification_uri: string; expires_in: number; interval: number }>
     pollDeviceToken: (deviceCode: string) => Promise<{ status: 'pending' | 'success' | 'expired' | 'error'; access_token?: string; error?: string }>
     getUser: (token: string) => Promise<{ login: string; name: string | null; avatar_url: string; email: string | null }>

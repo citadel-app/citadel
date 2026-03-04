@@ -1093,7 +1093,7 @@ export const WelcomePage: React.FC<WelcomePageProps> = ({ initialStep }) => {
                                     </button>
                                 ) : (
                                     <button
-                                        onClick={handleCreateRemoteRepoSubmit}
+                                        onClick={handleCreateRemoteRepo}
                                         disabled={isCreating || !localPath || authStatus !== 'success'}
                                         className="px-10 py-4 rounded-[1.5rem] bg-primary text-primary-foreground font-black text-[10px] uppercase tracking-[0.2em] hover:bg-primary/90 transition-all shadow-2xl shadow-primary/20 disabled:opacity-30 flex items-center gap-3 active:scale-95"
                                     >
