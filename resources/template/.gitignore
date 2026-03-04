@@ -1,0 +1,19 @@
+# Citadel local data
+.codex/local/
+.codex/config/feeds.db
+.codex/config/feeds.db-shm
+.codex/config/feeds.db-wal
+.codex/config/*.json
+
+# Dependencies
+node_modules/
+
+# OS files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Editor artifacts
+*.swp
+*.swo
+*~

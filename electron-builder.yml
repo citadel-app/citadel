@@ -1,0 +1,61 @@
+appId: com.citadel.app
+productName: Citadel
+directories:
+  buildResources: build
+protocols:
+  - name: Citadel Protocol
+    schemes:
+      - citadel
+      - codex
+files:
+  - "!**/.vscode/*"
+  - "!src/*"
+  - "!electron.vite.config.{js,ts,mjs,cjs}"
+  - "!{.eslintcache,eslint.config.mjs,.prettierignore,.prettierrc.yaml,dev-app-update.yml,CHANGELOG.md,README.md}"
+  - "!{.env,.env.*,.npmrc,pnpm-lock.yaml}"
+  - "!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}"
+  - "!.venv/*"
+  - "!data-sources/*"
+asarUnpack:
+  - resources/**
+extraResources:
+  - from: src/python
+    to: tts-service/src/python
+    filter:
+      - "**/*"
+  - from: docker-compose.yml
+    to: tts-service/docker-compose.yml
+win:
+  executableName: Citadel
+  icon: resources/icon.png
+  forceCodeSigning: false
+  target: portable
+portable:
+  artifactName: ${name}-${version}-portable.${ext}
+cscLink: null
+nsis:
+  artifactName: ${name}-${version}-setup.${ext}
+  shortcutName: ${productName}
+  uninstallDisplayName: ${productName}
+  createDesktopShortcut: always
+  include: build/installer.nsh
+mac:
+  entitlementsInherit: build/entitlements.mac.plist
+  extendInfo:
+    - NSCameraUsageDescription: Application requests access to the device's camera.
+    - NSMicrophoneUsageDescription: Application requests access to the device's microphone.
+    - NSDocumentsFolderUsageDescription: Application requests access to the user's Documents folder.
+    - NSDownloadsFolderUsageDescription: Application requests access to the user's Downloads folder.
+  notarize: false
+dmg:
+  artifactName: ${name}-${version}.${ext}
+linux:
+  target:
+    - AppImage
+    - snap
+    - deb
+  maintainer: electronjs.org
+  category: Utility
+appImage:
+  artifactName: ${name}-${version}.${ext}
+npmRebuild: false

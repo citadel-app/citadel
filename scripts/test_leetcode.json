@@ -1,0 +1,38 @@
+{
+  "questions": [
+    {
+      "title": "Container With Most Water",
+      "problem_id": "11",
+      "frontend_id": "11",
+      "difficulty": "medium",
+      "problem_slug": "container-with-most-water",
+      "acceptance_rate": "54.1%",
+      "category": "Algorithms",
+      "topics": [
+          "Array",
+          "Two Pointers",
+          "Greedy"
+      ],
+      "description": "You are given an integer array <code>height</code> of length <code>n</code>. There are <code>n</code> vertical lines drawn such that the two endpoints of the <code>i-th</code> line are <code>(i, 0)</code> and <code>(i, height[i])</code>.\n\nFind two lines that together with the x-axis form a container, such that the container contains the most water.\n\nReturn the maximum amount of water a container can store.",
+      "examples": [
+        {
+          "example_num": 1,
+          "example_text": "Input: height = [1,8,6,2,5,4,8,3,7]\nOutput: 49\nExplanation: The above vertical lines are represented by array [1,8,6,2,5,4,8,3,7]. In this case, the max area of water (blue section) the container can contain is 49.",
+          "images": ["https://s3-lc-upload.s3.amazonaws.com/uploads/2018/07/17/question_11.jpg"]
+        }
+      ],
+      "constraints": [
+        "n == height.length",
+        "2 <= n <= 105"
+      ],
+      "hints": [
+          "Try to use two-pointers..."
+      ],
+      "code_snippets": {
+        "typescript": "function maxArea(height: number[]): number {\n    \n};",
+        "python3": "class Solution:\n    def maxArea(self, height: List[int]) -> int:\n        "
+      },
+      "solution": "[TOC]\n\n## Solution\n\n---\n\nWe can use two pointers logic. See <code>height[i]</code> for details.\n\n---\n\nEnd of solution."
+    }
+  ]
+}

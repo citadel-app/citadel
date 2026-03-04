@@ -1,0 +1,34 @@
+version: "3.8"
+
+services:
+  tts-server:
+    build:
+      context: ./src/python
+      dockerfile: Dockerfile.tts
+    container_name: codex-tts-server
+    labels:
+      managed-by: codex
+      role: backend-service
+      service-name: tts
+    ports:
+      - "${TTS_PORT:-5050}:5050"
+    volumes:
+      - ${TTS_DATA_PATH:-tts_cache}:/app/.tts_cache
+    restart: unless-stopped
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: codex-qdrant
+    labels:
+      managed-by: codex
+      role: backend-service
+      service-name: qdrant
+    ports:
+      - "${QDRANT_PORT:-6333}:6333"
+    volumes:
+      - ${QDRANT_DATA_PATH:-qdrant_storage}:/qdrant/storage
+    restart: unless-stopped
+
+volumes:
+  tts_cache:
+  qdrant_storage:
