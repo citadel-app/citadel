@@ -107,15 +107,14 @@ export const MainLayout = () => {
                             <div className="w-6 h-[1px] bg-border/40 mb-2 shrink-0" />
 
                             {status?.files?.length > 0 && (settings && (settings.developerMode || !settings.autoCommitEnabled)) && (
-                                <div data-tour-id="tour-source-control">
-                                    <ActivityBarItem
-                                        to="/source-control"
-                                        icon="GitBranch"
-                                        title="Source Control"
-                                        active={location.pathname === '/source-control'}
-                                        badge={changedFilesCount}
-                                    />
-                                </div>
+                                <ActivityBarItem
+                                    to="/source-control"
+                                    icon="GitBranch"
+                                    title="Source Control"
+                                    tourId="tour-source-control"
+                                    active={location.pathname === '/source-control'}
+                                    badge={changedFilesCount}
+                                />
                             )}
 
                             <div className="w-6 h-[1px] bg-border/40 my-2 shrink-0" />

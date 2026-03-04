@@ -79,6 +79,9 @@ export interface CustomAPI {
     close: () => Promise<void>
     setZoom: (factor: number) => Promise<number>;
     getZoom: () => Promise<number>;
+    setupWelcome: () => void;
+    setupBuilder: () => void;
+    setupMain: () => void;
   }
   dialog: {
     openDirectory: () => Promise<string | null>

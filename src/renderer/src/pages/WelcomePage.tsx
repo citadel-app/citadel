@@ -1,11 +1,13 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { FolderOpen, X, ChevronRight, Github, Loader2, Plus, Copy, Check, ExternalLink, Shield, GitBranch, Cpu, BookOpen, Globe, Wifi, WifiOff, ArrowLeft, Lock, Search, LogOut } from 'lucide-react';
 import { dataManager } from '../lib/data-manager';
 import { useConfig } from '../context/ConfigContext';
 import { PRESETS, WorkspacePreset } from '../config/presets';
 import { DynamicIcon } from '../components/IconRegistry';
 import { DEFAULT_WORKSPACE_CONFIG } from '../config/entry-types';
-import logoMain from '../assets/branding/logo-main.png';
+import { APP_CONSTANTS } from '../config/constants';
+import logoMain from '../assets/branding/banner-inverted.png';
 
 type WelcomeStep = 'auth-gate' | 'logged-in-setup' | 'offline-setup' | 'configure-workspace' | 'create-repo' | 'pick-repo' | 'clone-remote';
 
@@ -15,6 +17,12 @@ interface WelcomePageProps {
 
 export const WelcomePage: React.FC<WelcomePageProps> = ({ initialStep }) => {
     const { setVaultPath, recentVaults } = useConfig();
+    const navigate = useNavigate();
+
+    // Lock window to fixed welcome size on mount
+    React.useEffect(() => {
+        window.api.window.setupWelcome();
+    }, []);
 
     // Determine initial step from props or default to auth-gate
     const [step, setStep] = React.useState<WelcomeStep>(initialStep || 'auth-gate');
@@ -32,6 +40,9 @@ export const WelcomePage: React.FC<WelcomePageProps> = ({ initialStep }) => {
     const [localPath, setLocalPath] = React.useState('');
     const [isCreating, setIsCreating] = React.useState(false);
     const [createError, setCreateError] = React.useState<string | null>(null);
+
+    // --- Validation State ---
+    const [validationError, setValidationError] = React.useState<string | null>(null);
 
     // --- Pick Repo State ---
     const [repos, setRepos] = React.useState<any[]>([]);
@@ -171,28 +182,29 @@ export const WelcomePage: React.FC<WelcomePageProps> = ({ initialStep }) => {
         return () => { if (pollTimerRef.current) clearInterval(pollTimerRef.current); };
     }, []);
 
-    // --- Deep Link Handling ---
+    // --- Deep Link Handling (Forwarded from App.tsx) ---
     React.useEffect(() => {
-        const cleanup = window.api.app.onDeepLink((url: string) => {
-            console.log('[WelcomePage] Received deep link:', url);
-            try {
-                // Parse citadel://clone?url=https://github.com/user/repo
-                if (url.startsWith('citadel://') || url.startsWith('codex://')) {
-                    const urlObj = new URL(url);
-                    if (urlObj.hostname === 'clone') {
-                        const targetUrl = urlObj.searchParams.get('url');
-                        if (targetUrl) {
-                            setStep('clone-remote');
-                            setRemoteUrlToClone(targetUrl);
-                        }
-                    }
-                }
-            } catch (e) {
-                console.error('[WelcomePage] Failed to parse deep link:', e);
+        const checkPendingClone = (url?: string) => {
+            const targetUrl = url || window.localStorage.getItem('citadel-pending-clone-url');
+            if (targetUrl) {
+                console.log('[WelcomePage] Processing pending clone:', targetUrl);
+                setStep('clone-remote');
+                setRemoteUrlToClone(targetUrl);
+                window.localStorage.removeItem('citadel-pending-clone-url');
             }
-        });
+        };
 
-        return cleanup;
+        checkPendingClone();
+
+        const handleCustomEvent = (e: Event) => {
+            const customEvent = e as CustomEvent;
+            if (customEvent.detail) {
+                checkPendingClone(customEvent.detail);
+            }
+        };
+
+        window.addEventListener('citadel-deeplink-clone', handleCustomEvent);
+        return () => window.removeEventListener('citadel-deeplink-clone', handleCustomEvent);
     }, []);
 
     // --- Auth Flow ---
@@ -247,10 +259,30 @@ export const WelcomePage: React.FC<WelcomePageProps> = ({ initialStep }) => {
         setTimeout(() => setCodeCopied(false), 2000);
     };
 
+    // --- Workspace Validation ---
+    const validateWorkspace = async (path: string): Promise<boolean> => {
+        const configDir = `${path}/${APP_CONSTANTS.PATHS.CONFIG_DIR}`;
+        const isValid = await window.api.fs.exists(configDir);
+        if (!isValid) {
+            setValidationError(`"${path.split(/[\\/]/).pop()}" is not a valid Citadel workspace. No .codex configuration was found.`);
+            return false;
+        }
+        setValidationError(null);
+        return true;
+    };
+
     // --- Workspace Actions ---
     const handleOpenFolder = async () => {
         const path = await window.api.dialog.openDirectory();
         if (path) {
+            if (await validateWorkspace(path)) {
+                await setVaultPath(path);
+            }
+        }
+    };
+
+    const handleOpenRecentWorkspace = async (path: string) => {
+        if (await validateWorkspace(path)) {
             await setVaultPath(path);
         }
     };
@@ -460,7 +492,7 @@ export const WelcomePage: React.FC<WelcomePageProps> = ({ initialStep }) => {
                     {recentVaults.map((path, i) => (
                         <button
                             key={i}
-                            onClick={() => setVaultPath(path)}
+                            onClick={() => handleOpenRecentWorkspace(path)}
                             className="w-full text-left p-3 rounded-xl bg-card/20 border border-muted/50 hover:bg-card hover:border-primary/30 transition-all group flex items-center gap-3"
                         >
                             <FolderOpen className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors shrink-0" />
@@ -475,6 +507,17 @@ export const WelcomePage: React.FC<WelcomePageProps> = ({ initialStep }) => {
                             <ChevronRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity text-primary" />
                         </button>
                     ))}
+                </div>
+            </div>
+        ) : null
+    );
+
+    const ValidationBanner = () => (
+        validationError ? (
+            <div className="w-full max-w-2xl animate-in fade-in slide-in-from-top-4 duration-300">
+                <div className="flex items-center gap-3 p-3 rounded-xl bg-destructive/10 border border-destructive/30 text-destructive text-xs font-bold">
+                    <X className="w-3.5 h-3.5 shrink-0 cursor-pointer hover:opacity-70" onClick={() => setValidationError(null)} />
+                    {validationError}
                 </div>
             </div>
         ) : null
@@ -511,10 +554,8 @@ export const WelcomePage: React.FC<WelcomePageProps> = ({ initialStep }) => {
     // --- Header with Logo ---
     const PageHeader = ({ subtitle }: { subtitle?: string }) => (
         <div className="flex flex-col items-center gap-3">
-            <img src={logoMain} alt="Citadel" className="w-16 h-16 object-contain drop-shadow-lg" />
-            <h1 className="text-3xl sm:text-4xl font-black tracking-tight bg-gradient-to-br from-primary via-primary/80 to-purple-500/50 bg-clip-text text-transparent" style={{ fontFamily: "'Cinzel Decorative', serif" }}>
-                Citadel
-            </h1>
+            <img src={logoMain} alt="Citadel" className="w-96 object-contain drop-shadow-lg" />
+
             {subtitle && (
                 <p className="text-muted-foreground text-sm max-w-md text-center font-medium opacity-80" style={{ fontFamily: "'Cinzel', serif" }}>
                     {subtitle}
@@ -729,11 +770,7 @@ export const WelcomePage: React.FC<WelcomePageProps> = ({ initialStep }) => {
                         {/* Actions */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 w-full max-w-2xl">
                             <button
-                                onClick={() => {
-                                    setWorkspaceOrigin('logged-in');
-                                    setStep('create-repo');
-                                    setWizardStep(1);
-                                }}
+                                onClick={() => navigate('/workspace-builder')}
                                 className="group flex flex-col items-center gap-5 p-8 rounded-[2rem] bg-card/40 border border-muted hover:bg-card hover:border-primary/40 transition-all backdrop-blur-sm hover:-translate-y-1"
                             >
                                 <div className="p-4 rounded-2xl bg-muted/50 text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary transition-colors">
@@ -795,10 +832,7 @@ export const WelcomePage: React.FC<WelcomePageProps> = ({ initialStep }) => {
                             </button>
 
                             <button
-                                onClick={() => {
-                                    setWorkspaceOrigin('offline');
-                                    setStep('configure-workspace');
-                                }}
+                                onClick={() => navigate('/workspace-builder')}
                                 className="group flex flex-col items-center gap-5 p-8 rounded-[2rem] bg-card/40 border border-muted hover:bg-card hover:border-primary/40 transition-all backdrop-blur-sm hover:-translate-y-1"
                             >
                                 <div className="p-4 rounded-2xl bg-muted/50 text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary transition-colors">

@@ -1,0 +1,96 @@
+name: CI & Release
+
+on:
+    push:
+        branches: ["**"]
+    pull_request:
+        branches: ["main"]
+
+permissions:
+    contents: write
+    pull-requests: write
+
+jobs:
+    build:
+        runs-on: ${{ matrix.os }}
+        strategy:
+            matrix:
+                os: [windows-latest, macos-latest, ubuntu-latest]
+        steps:
+            - name: Checkout Code
+              uses: actions/checkout@v4
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 20
+                  cache: "npm"
+
+            - name: Install System Dependencies (Linux)
+              if: matrix.os == 'ubuntu-latest'
+              run: |
+                  sudo apt-get update
+                  sudo apt-get install -y libarchive-tools libxcb-shm0-dev libxcb-xfixes0-dev
+
+            - name: Install Dependencies
+              run: npm install --legacy-peer-deps
+
+            - name: Build App (macOS)
+              if: matrix.os == 'macos-latest'
+              run: npm run build:mac
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Build App (Windows)
+              if: matrix.os == 'windows-latest'
+              run: npm run build:win
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Build App (Linux)
+              if: matrix.os == 'ubuntu-latest'
+              run: npm run build:linux
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Upload Artifacts
+              uses: actions/upload-artifact@v4
+              with:
+                  name: citadel-artifacts-${{ matrix.os }}
+                  path: |
+                      dist/*.exe
+                      dist/*.dmg
+                      dist/*.AppImage
+                      dist/*.deb
+                      dist/*.snap
+                  retention-days: 5
+
+    release:
+        needs: build
+        runs-on: ubuntu-latest
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        permissions:
+            contents: write
+            pull-requests: write
+        steps:
+            - name: Run release-please
+              id: release
+              uses: googleapis/release-please-action@v4
+              with:
+                  release-type: node
+                  prerelease: true
+                  token: ${{ secrets.PAT || secrets.GITHUB_TOKEN }}
+
+            - name: Download Artifacts
+              if: ${{ steps.release.outputs.release_created }}
+              uses: actions/download-artifact@v4
+              with:
+                  path: artifacts
+                  merge-multiple: true
+
+            - name: Upload Release Assets
+              if: ${{ steps.release.outputs.release_created }}
+              env:
+                  GITHUB_TOKEN: ${{ secrets.PAT || secrets.GITHUB_TOKEN }}
+              run: |
+                  gh release upload ${{ steps.release.outputs.tag_name }} ./artifacts/* --clobber

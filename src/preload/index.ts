@@ -53,7 +53,10 @@ const api = {
     maximize: () => ipcRenderer.send('window:maximize'),
     close: () => ipcRenderer.send('window:close'),
     setZoom: (factor: number) => ipcRenderer.invoke('window:set-zoom', factor),
-    getZoom: () => ipcRenderer.invoke('window:get-zoom')
+    getZoom: () => ipcRenderer.invoke('window:get-zoom'),
+    setupWelcome: () => ipcRenderer.send('window:setup-welcome'),
+    setupBuilder: () => ipcRenderer.send('window:setup-builder'),
+    setupMain: () => ipcRenderer.send('window:setup-main')
   },
   dialog: {
     openDirectory: () => ipcRenderer.invoke('dialog:openDirectory'),

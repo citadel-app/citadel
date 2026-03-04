@@ -202,11 +202,14 @@ function createSplashWindow(): void {
 
 function createWindow(): void {
   // Create the browser window.
+  // Start in fixed-size "welcome" mode; renderer will request resize when needed.
   mainWindow = new BrowserWindow({
-    width: 1200,
-    height: 800,
+    width: 1000,
+    height: 700,
     show: false,
     autoHideMenuBar: true,
+    resizable: false,
+    maximizable: false,
     titleBarStyle: 'hidden', // Frameless but resizable
     titleBarOverlay: false, // We will draw our own controls
     icon,
@@ -277,6 +280,8 @@ function createWindow(): void {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
+  if (!gotTheLock) return;
+
   // Show splash screen immediately
   createSplashWindow();
 
@@ -570,6 +575,35 @@ app.whenReady().then(() => {
   ipcMain.on('window:close', (event) => {
     const win = BrowserWindow.fromWebContents(event.sender)
     win?.close()
+  })
+
+  // --- Dynamic Window Mode IPCs ---
+  ipcMain.on('window:setup-welcome', (event) => {
+    const win = BrowserWindow.fromWebContents(event.sender)
+    if (!win) return
+    win.setResizable(false)
+    win.setMaximizable(false)
+    if (win.isMaximized()) win.unmaximize()
+    win.setSize(1000, 700)
+    win.center()
+  })
+
+  ipcMain.on('window:setup-builder', (event) => {
+    const win = BrowserWindow.fromWebContents(event.sender)
+    if (!win) return
+    win.setResizable(true)
+    win.setMaximizable(true)
+    win.setSize(1100, 800)
+    win.center()
+  })
+
+  ipcMain.on('window:setup-main', (event) => {
+    const win = BrowserWindow.fromWebContents(event.sender)
+    if (!win) return
+    win.setResizable(true)
+    win.setMaximizable(true)
+    win.setSize(1200, 800)
+    win.center()
   })
 
   createWindow()

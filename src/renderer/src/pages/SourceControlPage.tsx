@@ -30,6 +30,7 @@ export const SourceControlPage = () => {
     const [showBranchModal, setShowBranchModal] = useState(false);
     const [containerHeight, setContainerHeight] = useState(500);
     const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set());
+    const [fetchedRemotes, setFetchedRemotes] = useState<any[]>([]);
 
     // Dialog States
     const [discardDialog, setDiscardDialog] = useState<{ open: boolean, file: string | null }>({ open: false, file: null });
@@ -60,6 +61,17 @@ export const SourceControlPage = () => {
         resizeObserver.observe(listContainerRef.current);
         return () => resizeObserver.disconnect();
     }, []);
+
+    // Fetch remotes
+    useEffect(() => {
+        if (!vaultPath || !isRepo) {
+            setFetchedRemotes([]);
+            return;
+        }
+        window.api.git.getRemotes(vaultPath).then(remotes => {
+            setFetchedRemotes(remotes || []);
+        }).catch(console.error);
+    }, [vaultPath, isRepo, status?.tracking, actionLoading]);
 
     // Handlers
     const handleClone = async () => {
@@ -439,6 +451,14 @@ export const SourceControlPage = () => {
                             </span>
                             <span className="flex items-center gap-1">
                                 <Icon name="ArrowDown" size={10} /> {status.behind}
+                            </span>
+                        </div>
+                    )}
+                    {fetchedRemotes.length > 0 && (
+                        <div className="flex items-center gap-1 ml-2 text-[10px] text-muted-foreground truncate max-w-[200px]" title={fetchedRemotes.find(r => r.name === defaultRemote)?.refs?.fetch || fetchedRemotes[0]?.refs?.fetch}>
+                            <Icon name="Globe" size={10} className="shrink-0" />
+                            <span className="truncate">
+                                {(fetchedRemotes.find(r => r.name === defaultRemote)?.refs?.fetch || fetchedRemotes[0]?.refs?.fetch).replace(/^https?:\/\//, '').replace(/^git@github\.com:/, '')}
                             </span>
                         </div>
                     )}

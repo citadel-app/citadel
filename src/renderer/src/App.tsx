@@ -36,6 +36,7 @@ const TagManagerPage = lazy(() => import('./pages/TagManagerPage').then(m => ({ 
 const KanbanPage = lazy(() => import('./pages/KanbanPage').then(m => ({ default: m.KanbanPage })));
 const DebugDatabasePage = lazy(() => import('./pages/DebugDatabasePage').then(m => ({ default: m.DebugDatabasePage })));
 const WelcomePage = lazy(() => import('./pages/WelcomePage').then(m => ({ default: m.WelcomePage })));
+const WorkspaceBuilderPage = lazy(() => import('./pages/WorkspaceBuilderPage').then(m => ({ default: m.WorkspaceBuilderPage })));
 const NotebookPage = lazy(() => import('./pages/NotebookPage').then(m => ({ default: m.NotebookPage })));
 const LatexEditorPage = lazy(() => import('./pages/LatexEditorPage').then(m => ({ default: m.LatexEditorPage })));
 const NotesPage = lazy(() => import('./pages/NotesPage').then(m => ({ default: m.NotesPage })));
@@ -55,7 +56,7 @@ const LoadingFallback = () => (
 );
 
 const AppContent = () => {
-  const { vaultPath, isLoading } = useConfig();
+  const { vaultPath, isLoading, setVaultPath } = useConfig();
   const [initialStep, setInitialStep] = React.useState<'auth-gate' | 'logged-in-setup' | undefined>(undefined);
   const [stepResolved, setStepResolved] = React.useState(false);
 
@@ -82,6 +83,38 @@ const AppContent = () => {
     }
   }, [isLoading, vaultPath, stepResolved]);
 
+  // When we have a vault path, switch window to main (resizable) mode
+  React.useEffect(() => {
+    if (vaultPath) {
+      window.api.window.setupMain();
+    }
+  }, [vaultPath]);
+
+  // Global Deep Link Handler
+  React.useEffect(() => {
+    const cleanup = window.api.app.onDeepLink((url: string) => {
+      console.log('[App] Received global deep link:', url);
+      try {
+        if (url.startsWith('citadel://') || url.startsWith('codex://')) {
+          const urlObj = new URL(url);
+          if (urlObj.hostname === 'clone') {
+            const targetUrl = urlObj.searchParams.get('url');
+            if (targetUrl) {
+              window.localStorage.setItem('citadel-pending-clone-url', targetUrl);
+              window.dispatchEvent(new CustomEvent('citadel-deeplink-clone', { detail: targetUrl }));
+              if (setVaultPath && vaultPath) {
+                setVaultPath('');
+              }
+            }
+          }
+        }
+      } catch (e) {
+        console.error('[App] Failed to parse deep link:', e);
+      }
+    });
+    return cleanup;
+  }, [setVaultPath, vaultPath]);
+
   if (isLoading || (!vaultPath && !stepResolved)) {
     return <SplashScreen />;
   }
@@ -95,6 +128,7 @@ const AppContent = () => {
             {!vaultPath ? (
               <>
                 <Route path="/" element={<WelcomePage initialStep={initialStep || 'auth-gate'} />} />
+                <Route path="/workspace-builder" element={<WorkspaceBuilderPage />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </>
             ) : (
