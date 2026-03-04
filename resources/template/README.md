@@ -1,11 +1,11 @@
 <div align="center">
-  <img src="https://raw.githubusercontent.com/iwannabebot/codex/main/resources/icon.png" alt="Citadel Logo" width="120" />
+  <img src="" alt="Citadel Logo" width="120" />
 </div>
 
 <h1 align="center">{{WORKSPACE_NAME}}</h1>
 
 <div align="center">
-  <strong>This workspace is managed by <a href="https://github.com/iwannabebot/codex">Citadel</a></strong><br>
+  <strong>This workspace is managed by <a href="https://github.com/iwannabebot/citadel">Citadel</a></strong><br>
   A smart, hackable workspace for software engineering and document discovery.
 </div>
 
@@ -18,6 +18,8 @@
 </div>
 
 ---
+
+![Citadel Logo](./images/icon.png)
 
 ## 🚀 Quick Start
 

@@ -1,7 +1,7 @@
 {
   "name": "codex",
-  "version": "1.0.0",
-  "description": "organize better",
+  "version": "1.0.0-alpha.1",
+  "description": "a hackable second brain for software developers",
   "main": "./out/main/index.js",
   "author": "Citadel",
   "homepage": "https://github.com/iwannabebot/citadel",

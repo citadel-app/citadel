@@ -23,6 +23,14 @@ export const StatusBar = () => {
     const [ttsConnected, setTtsConnected] = useState(false);
     const [executionConnected, setExecutionConnected] = useState(false);
     const [localZoom, setLocalZoom] = useState(appSettings.zoomFactor || 1.0);
+    const [appVersion, setAppVersion] = useState<string>('');
+
+    // Fetch App Version
+    useEffect(() => {
+        window.api.app.getInitContext().then((ctx: any) => {
+            if (ctx?.appVersion) setAppVersion(ctx.appVersion);
+        }).catch(console.error);
+    }, []);
 
     // Sync local zoom with app settings (for resets/loads)
     useEffect(() => {
@@ -257,6 +265,13 @@ export const StatusBar = () => {
                 <div className="flex items-center gap-1 hover:bg-white/10 px-1 rounded cursor-pointer transition-colors" title="Notifications">
                     <Icon name="Bell" size={12} />
                 </div>
+
+                {/* App Version */}
+                {appVersion && (
+                    <div className="flex items-center pl-3 border-l border-border/50 text-muted-foreground/50 hover:text-muted-foreground transition-colors cursor-default" title={`Citadel v${appVersion}`}>
+                        v{appVersion}
+                    </div>
+                )}
             </div>
         </div>
     );
