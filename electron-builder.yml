@@ -38,9 +38,8 @@ nsis:
   shortcutName: ${productName}
   uninstallDisplayName: ${productName}
   createDesktopShortcut: always
-  include: build/installer.nsh
 mac:
-  entitlementsInherit: build/entitlements.mac.plist
+  entitlementsInherit: resources/entitlements.mac.plist
   extendInfo:
     - NSCameraUsageDescription: Application requests access to the device's camera.
     - NSMicrophoneUsageDescription: Application requests access to the device's microphone.
