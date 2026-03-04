@@ -17,3 +17,4 @@ jobs:
               with:
                   release-type: node
                   prerelease: true
+                  token: ${{ secrets.PAT || secrets.GITHUB_TOKEN }}
