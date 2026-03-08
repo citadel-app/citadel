@@ -1,4 +1,4 @@
-import { FeedItem } from '../../context/YouTubeContext';
+import { FeedItem } from '@shared';
 import { YouTubeVideoCard } from './YouTubeVideoCard';
 import { YouTubeVideoRow } from './YouTubeVideoRow';
 import { Icon } from '../IconRegistry';

@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { useAppSettings } from './AppSettingsContext';
-import { peerService, PeerMessage } from '../lib/PeerService';
+import { peerService } from '../lib/PeerService';
+import { type PeerMessage } from '@shared';
 
 interface PeerContextType {
     status: 'connected' | 'disconnected' | 'error' | 'loading';

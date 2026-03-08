@@ -21,7 +21,7 @@ export interface CustomAPI {
     openExternal: (url: string) => Promise<void>
     onLog: (callback: (data: { severity: 'warning' | 'error', message: string }) => void) => () => void;
     onDeepLink: (callback: (url: string) => void) => () => void;
-    getInitContext: () => Promise<{ workspacePath: string | null, appVersion: string, platform: string }>;
+    getInitContext: () => Promise<{ workspacePath: string | null, appVersion: string, platform: string, deepLinkUrl?: string | null }>;
     openWorkspace: (path: string) => Promise<void>;
     setActiveWorkspace: (path: string) => Promise<boolean>;
   }

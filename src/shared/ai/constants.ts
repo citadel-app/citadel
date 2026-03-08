@@ -1,0 +1,37 @@
+export interface PopularModel {
+    name: string;
+    displayName: string;
+    parameters: string;
+    size: string;
+    installCommand: string;
+}
+
+export const POPULAR_MODELS: PopularModel[] = [
+    { name: 'gemma2:2b', displayName: 'Gemma 2', parameters: '2B', size: '1.6GB', installCommand: 'ollama run gemma2:2b' },
+    { name: 'gemma2:9b', displayName: 'Gemma 2', parameters: '9B', size: '5.4GB', installCommand: 'ollama run gemma2:9b' },
+    { name: 'gemma2:27b', displayName: 'Gemma 2', parameters: '27B', size: '16GB', installCommand: 'ollama run gemma2:27b' },
+    { name: 'gemma3:4b', displayName: 'Gemma 3 (Balanced)', parameters: '4B', size: '3.3GB', installCommand: 'ollama run gemma3:4b' },
+    { name: 'gemma3:12b', displayName: 'Gemma 3 (High Intelligence)', parameters: '12B', size: '8.1GB', installCommand: 'ollama run gemma3:12b' },
+    { name: 'phi3', displayName: 'Phi 3', parameters: '3.8B', size: '2.3GB', installCommand: 'ollama run phi3' },
+    { name: 'phi3:14b', displayName: 'Phi 3', parameters: '14B', size: '7.9GB', installCommand: 'ollama run phi3:14b' },
+    { name: 'phi4-mini:3.8b', displayName: 'Phi-4 Mini (Reasoning)', parameters: '3.8B', size: '2.3GB', installCommand: 'ollama run phi4-mini:3.8b' },
+    { name: 'mistral', displayName: 'Mistral', parameters: '7B', size: '4.1GB', installCommand: 'ollama run mistral' },
+    { name: 'llama3', displayName: 'Llama 3', parameters: '8B', size: '4.7GB', installCommand: 'ollama run llama3' },
+    { name: 'llama3:70b', displayName: 'Llama 3', parameters: '70B', size: '40GB', installCommand: 'ollama run llama3:70b' },
+    { name: 'deepseek-r1', displayName: 'DeepSeek R1', parameters: '7B', size: '4.7GB', installCommand: 'ollama run deepseek-r1' },
+    { name: 'deepseek-r1:1.5b', displayName: 'DeepSeek R1', parameters: '1.5B', size: '1.1GB', installCommand: 'ollama run deepseek-r1:1.5b' },
+    { name: 'deepseek-r1:8b', displayName: 'DeepSeek R1', parameters: '8B', size: '4.9GB', installCommand: 'ollama run deepseek-r1:8b' },
+    { name: 'deepseek-r1:32b', displayName: 'DeepSeek R1', parameters: '32B', size: '19GB', installCommand: 'ollama run deepseek-r1:32b' },
+    { name: 'deepseek-r1:70b', displayName: 'DeepSeek R1', parameters: '70B', size: '43GB', installCommand: 'ollama run deepseek-r1:70b' },
+    { name: 'deepseek-r1:7b', displayName: 'DeepSeek R1 (Technical)', parameters: '7B', size: '4.7GB', installCommand: 'ollama run deepseek-r1:7b' },
+    { name: 'qwen2.5:0.5b', displayName: 'Qwen 2.5', parameters: '0.5B', size: '398MB', installCommand: 'ollama run qwen2.5:0.5b' },
+    { name: 'qwen2.5:1.5b', displayName: 'Qwen 2.5', parameters: '1.5B', size: '986MB', installCommand: 'ollama run qwen2.5:1.5b' },
+    { name: 'qwen2.5:3b', displayName: 'Qwen 2.5', parameters: '3B', size: '1.9GB', installCommand: 'ollama run qwen2.5:3b' },
+    { name: 'qwen2.5-coder:7b', displayName: 'Qwen 2.5 Coder (Engineering)', parameters: '7B', size: '4.7GB', installCommand: 'ollama run qwen2.5-coder:7b' },
+    { name: 'neural-chat', displayName: 'Neural Chat', parameters: '7B', size: '4.1GB', installCommand: 'ollama run neural-chat' },
+    { name: 'starling-lm', displayName: 'Starling', parameters: '7B', size: '4.1GB', installCommand: 'ollama run starling-lm' },
+    { name: 'codellama', displayName: 'Code Llama', parameters: '7B', size: '3.8GB', installCommand: 'ollama run codellama' },
+    { name: 'llama2-uncensored', displayName: 'Llama 2 Uncensored', parameters: '7B', size: '3.8GB', installCommand: 'ollama run llama2-uncensored' },
+    { name: 'llava', displayName: 'LLaVA', parameters: '7B', size: '4.5GB', installCommand: 'ollama run llava' },
+    { name: 'moondream', displayName: 'Moondream 2', parameters: '1.4B', size: '829MB', installCommand: 'ollama run moondream' },
+];

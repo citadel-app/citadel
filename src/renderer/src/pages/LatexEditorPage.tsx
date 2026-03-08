@@ -146,7 +146,6 @@ export const LatexEditorPage = () => {
             if (isProgrammaticChange.current) return;
 
             const newValue = editor.getValue();
-
             if (isProMode) {
                 // Use Ref to get current index, as this closure captures the initial 0 value
                 const idx = activeFileIndexRef.current;
@@ -185,13 +184,18 @@ export const LatexEditorPage = () => {
     useEffect(() => {
         if (editorRef.current && isProMode) {
             const currentFile = files[activeFileIndex];
-            if (currentFile && editorRef.current.getValue() !== currentFile.content) {
-                isProgrammaticChange.current = true;
-                editorRef.current.setValue(currentFile.content);
-                isProgrammaticChange.current = false;
+            if (currentFile && !currentFile.isBinary) {
+                if (editorRef.current.getValue() !== currentFile.content) {
+                    isProgrammaticChange.current = true;
+                    editorRef.current.setValue(currentFile.content || '');
+                    // Small delay to ensure the change is processed before we allow auto-compile
+                    setTimeout(() => {
+                        isProgrammaticChange.current = false;
+                    }, 100);
+                }
             }
         }
-    }, [activeFileIndex, isProMode]);
+    }, [activeFileIndex, isProMode]); // Only depend on index and mode
 
     // Debounced save for DB (Quick Mode)
     const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -474,9 +478,9 @@ export const LatexEditorPage = () => {
         <div className="h-full w-full flex flex-col bg-background min-h-0 overflow-hidden">
             {/* Toolbar */}
             <div className="h-10 border-b border-border flex items-center px-4 justify-between bg-muted/20 shrink-0">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 font-medieval">
                     <Icon name="Sigma" size={16} className="text-primary" />
-                    <span className="text-sm font-medium">LaTeX Editor</span>
+                    <span className="text-sm font-bold uppercase tracking-widest">The Scribe</span>
 
                     <div className="h-4 w-[1px] bg-border mx-2" />
 
@@ -537,7 +541,7 @@ export const LatexEditorPage = () => {
                     <button
                         onClick={handleManualSave}
                         disabled={isSaving}
-                        className="flex items-center gap-1.5 h-6 text-xs bg-muted text-muted-foreground px-3 rounded hover:bg-muted/80 hover:text-foreground focus:outline-none transition-all mr-2"
+                        className="flex items-center gap-1.5 h-7 text-xs bg-muted text-muted-foreground px-4 rounded-lg hover:bg-muted/80 hover:text-foreground focus:outline-none transition-all mr-2 font-medieval border border-border/50"
                     >
                         {isSaving ? (
                             <>
@@ -556,7 +560,7 @@ export const LatexEditorPage = () => {
                         onClick={handleManualCompile}
                         disabled={isCompiling}
                         className={cn(
-                            "flex items-center gap-1.5 h-6 text-xs bg-primary text-primary-foreground px-3 rounded hover:bg-primary/90 focus:outline-none transition-all",
+                            "flex items-center gap-1.5 h-7 text-xs bg-primary text-primary-foreground px-4 active:scale-95 btn-forged font-medieval",
                             isCompiling && "opacity-70 cursor-wait"
                         )}
                     >
@@ -582,7 +586,7 @@ export const LatexEditorPage = () => {
                     {/* File Tree (Pro Mode Only) */}
                     {
                         isProMode && (
-                            <Panel defaultSize="20" minSize="10" maxSize="80" className="bg-muted/10 border-r border-border">
+                            <Panel defaultSize="20" minSize="10" maxSize="80" className="bg-muted/5 border-r border-border/50 gothic-panel">
                                 <div className="flex flex-col h-full">
                                     <div className="p-2 flex justify-between items-center border-b border-border/50">
                                         <span className="text-xs font-semibold text-muted-foreground">FILES</span>
@@ -601,15 +605,31 @@ export const LatexEditorPage = () => {
                                         <FileTree
                                             files={files}
                                             activeFile={files[activeFileIndex]?.name || null}
-                                            onSelect={(path) => {
+                                            onSelect={async (path) => {
                                                 const idx = files.findIndex(f => f.name === path);
                                                 if (idx !== -1) {
-                                                    // Flush save for previous if needed
                                                     const currentFile = files[activeFileIndex];
+
+                                                    // Flush save for previous if needed
                                                     if (currentFile && files[idx].name !== currentFile.name && !currentFile.isBinary) {
-                                                        dataManager.saveLatexFile(currentFile.name, currentFile.content, false).catch(console.error);
+                                                        // @ts-ignore
+                                                        dataManager.saveLatexFile(currentFile.name, currentFile.content).catch(console.error);
                                                         if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
                                                     }
+
+                                                    // Lazy load content if missing (for binaries or large files)
+                                                    if (files[idx].content === null) {
+                                                        // @ts-ignore
+                                                        const content = await dataManager.getLatexFileContent(files[idx].name, !!files[idx].isBinary);
+                                                        if (content !== null) {
+                                                            setFiles(prev => {
+                                                                const next = [...prev];
+                                                                next[idx] = { ...next[idx], content };
+                                                                return next;
+                                                            });
+                                                        }
+                                                    }
+
                                                     setActiveFileIndex(idx);
                                                 }
                                             }}
@@ -763,10 +783,10 @@ export const LatexEditorPage = () => {
             < Dialog.Root open={isHelpOpen} onOpenChange={setIsHelpOpen} >
                 <Dialog.Portal>
                     <Dialog.Overlay className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 animate-in fade-in" />
-                    <Dialog.Content className="fixed top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%] max-w-lg w-full bg-background p-6 rounded-lg shadow-xl border border-border z-50 animate-in zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:zoom-out-95 duration-200">
-                        <Dialog.Title className="text-lg font-semibold mb-2 flex items-center gap-2">
+                    <Dialog.Content className="fixed top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%] max-w-lg w-full bg-background p-6 rounded-lg shadow-xl border border-border z-50 animate-in zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:zoom-out-95 duration-200 citadel-border">
+                        <Dialog.Title className="text-lg font-bold mb-2 flex items-center gap-2 font-medieval uppercase tracking-tight">
                             <Icon name="AlertTriangle" className="text-yellow-500" />
-                            LaTeX Compiler Not Found
+                            Compiler Not Found
                         </Dialog.Title>
                         <Dialog.Description className="text-muted-foreground mb-4">
                             Pro Mode requires a local LaTeX installation (`pdflatex`) to compile documents.
@@ -805,9 +825,9 @@ export const LatexEditorPage = () => {
                         <div className="flex justify-end mt-6">
                             <button
                                 onClick={() => setIsHelpOpen(false)}
-                                className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 text-sm font-medium"
+                                className="px-6 py-2 bg-primary text-primary-foreground text-sm font-bold font-medieval btn-forged"
                             >
-                                Close
+                                Understood
                             </button>
                         </div>
                     </Dialog.Content>
@@ -818,7 +838,7 @@ export const LatexEditorPage = () => {
             < UiDialog open={isNewFileOpen} onOpenChange={setIsNewFileOpen} >
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>New File</DialogTitle>
+                        <DialogTitle className="font-medieval uppercase tracking-widest">New Scroll</DialogTitle>
                     </DialogHeader>
                     <div className="space-y-4 py-4">
                         <div className="space-y-2">
@@ -845,9 +865,9 @@ export const LatexEditorPage = () => {
                         </button>
                         <button
                             onClick={confirmAddFile}
-                            className="px-3 py-2 bg-primary text-primary-foreground rounded-md text-sm hover:bg-primary/90"
+                            className="px-6 py-2 bg-primary text-primary-foreground text-sm font-bold font-medieval btn-forged"
                         >
-                            Create File
+                            Forge Scroll
                         </button>
                     </DialogFooter>
                 </DialogContent>

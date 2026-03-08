@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ModuleDefinition } from '../../config/entry-types';
+import { type ModuleDefinition } from '@shared';
 import { ModuleDefinitionEditor } from './editors/ModuleDefinitionEditor';
 import { Icon } from '../IconRegistry';
 import { Plus, Trash2, Edit2, Box } from 'lucide-react';

@@ -1,6 +1,6 @@
 // Wrapper for the exposed Electron FS API
 
-import { APP_CONSTANTS } from '../config/constants';
+import { APP_CONSTANTS } from '@shared';
 
 export const fs = {
     readDirectory: async (path: string): Promise<string[]> => {
@@ -23,6 +23,9 @@ export const fs = {
     },
     exists: async (path: string): Promise<boolean> => {
         return window.api.fs.exists(path);
+    },
+    stat: async (path: string): Promise<{ mtimeMs: number }> => {
+        return window.api.fs.stat(path);
     },
     getDocumentsPath: async (): Promise<string> => {
         return window.api.fs.getDocumentsPath();

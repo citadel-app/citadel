@@ -5,7 +5,7 @@ import { dataManager } from '../lib/data-manager';
 import { useRSS } from '../context/RSSContext';
 import { Icon, DynamicIcon } from './IconRegistry';
 import { ConfirmDialog } from './ConfirmDialog';
-import { EntryFieldConfig } from '../config/entry-types';
+import { type EntryFieldConfig } from '@shared';
 import { useConfig } from '../context/ConfigContext';
 import { useAppSettings } from '../context/AppSettingsContext';
 import { cn } from '../lib/utils';
@@ -45,7 +45,7 @@ export const EntryHeader = ({
 }: EntryHeaderProps) => {
     const navigate = useNavigate();
     const { linkEntryToItem } = useRSS();
-    const { getEntryTypeConfig } = useConfig();
+    const { getEntryTypeConfig, entryTypes } = useConfig();
     const { settings } = useAppSettings();
     const { getCategoryForTag } = useTagCategories();
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -134,24 +134,27 @@ export const EntryHeader = ({
                                 />
                             )}
 
-                            <button
-                                onClick={() => {
-                                    const pending = localStorage.getItem('codex-pending-chat-context');
-                                    let ids: string[] = [];
-                                    if (pending) {
-                                        try { ids = JSON.parse(pending); } catch (e) { }
-                                    }
-                                    if (!ids.includes(entry.id)) {
-                                        ids.push(entry.id);
-                                        localStorage.setItem('codex-pending-chat-context', JSON.stringify(ids));
-                                    }
-                                    navigate('/');
-                                }}
-                                className="text-muted-foreground hover:text-primary transition-colors p-1"
-                                title="Add to Chat Context"
-                            >
-                                <Icon name="MessageSquare" size={16} />
-                            </button>
+                            {/* Add to Chat Context */}
+                            {aiEnabled && (
+                                <button
+                                    onClick={() => {
+                                        const pending = localStorage.getItem('codex-pending-chat-context');
+                                        let ids: string[] = [];
+                                        if (pending) {
+                                            try { ids = JSON.parse(pending); } catch (e) { }
+                                        }
+                                        if (!ids.includes(entry.id)) {
+                                            ids.push(entry.id);
+                                            localStorage.setItem('codex-pending-chat-context', JSON.stringify(ids));
+                                        }
+                                        navigate('/');
+                                    }}
+                                    className="text-muted-foreground hover:text-primary transition-colors p-1"
+                                    title="Add to Chat Context"
+                                >
+                                    <Icon name="MessageSquare" size={16} />
+                                </button>
+                            )}
 
                             {onDeleteEntry && (
                                 <button
@@ -327,7 +330,9 @@ export const EntryHeader = ({
                                     <div className="flex flex-wrap gap-2">
                                         {entry.relatedLinks.map((link, i) => {
                                             const isRss = link.type === 'rss-item';
-                                            const isInternal = ['problem', 'design', 'paper', 'rfc', 'blog', 'standard'].includes(link.type || '');
+                                            // A link is internal if it has a type (and is not rss-item) and has an ID.
+                                            // This allows navigation even if the type is not in the CURRENT workspace config (e.g. cross-preset links).
+                                            const isInternal = !!(link.id && link.type && link.type !== 'rss-item');
                                             const linkConfig = isInternal ? getEntryTypeConfig(link.type) : null;
 
                                             // Default styling for generic/external links
@@ -364,6 +369,7 @@ export const EntryHeader = ({
                                                             if (isRss) {
                                                                 window.location.hash = `#/rss?itemId=${link.id}`;
                                                             } else if (isInternal) {
+                                                                // link.type is guaranteed here by isInternal check
                                                                 navigate(`/${link.type}/${link.id}`);
                                                             } else if (link.url) {
                                                                 window.api.app.openExternal(link.url);

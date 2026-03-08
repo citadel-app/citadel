@@ -3,20 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import { FolderOpen, X, ChevronRight, Github, Loader2, Plus, Copy, Check, ExternalLink, Shield, GitBranch, Cpu, BookOpen, Globe, Wifi, WifiOff, ArrowLeft, Lock, Search, LogOut } from 'lucide-react';
 import { dataManager } from '../lib/data-manager';
 import { useConfig } from '../context/ConfigContext';
-import { PRESETS, WorkspacePreset } from '../config/presets';
 import { DynamicIcon } from '../components/IconRegistry';
-import { DEFAULT_WORKSPACE_CONFIG } from '../config/entry-types';
-import { APP_CONSTANTS } from '../config/constants';
+import { DEFAULT_WORKSPACE_CONFIG, type WorkspaceConfig, type EntryTypeConfig, type WorkspacePreset, PRESETS, APP_CONSTANTS } from '@shared';
 import logoMain from '../assets/branding/banner-inverted.png';
 
 type WelcomeStep = 'auth-gate' | 'logged-in-setup' | 'offline-setup' | 'configure-workspace' | 'create-repo' | 'pick-repo' | 'clone-remote';
 
-interface WelcomePageProps {
-    initialStep?: WelcomeStep;
-}
-
-export const WelcomePage: React.FC<WelcomePageProps> = ({ initialStep }) => {
-    const { setVaultPath, recentVaults } = useConfig();
+export const WelcomePage: React.FC = () => {
+    const { setVaultPath, recentVaults, pendingDeepLink, clearPendingDeepLink } = useConfig();
     const navigate = useNavigate();
 
     // Lock window to fixed welcome size on mount
@@ -24,8 +18,8 @@ export const WelcomePage: React.FC<WelcomePageProps> = ({ initialStep }) => {
         window.api.window.setupWelcome();
     }, []);
 
-    // Determine initial step from props or default to auth-gate
-    const [step, setStep] = React.useState<WelcomeStep>(initialStep || 'auth-gate');
+    // Determine initial step
+    const [step, setStep] = React.useState<WelcomeStep>('auth-gate');
 
     // --- Workspace Configuration State ---
     const [selectedPreset, setSelectedPreset] = React.useState<WorkspacePreset | null>(PRESETS[0]);
@@ -154,26 +148,26 @@ export const WelcomePage: React.FC<WelcomePageProps> = ({ initialStep }) => {
                         const activePref = await window.api.secrets.get('github_active_login');
                         const active = valid.find(a => a.login === activePref) ? activePref : valid[0].login;
                         setActiveLogin(active);
-                        if (!initialStep || initialStep === 'auth-gate') {
+                        if (step === 'auth-gate') {
                             setStep('logged-in-setup');
                         }
                     } else if (oldToken) {
                         await addAccountFromToken(oldToken);
-                        if (!initialStep || initialStep === 'auth-gate') {
+                        if (step === 'auth-gate') {
                             setStep('logged-in-setup');
                         }
                     }
                 } catch {
                     if (oldToken) {
                         await addAccountFromToken(oldToken);
-                        if (!initialStep || initialStep === 'auth-gate') {
+                        if (step === 'auth-gate') {
                             setStep('logged-in-setup');
                         }
                     }
                 }
             } else if (oldToken) {
                 await addAccountFromToken(oldToken);
-                if (!initialStep || initialStep === 'auth-gate') {
+                if (step === 'auth-gate') {
                     setStep('logged-in-setup');
                 }
             }
@@ -182,30 +176,30 @@ export const WelcomePage: React.FC<WelcomePageProps> = ({ initialStep }) => {
         return () => { if (pollTimerRef.current) clearInterval(pollTimerRef.current); };
     }, []);
 
-    // --- Deep Link Handling (Forwarded from App.tsx) ---
+    // --- Deep Link Handling (Unified from ConfigContext) ---
     React.useEffect(() => {
-        const checkPendingClone = (url?: string) => {
-            const targetUrl = url || window.localStorage.getItem('citadel-pending-clone-url');
-            if (targetUrl) {
-                console.log('[WelcomePage] Processing pending clone:', targetUrl);
-                setStep('clone-remote');
-                setRemoteUrlToClone(targetUrl);
-                window.localStorage.removeItem('citadel-pending-clone-url');
+        const processUrl = (url: string) => {
+            try {
+                const urlObj = new URL(url);
+                if (urlObj.hostname === 'clone' || urlObj.pathname.includes('clone')) {
+                    const targetUrl = urlObj.searchParams.get('url');
+                    if (targetUrl) {
+                        console.log('[WelcomePage] Processing deep link:', targetUrl);
+                        setStep('clone-remote');
+                        setRemoteUrlToClone(targetUrl);
+                        // Consume it so it doesn't trigger again on re-mount
+                        clearPendingDeepLink();
+                    }
+                }
+            } catch (e) {
+                console.error('[WelcomePage] Failed to parse deep link:', e);
             }
         };
 
-        checkPendingClone();
-
-        const handleCustomEvent = (e: Event) => {
-            const customEvent = e as CustomEvent;
-            if (customEvent.detail) {
-                checkPendingClone(customEvent.detail);
-            }
-        };
-
-        window.addEventListener('citadel-deeplink-clone', handleCustomEvent);
-        return () => window.removeEventListener('citadel-deeplink-clone', handleCustomEvent);
-    }, []);
+        if (pendingDeepLink) {
+            processUrl(pendingDeepLink);
+        }
+    }, [pendingDeepLink, clearPendingDeepLink]);
 
     // --- Auth Flow ---
     const startDeviceFlow = async () => {
@@ -462,12 +456,11 @@ export const WelcomePage: React.FC<WelcomePageProps> = ({ initialStep }) => {
                 await window.api.git.setConfig(localPath, 'user.name', githubUser.name || githubUser.login);
                 await window.api.git.setConfig(localPath, 'user.email', `${githubUser.login}@users.noreply.github.com`);
             }
-            await window.api.git.addRemote(localPath, 'origin', repoData.clone_url);
+            const authUrl = repoData.clone_url.replace('https://', `https://${githubToken}@`);
+            await window.api.git.addRemote(localPath, 'origin', authUrl);
             await window.api.git.add(localPath, ['.']);
             await window.api.git.commit(localPath, 'Initial commit from Citadel');
-            const authUrl = repoData.clone_url.replace('https://', `https://${githubToken}@`);
-            await window.api.git.addRemote(localPath, 'origin_auth', authUrl);
-            await window.api.git.push(localPath, 'origin_auth', 'main');
+            await window.api.git.push(localPath, 'origin', 'main');
             localStorage.setItem('codex-show-tour', 'true');
             await setVaultPath(localPath);
         } catch (e: any) {
@@ -487,7 +480,7 @@ export const WelcomePage: React.FC<WelcomePageProps> = ({ initialStep }) => {
     const RecentWorkspaces = () => (
         recentVaults && recentVaults.length > 0 ? (
             <div className="space-y-2">
-                <h3 className="text-xs font-black text-muted-foreground/60 uppercase tracking-[0.2em] px-1">Recent Workspaces</h3>
+                <h3 className="text-xs font-black text-muted-foreground/60 uppercase tracking-[0.2em] px-1">Recent Keeps</h3>
                 <div className="space-y-1.5">
                     {recentVaults.map((path, i) => (
                         <button
@@ -553,11 +546,11 @@ export const WelcomePage: React.FC<WelcomePageProps> = ({ initialStep }) => {
 
     // --- Header with Logo ---
     const PageHeader = ({ subtitle }: { subtitle?: string }) => (
-        <div className="flex flex-col items-center gap-3">
-            <img src={logoMain} alt="Citadel" className="w-96 object-contain drop-shadow-lg" />
+        <div className="flex flex-col items-center gap-3 animate-in fade-in slide-in-from-top-4 duration-1000">
+            <img src={logoMain} alt="Citadel" className="w-96 object-contain drop-shadow-[0_0_30px_rgba(var(--primary-rgb),0.2)]" />
 
             {subtitle && (
-                <p className="text-muted-foreground text-sm max-w-md text-center font-medium opacity-80" style={{ fontFamily: "'Cinzel', serif" }}>
+                <p className="text-muted-foreground text-sm max-w-md text-center font-medium opacity-80 font-medieval tracking-widest uppercase">
                     {subtitle}
                 </p>
             )}
@@ -570,7 +563,7 @@ export const WelcomePage: React.FC<WelcomePageProps> = ({ initialStep }) => {
             style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}
         >
             {/* Background Decorative Elements */}
-            <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none opacity-20">
+            <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none opacity-20 gothic-panel">
                 <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-primary/20 rounded-full blur-[120px] animate-pulse" />
                 <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-purple-500/10 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '1s' }} />
             </div>
@@ -585,269 +578,297 @@ export const WelcomePage: React.FC<WelcomePageProps> = ({ initialStep }) => {
             </button>
 
             <div
-                className="max-w-4xl w-full space-y-8 z-10"
+                className="w-full max-w-6xl space-y-8 z-10 px-4"
                 style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
             >
                 {/* ========== AUTH GATE STEP ========== */}
                 {step === 'auth-gate' && (
-                    <div className="flex flex-col items-center gap-10 animate-in fade-in duration-500">
-                        <PageHeader subtitle="Smart and hackable workspace for software engineering and document discovery." />
+                    <div className="flex flex-col items-center gap-8 animate-in fade-in duration-500 w-full">
+                        <PageHeader subtitle="Your hackable sanctuary for software engineering and technical research." />
                         <FeaturePills />
 
-                        {/* Auth Options */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 w-full max-w-2xl">
-                            {/* Sign in with GitHub */}
-                            <button
-                                onClick={startDeviceFlow}
-                                disabled={isPolling}
-                                className="group flex flex-col items-center gap-5 p-8 rounded-[2rem] bg-card/40 border border-muted hover:bg-card hover:border-primary/40 transition-all backdrop-blur-sm hover:-translate-y-1"
-                            >
-                                <div className="p-4 rounded-2xl bg-muted/50 text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary transition-colors">
-                                    <Github className="w-8 h-8" />
-                                </div>
-                                <div className="text-center space-y-1">
-                                    <h3 className="font-bold text-base">Sign in with GitHub</h3>
-                                    <p className="text-[10px] text-muted-foreground font-medium opacity-60">
-                                        Create repos, sync workspaces, collaborate
-                                    </p>
-                                </div>
-                                <div className="flex items-center gap-1.5 text-[9px] font-bold text-muted-foreground/40 uppercase tracking-wider">
-                                    <Shield className="w-3 h-3" />
-                                    GitHub App • Fine-grained permissions
-                                </div>
-                            </button>
+                        <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-8 w-full items-start mt-4">
+                            <div className="flex flex-col gap-6 w-full items-center">
+                                {/* Auth Options */}
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 w-full">
+                                    {/* Sign in with GitHub */}
+                                    <button
+                                        onClick={startDeviceFlow}
+                                        disabled={isPolling}
+                                        className="group flex flex-col items-center gap-5 p-8 rounded-[2rem] bg-card/40 border border-muted hover:bg-card hover:border-primary/40 transition-all backdrop-blur-sm hover:-translate-y-1 citadel-border"
+                                    >
+                                        <div className="p-4 rounded-2xl bg-muted/50 text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+                                            <Github className="w-8 h-8" />
+                                        </div>
+                                        <div className="text-center space-y-1">
+                                            <h3 className="font-bold text-base font-medieval">Sign in with GitHub</h3>
+                                            <p className="text-[10px] text-muted-foreground font-medium opacity-60">
+                                                Establish Bastion, sync Keeps, collaborate
+                                            </p>
+                                        </div>
+                                        <div className="flex items-center gap-1.5 text-[9px] font-bold text-muted-foreground/40 uppercase tracking-wider font-medieval">
+                                            <Shield className="w-3 h-3" />
+                                            GitHub App • Fine-grained permissions
+                                        </div>
+                                    </button>
 
-                            {/* Continue Offline */}
-                            <button
-                                onClick={() => setStep('offline-setup')}
-                                className="group flex flex-col items-center gap-5 p-8 rounded-[2rem] bg-card/40 border border-muted hover:bg-card hover:border-muted-foreground/30 transition-all backdrop-blur-sm hover:-translate-y-1"
-                            >
-                                <div className="p-4 rounded-2xl bg-muted/50 text-muted-foreground group-hover:bg-muted group-hover:text-foreground transition-colors">
-                                    <WifiOff className="w-8 h-8" />
-                                </div>
-                                <div className="text-center space-y-1">
-                                    <h3 className="font-bold text-base">Continue without login</h3>
-                                    <p className="text-[10px] text-muted-foreground font-medium opacity-60">
-                                        Local-only workspace, no cloud features
-                                    </p>
-                                </div>
-                                <div className="flex items-center gap-1.5 text-[9px] font-bold text-muted-foreground/40 uppercase tracking-wider">
-                                    <Globe className="w-3 h-3" />
-                                    Fully offline • Data stays on device
-                                </div>
-                            </button>
-                        </div>
-
-                        {/* Device Flow Polling UI */}
-                        {isPolling && userCode && (
-                            <div className="w-full max-w-md p-6 rounded-2xl bg-card/60 border border-primary/30 text-center space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                <p className="text-xs text-muted-foreground font-medium">Enter this code at GitHub:</p>
-                                <div className="flex items-center justify-center gap-3">
-                                    <span className="text-3xl font-black tracking-[0.3em] text-primary font-mono">{userCode}</span>
-                                    <button onClick={handleCopyCode} className="p-2 rounded-lg hover:bg-muted/50 transition-colors" title="Copy code">
-                                        {codeCopied ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4 text-muted-foreground" />}
+                                    {/* Continue Offline */}
+                                    <button
+                                        onClick={() => setStep('offline-setup')}
+                                        className="group flex flex-col items-center gap-5 p-8 rounded-[2rem] bg-card/40 border border-muted hover:bg-card hover:border-muted-foreground/30 transition-all backdrop-blur-sm hover:-translate-y-1 citadel-border"
+                                    >
+                                        <div className="p-4 rounded-2xl bg-muted/50 text-muted-foreground group-hover:bg-muted group-hover:text-foreground transition-colors">
+                                            <WifiOff className="w-8 h-8" />
+                                        </div>
+                                        <div className="text-center space-y-1">
+                                            <h3 className="font-bold text-base font-medieval">Continue without login</h3>
+                                            <p className="text-[10px] text-muted-foreground font-medium opacity-60">
+                                                Local-only Keep, offline first
+                                            </p>
+                                        </div>
+                                        <div className="flex items-center gap-1.5 text-[9px] font-bold text-muted-foreground/40 uppercase tracking-wider font-medieval">
+                                            <Globe className="w-3 h-3" />
+                                            Fully offline • Data stays on device
+                                        </div>
                                     </button>
                                 </div>
-                                <button
-                                    onClick={() => window.api.app.openExternal(verificationUri)}
-                                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-muted/30 border border-muted/50 text-xs font-bold text-muted-foreground hover:text-primary hover:border-primary/40 transition-all"
-                                >
-                                    <ExternalLink className="w-3.5 h-3.5" />
-                                    Open GitHub
-                                </button>
-                                <div className="flex items-center justify-center gap-2 pt-2">
-                                    <Loader2 className="w-3.5 h-3.5 animate-spin text-primary" />
-                                    <span className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wider">Waiting for authorization...</span>
-                                </div>
+
+                                {/* Device Flow Polling UI */}
+                                {isPolling && userCode && (
+                                    <div className="w-full max-w-md p-6 rounded-2xl bg-card/60 border border-primary/30 text-center space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                        <p className="text-xs text-muted-foreground font-medium">Enter this code at GitHub:</p>
+                                        <div className="flex items-center justify-center gap-3">
+                                            <span className="text-3xl font-black tracking-[0.3em] text-primary font-mono">{userCode}</span>
+                                            <button onClick={handleCopyCode} className="p-2 rounded-lg hover:bg-muted/50 transition-colors" title="Copy code">
+                                                {codeCopied ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4 text-muted-foreground" />}
+                                            </button>
+                                        </div>
+                                        <button
+                                            onClick={() => window.api.app.openExternal(verificationUri)}
+                                            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-muted/30 border border-muted/50 text-xs font-bold text-muted-foreground hover:text-primary hover:border-primary/40 transition-all"
+                                        >
+                                            <ExternalLink className="w-3.5 h-3.5" />
+                                            Open GitHub
+                                        </button>
+                                        <div className="flex items-center justify-center gap-2 pt-2">
+                                            <Loader2 className="w-3.5 h-3.5 animate-spin text-primary" />
+                                            <span className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wider">Waiting for authorization...</span>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {authExpired && (
+                                    <p className="text-[10px] text-amber-500 font-bold">Code expired. Click "Sign in with GitHub" to try again.</p>
+                                )}
+                                {authError && (
+                                    <p className="text-xs text-destructive font-bold">{authError}</p>
+                                )}
                             </div>
-                        )}
-
-                        {authExpired && (
-                            <p className="text-[10px] text-amber-500 font-bold">Code expired. Click "Sign in with GitHub" to try again.</p>
-                        )}
-                        {authError && (
-                            <p className="text-xs text-destructive font-bold">{authError}</p>
-                        )}
-
-                        <RecentWorkspaces />
+                            <div className="w-full">
+                                <RecentWorkspaces />
+                            </div>
+                        </div>
                     </div>
                 )}
 
                 {/* ========== LOGGED-IN SETUP STEP ========== */}
                 {step === 'logged-in-setup' && (
-                    <div className="flex flex-col items-center gap-8 animate-in fade-in duration-500">
+                    <div className="flex flex-col items-center gap-8 animate-in fade-in duration-500 w-full">
                         <PageHeader />
 
-                        {/* Account Switcher */}
-                        <div className="relative">
-                            <button
-                                onClick={() => setShowAccountMenu(!showAccountMenu)}
-                                className="flex items-center gap-4 px-6 py-3 rounded-full bg-card/50 border border-muted/50 backdrop-blur-sm hover:border-primary/40 transition-all"
-                            >
-                                {githubUser && (
-                                    <>
-                                        <img src={githubUser.avatar_url} alt="" className="w-8 h-8 rounded-full" />
-                                        <div className="text-left">
-                                            <div className="text-sm font-bold">{githubUser.name || githubUser.login}</div>
-                                            <div className="text-[10px] text-muted-foreground font-medium">@{githubUser.login}</div>
-                                        </div>
-                                        <ChevronRight className={`w-4 h-4 text-muted-foreground ml-2 transition-transform ${showAccountMenu ? 'rotate-90' : ''}`} />
-                                    </>
-                                )}
-                            </button>
-
-                            {/* Account Dropdown */}
-                            {showAccountMenu && (
-                                <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 w-72 bg-card border border-muted rounded-2xl shadow-2xl shadow-black/30 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200">
-                                    <div className="p-2 space-y-1">
-                                        {accounts.map(acc => (
-                                            <div key={acc.login} className={`flex items-center gap-3 p-3 rounded-xl transition-all ${acc.login === activeLogin ? 'bg-primary/10 border border-primary/30' : 'hover:bg-muted/50 border border-transparent'}`}>
-                                                <img src={acc.avatar_url} alt="" className="w-7 h-7 rounded-full" />
-                                                <div className="flex-1 overflow-hidden">
-                                                    <div className="text-xs font-bold truncate">{acc.name || acc.login}</div>
-                                                    <div className="text-[9px] text-muted-foreground font-medium">@{acc.login}</div>
+                        <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-8 w-full items-start mt-4">
+                            <div className="flex flex-col items-center gap-8 w-full">
+                                {/* Account Switcher */}
+                                <div className="relative">
+                                    <button
+                                        onClick={() => setShowAccountMenu(!showAccountMenu)}
+                                        className="flex items-center gap-4 px-6 py-3 rounded-full bg-card/50 border border-muted/50 backdrop-blur-sm hover:border-primary/40 transition-all"
+                                    >
+                                        {githubUser && (
+                                            <>
+                                                <img src={githubUser.avatar_url} alt="" className="w-8 h-8 rounded-full" />
+                                                <div className="text-left">
+                                                    <div className="text-sm font-bold">{githubUser.name || githubUser.login}</div>
+                                                    <div className="text-[10px] text-muted-foreground font-medium">@{githubUser.login}</div>
                                                 </div>
-                                                {acc.login === activeLogin ? (
-                                                    <div className="flex items-center gap-1">
-                                                        <Check className="w-3.5 h-3.5 text-primary" />
-                                                        <button onClick={() => logout(acc.login)} className="p-1.5 rounded-lg hover:bg-destructive/10 hover:text-destructive transition-colors" title="Sign out">
-                                                            <LogOut className="w-3.5 h-3.5" />
-                                                        </button>
-                                                    </div>
-                                                ) : (
-                                                    <div className="flex items-center gap-1">
-                                                        <button onClick={() => switchAccount(acc.login)} className="px-3 py-1 rounded-lg bg-muted/50 text-[9px] font-bold hover:bg-primary/10 hover:text-primary transition-colors">
-                                                            Switch
-                                                        </button>
-                                                        <button onClick={() => logout(acc.login)} className="p-1.5 rounded-lg hover:bg-destructive/10 hover:text-destructive transition-colors" title="Sign out">
-                                                            <LogOut className="w-3.5 h-3.5" />
-                                                        </button>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        ))}
-                                    </div>
-                                    <div className="border-t border-muted/30 p-2">
-                                        <button
-                                            onClick={() => { setShowAccountMenu(false); startDeviceFlow(); }}
-                                            className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-muted/50 transition-colors text-xs font-bold text-muted-foreground hover:text-primary"
-                                        >
-                                            <Plus className="w-4 h-4" />
-                                            Add another account
-                                        </button>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
+                                                <ChevronRight className={`w-4 h-4 text-muted-foreground ml-2 transition-transform ${showAccountMenu ? 'rotate-90' : ''}`} />
+                                            </>
+                                        )}
+                                    </button>
 
-                        {/* Device Flow Polling UI (for "Add another account") */}
-                        {isPolling && userCode && (
-                            <div className="w-full max-w-md p-6 rounded-2xl bg-card/60 border border-primary/30 text-center space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                <p className="text-xs text-muted-foreground font-medium">Enter this code at GitHub:</p>
-                                <div className="flex items-center justify-center gap-3">
-                                    <span className="text-3xl font-black tracking-[0.3em] text-primary font-mono">{userCode}</span>
-                                    <button onClick={handleCopyCode} className="p-2 rounded-lg hover:bg-muted/50 transition-colors" title="Copy code">
-                                        {codeCopied ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4 text-muted-foreground" />}
+                                    {/* Account Dropdown */}
+                                    {showAccountMenu && (
+                                        <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 w-72 bg-card border border-muted rounded-2xl shadow-2xl shadow-black/30 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                                            <div className="p-2 space-y-1">
+                                                {accounts.map(acc => (
+                                                    <div key={acc.login} className={`flex items-center gap-3 p-3 rounded-xl transition-all ${acc.login === activeLogin ? 'bg-primary/10 border border-primary/30' : 'hover:bg-muted/50 border border-transparent'}`}>
+                                                        <img src={acc.avatar_url} alt="" className="w-7 h-7 rounded-full" />
+                                                        <div className="flex-1 overflow-hidden">
+                                                            <div className="text-xs font-bold truncate">{acc.name || acc.login}</div>
+                                                            <div className="text-[9px] text-muted-foreground font-medium">@{acc.login}</div>
+                                                        </div>
+                                                        {acc.login === activeLogin ? (
+                                                            <div className="flex items-center gap-1">
+                                                                <Check className="w-3.5 h-3.5 text-primary" />
+                                                                <button onClick={() => logout(acc.login)} className="p-1.5 rounded-lg hover:bg-destructive/10 hover:text-destructive transition-colors" title="Sign out">
+                                                                    <LogOut className="w-3.5 h-3.5" />
+                                                                </button>
+                                                            </div>
+                                                        ) : (
+                                                            <div className="flex items-center gap-1">
+                                                                <button onClick={() => switchAccount(acc.login)} className="px-3 py-1 rounded-lg bg-muted/50 text-[9px] font-bold hover:bg-primary/10 hover:text-primary transition-colors">
+                                                                    Switch
+                                                                </button>
+                                                                <button onClick={() => logout(acc.login)} className="p-1.5 rounded-lg hover:bg-destructive/10 hover:text-destructive transition-colors" title="Sign out">
+                                                                    <LogOut className="w-3.5 h-3.5" />
+                                                                </button>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                            <div className="border-t border-muted/30 p-2">
+                                                <button
+                                                    onClick={() => { setShowAccountMenu(false); startDeviceFlow(); }}
+                                                    className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-muted/50 transition-colors text-xs font-bold text-muted-foreground hover:text-primary"
+                                                >
+                                                    <Plus className="w-4 h-4" />
+                                                    Add another account
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Device Flow Polling UI (for "Add another account") */}
+                                {isPolling && userCode && (
+                                    <div className="w-full max-w-md p-6 rounded-2xl bg-card/60 border border-primary/30 text-center space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                        <p className="text-xs text-muted-foreground font-medium">Enter this code at GitHub:</p>
+                                        <div className="flex items-center justify-center gap-3">
+                                            <span className="text-3xl font-black tracking-[0.3em] text-primary font-mono">{userCode}</span>
+                                            <button onClick={handleCopyCode} className="p-2 rounded-lg hover:bg-muted/50 transition-colors" title="Copy code">
+                                                {codeCopied ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4 text-muted-foreground" />}
+                                            </button>
+                                        </div>
+                                        <button
+                                            onClick={() => window.api.app.openExternal(verificationUri)}
+                                            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-muted/30 border border-muted/50 text-xs font-bold text-muted-foreground hover:text-primary hover:border-primary/40 transition-all"
+                                        >
+                                            <ExternalLink className="w-3.5 h-3.5" />
+                                            Open GitHub
+                                        </button>
+                                        <div className="flex items-center justify-center gap-2 pt-2">
+                                            <Loader2 className="w-3.5 h-3.5 animate-spin text-primary" />
+                                            <span className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wider">Waiting for authorization...</span>
+                                        </div>
+                                    </div>
+                                )}
+                                {authError && (
+                                    <p className="text-xs text-destructive font-bold">{authError}</p>
+                                )}
+
+                                {/* Actions */}
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
+                                    <button
+                                        onClick={() => navigate('/workspace-builder')}
+                                        className="group flex flex-col items-center gap-5 p-8 rounded-[2rem] bg-card/40 border border-muted hover:bg-card hover:border-primary/40 transition-all backdrop-blur-sm hover:-translate-y-1"
+                                    >
+                                        <div className="p-4 rounded-2xl bg-muted/50 text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+                                            <Plus className="w-8 h-8" />
+                                        </div>
+                                        <div className="text-center space-y-1">
+                                            <h3 className="font-bold text-base">Create New Keep</h3>
+                                            <p className="text-[10px] text-muted-foreground font-medium opacity-60">
+                                                New GitHub repository with Keep template
+                                            </p>
+                                        </div>
+                                    </button>
+
+                                    <button
+                                        onClick={() => {
+                                            setStep('pick-repo');
+                                            loadRepos();
+                                        }}
+                                        className="group flex flex-col items-center gap-5 p-8 rounded-[2rem] bg-card/40 border border-muted hover:bg-card hover:border-primary/40 transition-all backdrop-blur-sm hover:-translate-y-1"
+                                    >
+                                        <div className="p-4 rounded-2xl bg-muted/50 text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+                                            <Github className="w-8 h-8" />
+                                        </div>
+                                        <div className="text-center space-y-1">
+                                            <h3 className="font-bold text-base">Open Remote Keep</h3>
+                                            <p className="text-[10px] text-muted-foreground font-medium opacity-60">
+                                                Clone an existing GitHub repository
+                                            </p>
+                                        </div>
+                                    </button>
+
+                                    <button
+                                        onClick={handleOpenFolder}
+                                        className="group flex flex-col items-center gap-5 p-8 rounded-[2rem] bg-card/40 border border-muted hover:bg-card hover:border-primary/40 transition-all backdrop-blur-sm hover:-translate-y-1 sm:col-span-2 lg:col-span-1"
+                                    >
+                                        <div className="p-4 rounded-2xl bg-muted/50 text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+                                            <FolderOpen className="w-8 h-8" />
+                                        </div>
+                                        <div className="text-center space-y-1">
+                                            <h3 className="font-bold text-base">Open Local Folder</h3>
+                                            <p className="text-[10px] text-muted-foreground font-medium opacity-60">
+                                                Open a workspace from your computer
+                                            </p>
+                                        </div>
                                     </button>
                                 </div>
-                                <button
-                                    onClick={() => window.api.app.openExternal(verificationUri)}
-                                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-muted/30 border border-muted/50 text-xs font-bold text-muted-foreground hover:text-primary hover:border-primary/40 transition-all"
-                                >
-                                    <ExternalLink className="w-3.5 h-3.5" />
-                                    Open GitHub
-                                </button>
-                                <div className="flex items-center justify-center gap-2 pt-2">
-                                    <Loader2 className="w-3.5 h-3.5 animate-spin text-primary" />
-                                    <span className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wider">Waiting for authorization...</span>
-                                </div>
+
                             </div>
-                        )}
-                        {authError && (
-                            <p className="text-xs text-destructive font-bold">{authError}</p>
-                        )}
-
-                        {/* Actions */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 w-full max-w-2xl">
-                            <button
-                                onClick={() => navigate('/workspace-builder')}
-                                className="group flex flex-col items-center gap-5 p-8 rounded-[2rem] bg-card/40 border border-muted hover:bg-card hover:border-primary/40 transition-all backdrop-blur-sm hover:-translate-y-1"
-                            >
-                                <div className="p-4 rounded-2xl bg-muted/50 text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary transition-colors">
-                                    <Plus className="w-8 h-8" />
-                                </div>
-                                <div className="text-center space-y-1">
-                                    <h3 className="font-bold text-base">Create New Workspace</h3>
-                                    <p className="text-[10px] text-muted-foreground font-medium opacity-60">
-                                        New GitHub repository with workspace template
-                                    </p>
-                                </div>
-                            </button>
-
-                            <button
-                                onClick={() => {
-                                    setStep('pick-repo');
-                                    loadRepos();
-                                }}
-                                className="group flex flex-col items-center gap-5 p-8 rounded-[2rem] bg-card/40 border border-muted hover:bg-card hover:border-primary/40 transition-all backdrop-blur-sm hover:-translate-y-1"
-                            >
-                                <div className="p-4 rounded-2xl bg-muted/50 text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary transition-colors">
-                                    <Github className="w-8 h-8" />
-                                </div>
-                                <div className="text-center space-y-1">
-                                    <h3 className="font-bold text-base">Open Existing Repo</h3>
-                                    <p className="text-[10px] text-muted-foreground font-medium opacity-60">
-                                        Clone an existing GitHub repository
-                                    </p>
-                                </div>
-                            </button>
-                        </div>
-
-                        <div className="w-full max-w-2xl">
-                            <RecentWorkspaces />
+                            <div className="w-full">
+                                <RecentWorkspaces />
+                            </div>
                         </div>
                     </div>
                 )}
 
                 {/* ========== OFFLINE SETUP STEP ========== */}
                 {step === 'offline-setup' && (
-                    <div className="flex flex-col items-center gap-8 animate-in fade-in duration-500">
+                    <div className="flex flex-col items-center gap-8 animate-in fade-in duration-500 w-full">
                         <PageHeader subtitle="Disconnected Mode" />
                         <BackButton to="auth-gate" label="Back to login" />
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 w-full max-w-2xl">
-                            <button
-                                onClick={handleOpenFolder}
-                                className="group flex flex-col items-center gap-5 p-8 rounded-[2rem] bg-card/40 border border-muted hover:bg-card hover:border-primary/40 transition-all backdrop-blur-sm hover:-translate-y-1"
-                            >
-                                <div className="p-4 rounded-2xl bg-muted/50 text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary transition-colors">
-                                    <FolderOpen className="w-8 h-8" />
-                                </div>
-                                <div className="text-center space-y-1">
-                                    <h3 className="font-bold text-base">Open Existing Workspace</h3>
-                                    <p className="text-[10px] text-muted-foreground font-medium opacity-60">
-                                        Browse to a local .codex workspace
-                                    </p>
-                                </div>
-                            </button>
+                        <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-8 w-full items-start mt-4">
+                            <div className="flex flex-col gap-6 w-full items-center">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 w-full">
+                                    <button
+                                        onClick={handleOpenFolder}
+                                        className="group flex flex-col items-center gap-5 p-8 rounded-[2rem] bg-card/40 border border-muted hover:bg-card hover:border-primary/40 transition-all backdrop-blur-sm hover:-translate-y-1"
+                                    >
+                                        <div className="p-4 rounded-2xl bg-muted/50 text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+                                            <FolderOpen className="w-8 h-8" />
+                                        </div>
+                                        <div className="text-center space-y-1">
+                                            <h3 className="font-bold text-base">Open Local Keep</h3>
+                                            <p className="text-[10px] text-muted-foreground font-medium opacity-60">
+                                                Select an existing Citadel Keep on your computer
+                                            </p>
+                                        </div>
+                                    </button>
 
-                            <button
-                                onClick={() => navigate('/workspace-builder')}
-                                className="group flex flex-col items-center gap-5 p-8 rounded-[2rem] bg-card/40 border border-muted hover:bg-card hover:border-primary/40 transition-all backdrop-blur-sm hover:-translate-y-1"
-                            >
-                                <div className="p-4 rounded-2xl bg-muted/50 text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary transition-colors">
-                                    <Plus className="w-8 h-8" />
+                                    <button
+                                        onClick={() => navigate('/workspace-builder')}
+                                        className="group flex flex-col items-center gap-5 p-8 rounded-[2rem] bg-card/40 border border-muted hover:bg-card hover:border-primary/40 transition-all backdrop-blur-sm hover:-translate-y-1"
+                                    >
+                                        <div className="p-4 rounded-2xl bg-muted/50 text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+                                            <Plus className="w-8 h-8" />
+                                        </div>
+                                        <div className="text-center space-y-1">
+                                            <h3 className="font-bold text-base">Create New Workspace</h3>
+                                            <p className="text-[10px] text-muted-foreground font-medium opacity-60">
+                                                Set up a new local workspace
+                                            </p>
+                                        </div>
+                                    </button>
                                 </div>
-                                <div className="text-center space-y-1">
-                                    <h3 className="font-bold text-base">Create New Workspace</h3>
-                                    <p className="text-[10px] text-muted-foreground font-medium opacity-60">
-                                        Set up a new local workspace
-                                    </p>
-                                </div>
-                            </button>
+
+                            </div>
                         </div>
-
-                        <div className="w-full max-w-2xl">
+                        <div className="w-full">
                             <RecentWorkspaces />
                         </div>
                     </div>
@@ -858,7 +879,7 @@ export const WelcomePage: React.FC<WelcomePageProps> = ({ initialStep }) => {
                     <div className="flex flex-col items-center gap-6 animate-in fade-in slide-in-from-right-8 duration-500">
                         <div className="w-full flex items-center justify-between">
                             <BackButton to={workspaceOrigin === 'logged-in' ? 'logged-in-setup' : 'offline-setup'} />
-                            <h2 className="text-2xl font-bold">Configure Workspace</h2>
+                            <h2 className="text-2xl font-black tracking-tight" style={{ fontFamily: "'Cinzel', serif" }}>Configure Your Keep</h2>
                             <div />
                         </div>
 
@@ -1369,6 +1390,6 @@ export const WelcomePage: React.FC<WelcomePageProps> = ({ initialStep }) => {
                     </div>
                 )}
             </div>
-        </div>
+        </div >
     );
 };

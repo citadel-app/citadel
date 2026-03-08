@@ -8,7 +8,7 @@ import { Icon } from '../IconRegistry';
 import { cn } from '../../lib/utils';
 import { dataManager } from '../../lib/data-manager';
 import { metadataService, ragService } from '../../ai';
-import { EntrySection } from '../../lib/serializers/types';
+import { type EntrySection } from '@shared';
 import { useConfig } from '../../context/ConfigContext';
 
 interface Highlight {

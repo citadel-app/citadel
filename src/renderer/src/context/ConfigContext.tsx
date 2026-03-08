@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { EntryTypeConfig, DEFAULT_WORKSPACE_CONFIG, SectionConfig, WorkspaceConfig } from '../config/entry-types';
+import { type EntryTypeConfig, DEFAULT_WORKSPACE_CONFIG, type SectionConfig, type WorkspaceConfig } from '@shared';
 import { dataManager } from '../lib/data-manager';
 
 interface ConfigContextType {
@@ -14,6 +14,9 @@ interface ConfigContextType {
     setVaultPath: (path: string | null) => Promise<void>;
     updateConfig: (updates: Partial<WorkspaceConfig>) => Promise<void>;
     recentVaults: string[];
+    pendingDeepLink: string | null;
+    setPendingDeepLink: (url: string | null) => void;
+    clearPendingDeepLink: () => void;
 }
 
 const ConfigContext = createContext<ConfigContextType | null>(null);
@@ -34,15 +37,36 @@ export const ConfigProvider = ({ children }: ConfigProviderProps) => {
     const [config, setConfig] = useState<WorkspaceConfig>(DEFAULT_WORKSPACE_CONFIG);
     const [isLoading, setIsLoading] = useState(true);
     const [vaultPath, setVaultPathState] = useState<string | null>(null);
+    const [pendingDeepLink, setPendingDeepLink] = useState<string | null>(null);
 
     const loadConfig = async (path?: string) => {
         try {
             const initContext = await window.api.app.getInitContext();
             const storedPath = localStorage.getItem('codex-vault-path');
-            const currentPath = path || initContext.workspacePath || storedPath || vaultPath;
+            let currentPath = path || initContext.workspacePath || storedPath || vaultPath;
+
+            if (initContext.deepLinkUrl) {
+                try {
+                    const u = initContext.deepLinkUrl;
+                    if (u.startsWith('citadel://') || u.startsWith('codex://')) {
+                        console.log('[ConfigProvider] Intercepted deep link on startup:', u);
+                        setPendingDeepLink(u);
+                        // Note: We don't set currentPath to null yet, we just set the pending link.
+                        // Actually, we want to force WelcomePage if it's a clone link.
+                        const urlObj = new URL(u);
+                        if (urlObj.hostname === 'clone' || urlObj.pathname.includes('clone')) {
+                            currentPath = null;
+                            setVaultPathState(null);
+                        }
+                    }
+                } catch (e) {
+                    console.error('[ConfigProvider] Failed to parse initial deep link:', e);
+                }
+            }
 
             if (!currentPath) {
                 console.log('[ConfigProvider] No workspace path found. Entering non-workspace mode.');
+                setVaultPathState(null);
                 setIsLoading(false);
                 return;
             }
@@ -122,7 +146,10 @@ export const ConfigProvider = ({ children }: ConfigProviderProps) => {
         findSectionConfig,
         vaultPath,
         setVaultPath,
-        recentVaults, // Expose this
+        recentVaults,
+        pendingDeepLink,
+        setPendingDeepLink: (url: string | null) => setPendingDeepLink(url),
+        clearPendingDeepLink: () => setPendingDeepLink(null),
         updateConfig: async (updates) => {
             const newConfig = { ...config, ...updates };
             await dataManager.saveConfig(newConfig);

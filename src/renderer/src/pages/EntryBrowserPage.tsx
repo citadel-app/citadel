@@ -73,8 +73,17 @@ export const EntryBrowserPage = () => {
     const [deleteConfig, setDeleteConfig] = useState<{ id?: string, count: number, title?: string } | null>(null);
     const [alertDialog, setAlertDialog] = useState<{ open: boolean, title: string, message: string }>({ open: false, title: '', message: '' });
 
-    // Fetch all entries
-    const allEntries = useLiveQuery(() => db.entries.toArray(), []) || [];
+    // Fetch all entries (projected to save memory)
+    const allEntries = useLiveQuery(async () => {
+        const entries = await db.entries.toArray();
+        return entries.map(e => ({
+            ...e,
+            content: undefined,
+            highlights: undefined,
+            whiteboard: undefined,
+            code: undefined
+        }));
+    }, []) || [];
 
     // Filtered entries
     const filteredEntries = useMemo(() => {
@@ -155,17 +164,19 @@ export const EntryBrowserPage = () => {
 
             // Add custom fields (only if not already a system key)
             config.fields.forEach(f => {
-                if (!usedKeys.has(f.key)) {
-                    baseColumns.push({ key: f.key, label: f.label, type: 'field' });
-                    usedKeys.add(f.key);
+                const key = f.key as string;
+                if (!usedKeys.has(key)) {
+                    baseColumns.push({ key, label: f.label, type: 'field' });
+                    usedKeys.add(key);
                 }
             });
 
             // Add metadata fields (only if not already used)
             config.metadata.forEach(m => {
-                if (!usedKeys.has(m.key)) {
-                    baseColumns.push({ key: m.key, label: m.label, type: 'metadata' });
-                    usedKeys.add(m.key);
+                const key = m.key as string;
+                if (!usedKeys.has(key)) {
+                    baseColumns.push({ key, label: m.label, type: 'metadata' });
+                    usedKeys.add(key);
                 }
             });
         }
@@ -264,9 +275,9 @@ export const EntryBrowserPage = () => {
                 <div>
                     <h1 className="text-xl font-bold flex items-center gap-2">
                         <Icon name="Library" size={24} className="text-primary" />
-                        Library Browser
+                        The Archives
                     </h1>
-                    <p className="text-xs text-muted-foreground">Manage and browse your codex entries based on their type schema.</p>
+                    <p className="text-xs text-muted-foreground">Manage and browse your codex scrolls based on their type schema.</p>
                 </div>
 
                 {!isZen && (
@@ -275,7 +286,7 @@ export const EntryBrowserPage = () => {
                         className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-semibold hover:bg-primary/90 transition-all shadow-sm"
                     >
                         <Icon name="Plus" size={16} />
-                        New Entry
+                        Compose Scroll
                     </button>
                 )}
             </header>
@@ -308,7 +319,7 @@ export const EntryBrowserPage = () => {
                 isZen ? "max-w-5xl mx-auto w-full mb-8 pt-4" : "w-full"
             )}>
                 <EntryTable
-                    entries={paginatedEntries}
+                    entries={filteredEntries}
                     columns={columns}
                     sortKey={sortKey}
                     sortOrder={sortOrder}
@@ -317,8 +328,6 @@ export const EntryBrowserPage = () => {
                     selectedIds={selectedIds}
                     onSelectionToggle={handleSelectionToggle}
                     onSelectAllToggle={handleSelectAllToggle}
-                    onLoadMore={handleLoadMore}
-                    hasMore={visibleCount < filteredEntries.length}
                 />
 
                 {/* Bulk Actions Bar */}
@@ -357,18 +366,18 @@ export const EntryBrowserPage = () => {
 
                 {/* Stats Footer */}
                 <footer className="px-4 py-2 bg-muted/40 border-t border-border flex items-center justify-between text-[10px] text-muted-foreground uppercase tracking-widest font-bold">
-                    <span>Showing {filteredEntries.length} of {allEntries.length} entries</span>
-                    <span>Workspace Active</span>
+                    <span>Showing {filteredEntries.length} of {allEntries.length} scrolls</span>
+                    <span>Keep Active</span>
                 </footer>
             </div>
 
             <ConfirmDialog
                 open={showDeleteDialog}
                 onOpenChange={setShowDeleteDialog}
-                title={deleteConfig?.id ? "Delete Entry?" : `Delete ${deleteConfig?.count} Entries?`}
+                title={deleteConfig?.id ? "Delete Scroll?" : `Delete ${deleteConfig?.count} Scrolls?`}
                 description={deleteConfig?.id
                     ? `Are you sure you want to delete "${deleteConfig.title}"? This will also remove its associated metadata and RAG index. This action cannot be undone.`
-                    : `Are you sure you want to delete ${deleteConfig?.count} entries? This will also remove all associated metadata and RAG indexes. This action cannot be undone.`
+                    : `Are you sure you want to delete ${deleteConfig?.count} scrolls? This will also remove all associated metadata and RAG indexes. This action cannot be undone.`
                 }
                 confirmLabel="Delete Forever"
                 cancelLabel="Cancel"

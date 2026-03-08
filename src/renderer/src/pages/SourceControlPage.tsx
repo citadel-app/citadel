@@ -329,26 +329,26 @@ export const SourceControlPage = () => {
         return (
             <div className="flex flex-col items-center justify-center h-full text-muted-foreground p-4 text-center">
                 <Icon name="FolderOpen" size={48} className="mb-4 opacity-50" />
-                <h2 className="text-lg font-semibold mb-2">No Vault Open</h2>
-                <p className="max-w-xs mb-4">Open a folder to start using Source Control.</p>
+                <h2 className="text-lg font-semibold mb-2 font-medieval">No Keep Open</h2>
+                <p className="max-w-xs mb-4">Select a Keep to start using The Bastion.</p>
                 <div className="flex gap-2">
                     <button
                         onClick={() => window.api.dialog.openDirectory().then(p => { if (p) setVaultPath(p); })}
-                        className="bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 rounded-md font-medium transition-colors"
+                        className="bg-primary text-primary-foreground font-medium active:scale-95 btn-forged"
                     >
-                        Open Folder
+                        Open Keep
                     </button>
                     <button
                         onClick={() => setShowCloneInput(true)}
-                        className="bg-secondary text-secondary-foreground hover:bg-secondary/80 px-4 py-2 rounded-md font-medium transition-colors"
+                        className="bg-secondary text-secondary-foreground font-medium active:scale-95 btn-forged"
                     >
-                        Clone Repo
+                        Replicate Bastion
                     </button>
                 </div>
 
                 {showCloneInput && (
                     <div className="mt-6 w-full max-w-sm bg-muted/50 p-4 rounded-lg border border-border">
-                        <h3 className="font-medium mb-2 text-foreground">Clone Repository</h3>
+                        <h3 className="font-medium mb-2 text-foreground">Replicate Bastion</h3>
                         <input
                             type="text"
                             placeholder="https://github.com/username/repo.git"
@@ -364,7 +364,7 @@ export const SourceControlPage = () => {
                                 className="px-3 py-1 text-xs bg-primary text-primary-foreground rounded disabled:opacity-50 flex items-center gap-2"
                             >
                                 {isCloning && <Icon name="RefreshCw" className="animate-spin" size={12} />}
-                                {isCloning ? 'Cloning...' : 'Select Target & Clone'}
+                                {isCloning ? 'Replicating...' : 'Select Target & Replicate'}
                             </button>
                         </div>
                     </div>
@@ -377,14 +377,14 @@ export const SourceControlPage = () => {
         return (
             <div className="flex flex-col items-center justify-center h-full text-muted-foreground p-4 text-center">
                 <Icon name="GitBranch" size={48} className="mb-4 opacity-50" />
-                <h2 className="text-lg font-semibold mb-2">Not a Git Repository</h2>
-                <p className="max-w-xs mb-4">The current folder is not a git repository.</p>
+                <h2 className="text-lg font-semibold mb-2 font-medieval">No Bastion Found</h2>
+                <p className="max-w-xs mb-4">The current Keep is not protected by a Bastion.</p>
                 <div className="flex flex-col gap-3 w-full max-w-xs">
                     <button
                         onClick={handleInit}
-                        className="bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 rounded-md font-medium transition-colors w-full"
+                        className="bg-primary text-primary-foreground font-medium w-full active:scale-95 btn-forged"
                     >
-                        Initialize Repository
+                        Construct Bastion
                     </button>
 
                     <div className="relative flex items-center py-2">
@@ -398,11 +398,11 @@ export const SourceControlPage = () => {
                             onClick={() => setShowCloneInput(true)}
                             className="bg-secondary text-secondary-foreground hover:bg-secondary/80 px-4 py-2 rounded-md font-medium transition-colors w-full"
                         >
-                            Clone Repository Here
+                            Replicate Bastion Here
                         </button>
                     ) : (
                         <div className="bg-muted/50 p-4 rounded-lg border border-border text-left">
-                            <h3 className="font-medium mb-2 text-foreground text-sm">Clone into current folder?</h3>
+                            <h3 className="font-medium mb-2 text-foreground text-sm">Replicate here?</h3>
                             <p className="text-xs mb-3">This will clone contents directly into <code>{vaultPath.split(/[/\\]/).pop()}</code>.</p>
                             <input
                                 type="text"
@@ -419,7 +419,7 @@ export const SourceControlPage = () => {
                                     className="px-3 py-1 text-xs bg-primary text-primary-foreground rounded disabled:opacity-50 flex items-center gap-2"
                                 >
                                     {isCloning && <Icon name="RefreshCw" className="animate-spin" size={12} />}
-                                    Clone
+                                    Replicate
                                 </button>
                             </div>
                         </div>
@@ -433,7 +433,7 @@ export const SourceControlPage = () => {
         <div className="flex flex-col h-full bg-background text-foreground overflow-hidden">
             <div className="h-12 border-b border-border flex items-center justify-between px-4 shrink-0 bg-muted/20">
                 <div className="flex items-center gap-2 overflow-hidden text-sm">
-                    <span className="font-semibold flex items-center gap-2 shrink-0">
+                    <span className="font-semibold flex items-center gap-2 shrink-0 font-medieval">
                         <Icon name="GitBranch" size={16} />
                     </span>
                     <button
@@ -467,15 +467,15 @@ export const SourceControlPage = () => {
                     <button onClick={refreshStatus} className="p-1.5 hover:bg-muted rounded text-muted-foreground hover:text-foreground transition-colors" title="Refresh">
                         <Icon name="RefreshCw" size={14} className={isLoading ? "animate-spin" : ""} />
                     </button>
-                    <button onClick={handleSync} className="p-1.5 hover:bg-muted rounded text-muted-foreground hover:text-foreground transition-colors" title="Sync (Pull & Push)">
+                    <button onClick={handleSync} className="p-1.5 hover:bg-muted rounded text-muted-foreground hover:text-foreground transition-colors" title="Bastion Sync (Pull & Push)">
                         <Icon name="RefreshCcw" size={14} />
                     </button>
                 </div>
             </div>
 
-            <div className="p-4 border-b border-border shrink-0 bg-muted/5">
+            <div className="p-4 border-b border-border shrink-0 bg-muted/5 citadel-border m-2 rounded-lg">
                 <textarea
-                    className="w-full bg-input/50 border border-input rounded p-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary min-h-[80px] resize-none"
+                    className="w-full bg-input/50 border border-input rounded p-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary min-h-[80px] resize-none font-medieval"
                     placeholder="Commit Message (Ctrl+Enter to commit)"
                     value={commitMessage}
                     onChange={(e) => setCommitMessage(e.target.value)}
@@ -486,7 +486,7 @@ export const SourceControlPage = () => {
                 <button
                     onClick={handleCommit}
                     disabled={!commitMessage || isLoading || (status?.files?.length === 0)}
-                    className="mt-2 w-full bg-primary text-primary-foreground py-1.5 rounded text-sm font-medium hover:bg-primary/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm active:scale-[0.98]"
+                    className="mt-2 w-full bg-primary text-primary-foreground py-1.5 font-medium active:scale-[0.98] btn-forged"
                 >
                     {isLoading ? 'Processing...' : 'Commit'}
                 </button>

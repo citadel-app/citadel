@@ -45,7 +45,7 @@ export const ReplPage = () => {
                         <div className="p-3 rounded-2xl bg-primary/10 text-primary">
                             <Icon name="Terminal" size={32} />
                         </div>
-                        Docker REPL
+                        The Forge
                     </h1>
                     <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mt-2 opacity-60">
                         Multi-language isolated execution environment

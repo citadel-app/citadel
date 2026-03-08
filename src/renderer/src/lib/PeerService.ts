@@ -1,10 +1,5 @@
 import Peer, { DataConnection } from 'peerjs';
-
-export interface PeerMessage {
-    type: string;
-    payload: any;
-    senderId: string;
-}
+import { type PeerMessage } from '@shared';
 
 export class PeerService {
     private peer: Peer | null = null;

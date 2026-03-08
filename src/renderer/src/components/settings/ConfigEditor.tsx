@@ -58,7 +58,7 @@ export const ConfigEditor = () => {
                     <div className="flex justify-between items-center">
                         <h2 className="text-lg font-semibold">Configuration</h2>
                     </div>
-                    <div className="flex bg-muted/50 p-1 rounded-lg">
+                    {/* <div className="flex bg-muted/50 p-1 rounded-lg">
                         <button
                             onClick={() => setMode('ui')}
                             className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all flex items-center gap-2 ${mode === 'ui'
@@ -80,11 +80,11 @@ export const ConfigEditor = () => {
                         >
                             <Code2 size={14} /> JSON Editor
                         </button>
-                    </div>
+                    </div> */}
                 </div>
 
 
-                {mode === 'json' && (
+                {/* {mode === 'json' && (
                     <div className="flex items-center gap-3">
                         {error ? (
                             <span className="text-destructive text-xs">{error}</span>
@@ -99,7 +99,7 @@ export const ConfigEditor = () => {
                             <Save size={14} /> Save Changes
                         </button>
                     </div>
-                )}
+                )} */}
             </div>
 
             {mode === 'ui' ? (

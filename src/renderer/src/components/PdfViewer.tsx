@@ -13,7 +13,7 @@ import { Icon } from './IconRegistry';
 import { useState, useEffect, useRef, useMemo } from 'react';
 import React from 'react';
 import * as pdfjs from 'pdfjs-dist';
-import pdfWorkerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
+import pdfWorkerUrl from 'pdfjs-dist/build/pdf.worker.mjs?url';
 import 'react-pdf-highlighter-extended/dist/esm/style/PdfHighlighter.css';
 import 'react-pdf-highlighter-extended/dist/esm/style/TextHighlight.css';
 import 'react-pdf-highlighter-extended/dist/esm/style/AreaHighlight.css';

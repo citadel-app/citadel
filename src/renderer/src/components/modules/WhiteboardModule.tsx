@@ -58,7 +58,6 @@ export const WhiteboardModule = ({ initialData, onSave }: WhiteboardModuleProps)
             elements: elements || [],
             appState: {
                 theme: appState?.theme || (theme === 'dark' ? 'dark' : 'light'),
-                // Force white background to match WhiteboardPage behavior
                 viewBackgroundColor: '#ffffff',
                 currentItemFontFamily: appState?.currentItemFontFamily || 1,
             },
@@ -100,7 +99,7 @@ export const WhiteboardModule = ({ initialData, onSave }: WhiteboardModuleProps)
                         appState: {
                             ...data.appState,
                             theme: resolvedTheme === 'dark' ? 'dark' : 'light',
-                            viewBackgroundColor: '#ffffff', // Force white
+                            viewBackgroundColor: resolvedTheme === 'dark' ? '#1e1e1e' : '#ffffff',
                         },
                     });
 
@@ -125,6 +124,27 @@ export const WhiteboardModule = ({ initialData, onSave }: WhiteboardModuleProps)
             setIsInitialized(true);
         }
     }, [excalidrawAPI, initialData, isInitialized, resolvedTheme, createPayload]);
+
+    // Handle theme/background synchronization separately and reactively
+    useEffect(() => {
+        if (!excalidrawAPI || !resolvedTheme) return;
+
+        const isDark = resolvedTheme === 'dark';
+        const expectedBg = '#ffffff';
+        const expectedTheme = isDark ? 'dark' : 'light';
+
+        const currentAppState = excalidrawAPI.getAppState();
+        if (currentAppState.theme !== expectedTheme || currentAppState.viewBackgroundColor !== expectedBg) {
+            console.log(`[WhiteboardModule] Syncing theme to ${expectedTheme} and background to ${expectedBg}`);
+            excalidrawAPI.updateScene({
+                appState: {
+                    ...currentAppState,
+                    theme: expectedTheme,
+                    viewBackgroundColor: expectedBg,
+                }
+            });
+        }
+    }, [excalidrawAPI, resolvedTheme]);
 
     // Save to parent (Debounced)
     const debouncedSave = useCallback(
@@ -224,7 +244,7 @@ export const WhiteboardModule = ({ initialData, onSave }: WhiteboardModuleProps)
                         theme={resolvedTheme === 'dark' ? 'dark' : 'light'}
                         initialData={{
                             appState: {
-                                // viewBackgroundColor: '#ffddff', // Force white
+                                viewBackgroundColor: '#ffffff',
                                 currentItemFontFamily: 1,
                             },
                             scrollToContent: true,

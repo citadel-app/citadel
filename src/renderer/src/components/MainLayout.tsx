@@ -9,13 +9,19 @@ import { useAppSettings } from '@renderer/context/AppSettingsContext';
 import { useConfig } from '@renderer/context/ConfigContext';
 import { useLayout } from '@renderer/context/LayoutContext';
 import { CreateEntryDialog } from './CreateEntryDialog';
+import { QuickAskModal } from './QuickAskModal';
 import { OnboardingTour } from './OnboardingTour';
 import { useEffect, useState } from 'react';
+import { useGlobalCommands } from '../commands';
+import { useToast } from '../context/ToastContext';
+import { dataManager } from '../lib/data-manager';
 
 export const MainLayout = () => {
+    useGlobalCommands();
     const { theme, setTheme } = useTheme();
     const { settings, updateSetting } = useAppSettings();
     const { setVaultPath } = useConfig();
+    const { toast } = useToast();
     const isZen = settings?.zenMode;
 
     const location = useLocation();
@@ -41,16 +47,38 @@ export const MainLayout = () => {
         })();
     }, []);
 
-    // Keyboard shortcut to toggle Zen Mode
+    // Data Manager Error Listener
+    useEffect(() => {
+        const unsubscribe = dataManager.subscribe((event, data) => {
+            if (event === 'error') {
+                toast(`Keep Error: ${data.message || data}`, { type: 'error' });
+            }
+        });
+        return unsubscribe;
+    }, [toast]);
+
+    // Keyboard shortcuts
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
+            // Zen Mode Toggle
             if (e.ctrlKey && e.altKey && e.code === 'KeyZ') {
                 updateSetting('zenMode', !isZen);
+            }
+            // New Entry Dialog
+            if (e.ctrlKey && e.key.toLowerCase() === 'n') {
+                e.preventDefault();
+                setIsCreateDialogOpen(true);
             }
         };
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [isZen, updateSetting]);
+    }, [isZen, updateSetting, setIsCreateDialogOpen]);
+
+    // Update title bar and status bar height variables
+    useEffect(() => {
+        document.documentElement.style.setProperty('--titlebar-height', isZen ? '0px' : '32px');
+        document.documentElement.style.setProperty('--statusbar-height', isZen ? '0px' : '24px');
+    }, [isZen]);
 
     return (
         <div className={cn(
@@ -75,19 +103,20 @@ export const MainLayout = () => {
             />
 
             {/* Main Workspace Area (Sidebar + Content) */}
-            <div className="flex-1 flex overflow-hidden min-h-0">
+            <div className={cn("flex-1 flex overflow-hidden min-h-0")}>
                 {/* Activity Bar (VS Code Sidebar) */}
                 <aside className={cn(
-                    "w-[54px] bg-muted/80 backdrop-blur-md flex flex-col items-center py-4 gap-4 z-50 border-r border-border select-none transition-all duration-700 ease-in-out transform overflow-y-auto scrollbar-none",
+                    "w-[48px] mt-8 bg-muted/80 backdrop-blur-md flex flex-col items-center py-4 pb-10 gap-4 z-50 gothic-activity-bar",
+                    "border-r border-border select-none transition-all duration-700 ease-in-out transform overflow-y-auto scrollbar-none",
                     isZen ? "-translate-x-full opacity-0 h-0" : "translate-x-0 opacity-100 h-full"
                 )}>
                     {/* Activity Bar Content Wrapper to handle scrolling naturally */}
-                    <div className="flex flex-col items-center gap-4 w-full h-full min-h-max">
+                    <div className="flex flex-col items-center gap-1 w-full h-full min-h-max ">
                         {/* Workspace & Logic */}
                         <nav className="flex flex-col gap-1 w-full items-center">
-                            <ActivityBarItem to="/" icon="Library" title="Browser" active={location.pathname === '/'} tourId="tour-browser" />
-                            <ActivityBarItem to="/notebooks" icon="Book" title="Notebook" active={location.pathname === '/notebooks'} tourId="tour-notebook" />
-                            <ActivityBarItem to="/kanban" icon="Columns3" title="Kanban Board" active={location.pathname === '/kanban'} tourId="tour-kanban" />
+                            <ActivityBarItem to="/" icon="Scroll" title="The Archives" active={location.pathname === '/'} tourId="tour-browser" />
+                            <ActivityBarItem to="/notebooks" icon="BookOpen" title="The Scriptorium" active={location.pathname === '/notebooks'} tourId="tour-notebook" />
+                            <ActivityBarItem to="/kanban" icon="Swords" title="The War Room" active={location.pathname === '/kanban'} tourId="tour-kanban" />
                         </nav>
 
                         {/* Separator */}
@@ -95,10 +124,10 @@ export const MainLayout = () => {
 
                         {/* Creative Suite */}
                         <nav className="flex flex-col gap-1 w-full items-center">
-                            <ActivityBarItem to="/notes" icon="StickyNote" title="Quick Notes" active={location.pathname === '/notes'} />
-                            <ActivityBarItem to="/editor" icon="Code" title="Code Editor" active={location.pathname === '/editor'} tourId="tour-editor" />
-                            <ActivityBarItem to="/latex" icon="Sigma" title="LaTeX Editor" active={location.pathname === '/latex'} />
-                            <ActivityBarItem to="/whiteboard" icon="SquarePen" title="Whiteboard" active={location.pathname === '/whiteboard'} />
+                            <ActivityBarItem to="/notes" icon="Feather" title="The Journals" active={location.pathname === '/notes'} />
+                            <ActivityBarItem to="/editor" icon="Hammer" title="The Workshop" active={location.pathname === '/editor'} tourId="tour-editor" />
+                            <ActivityBarItem to="/latex" icon="Languages" title="The Scribe" active={location.pathname === '/latex'} />
+                            <ActivityBarItem to="/whiteboard" icon="Palette" title="The Canvas" active={location.pathname === '/whiteboard'} />
                         </nav>
 
                         {/* Bottom Utility Icons */}
@@ -109,8 +138,8 @@ export const MainLayout = () => {
                             {status?.files?.length > 0 && (settings && (settings.developerMode || !settings.autoCommitEnabled)) && (
                                 <ActivityBarItem
                                     to="/source-control"
-                                    icon="GitBranch"
-                                    title="Source Control"
+                                    icon="Castle"
+                                    title="The Bastion"
                                     tourId="tour-source-control"
                                     active={location.pathname === '/source-control'}
                                     badge={changedFilesCount}
@@ -129,7 +158,7 @@ export const MainLayout = () => {
                             <button
                                 onClick={() => setVaultPath(null)}
                                 className="p-2.5 rounded-xl text-muted-foreground hover:text-destructive hover:bg-destructive/5 transition-all opacity-70 hover:opacity-100"
-                                title="Switch Workspace"
+                                title="Switch Keep"
                             >
                                 <Icon name="LogOut" size={20} strokeWidth={1.5} />
                             </button>
@@ -139,8 +168,9 @@ export const MainLayout = () => {
 
                 {/* Main Content Area */}
                 <main className={cn(
-                    "flex-1 flex flex-col overflow-hidden min-w-0 bg-transparent relative transition-all duration-700 items-center justify-center",
-                    !isZen && "bg-background"
+                    "flex-1 flex flex-col overflow-hidden min-w-0 bg-transparent relative transition-all duration-700",
+                    !isZen && "bg-background",
+                    isZen && "items-center justify-center"
                 )}>
                     <div className={cn(
                         "flex-1 flex flex-col w-full transition-all duration-700 ease-in-out h-full overflow-hidden",
@@ -170,6 +200,9 @@ export const MainLayout = () => {
                 <StatusBar />
             </div>
 
+            {/* Quick Ask Modal */}
+            <QuickAskModal />
+
             {/* Onboarding Tour */}
             <OnboardingTour />
         </div >
@@ -188,26 +221,26 @@ interface ActivityBarItemProps {
 const ActivityBarItem = ({ to, icon, title, active, badge, tourId }: ActivityBarItemProps) => {
     const content = (
         <div className={cn(
-            "relative w-full h-[48px] flex items-center justify-center cursor-pointer transition-colors group",
+            "relative w-full h-[36px] flex items-center justify-center cursor-pointer transition-colors group nav-accent",
             active ? "text-foreground" : "text-muted-foreground hover:text-foreground"
         )} title={title} {...(tourId ? { 'data-tour-id': tourId } : {})}>
-            {/* Active Border Indicator (Left) */}
+            {/* Medieval Active Indicator (Gem) */}
             {active && (
-                <div className="absolute left-0 top-0 bottom-0 w-[2px] bg-primary" />
+                <div className="nav-active-gem" />
             )}
             <Icon
                 name={icon}
-                size={24}
-                strokeWidth={1.5}
+                size={16}
+                strokeWidth={2}
                 className={cn(
                     "opacity-80 group-hover:opacity-100 transition-all duration-300",
-                    active ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
+                    active ? "text-primary scale-110" : "text-muted-foreground group-hover:text-foreground"
                 )}
             />
 
             {/* Badge */}
             {badge !== undefined && (
-                <div className="absolute top-0 left-2 flex h-4 min-w-[16px] px-1 items-center justify-center rounded-[4px] bg-blue-600 text-[9px] font-bold text-white shadow-sm ring-1 ring-background z-10 pointer-events-none">
+                <div className="opacity-70 absolute top-6 left-4 flex h-4 min-w-[16px] px-1 items-center justify-center rounded-[4px] bg-primary text-primary-foreground text-[9px] font-bold shadow-sm ring-1 ring-background z-10 pointer-events-none">
                     {badge > 999 ? '999+' : badge}
                 </div>
             )}

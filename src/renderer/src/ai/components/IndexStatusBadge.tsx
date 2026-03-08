@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Icon } from '../../components/IconRegistry';
-import { ragService } from '..';
 import { useAppSettings } from '../../context/AppSettingsContext';
 import type { CodexEntry } from '../../lib/db';
 
@@ -19,14 +18,14 @@ export const IndexStatusBadge = ({ entry, onIndexComplete }: IndexStatusBadgePro
         setStatus('checking');
 
         // First check if RAG is available
-        const { available } = await ragService.isAvailable();
+        const { available } = await window.api.ai.isAvailable();
         if (!available) {
             setStatus('unavailable');
             return;
         }
 
         // Check index status
-        const indexStatus = await ragService.getIndexStatus(entry.id);
+        const indexStatus = await window.api.db.getAIIndexStatus(entry.id);
         if (indexStatus) {
             setStatus('indexed');
             setChunkCount(indexStatus.chunkCount);
@@ -42,12 +41,12 @@ export const IndexStatusBadge = ({ entry, onIndexComplete }: IndexStatusBadgePro
 
     const handleIndex = async () => {
         setStatus('indexing');
-        const result = await ragService.indexEntry(entry, {
-            chunkSize: settings.ragChunkSize ?? 1000,
-            chunkOverlap: settings.ragChunkOverlap ?? 100,
-            indexPdf: settings.ragIndexPdf ?? true,
-            indexUrl: settings.ragIndexUrl ?? true,
-            indexMarkdown: settings.ragIndexMarkdown ?? true
+        const result = await window.api.ai.indexEntry(entry, {
+            chunkSize: settings.ai?.rag?.chunkSize ?? 1000,
+            chunkOverlap: settings.ai?.rag?.chunkOverlap ?? 100,
+            indexPdf: settings.ai?.rag?.indexPdf ?? true,
+            indexUrl: settings.ai?.rag?.indexUrl ?? true,
+            indexMarkdown: settings.ai?.rag?.indexMarkdown ?? true
         });
         if (result.success) {
             setChunkCount(result.chunkCount);

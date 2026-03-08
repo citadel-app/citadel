@@ -12,127 +12,40 @@
 
         body {
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
             height: 100vh;
-            background: #ffffff;
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: transparent;
             overflow: hidden;
             -webkit-app-region: drag;
             user-select: none;
         }
 
-        /* Ambient glow */
-        .glow {
-            position: absolute;
-            width: 400px;
-            height: 400px;
-            border-radius: 50%;
-            background: radial-gradient(circle, rgba(99, 102, 241, 0.06) 0%, transparent 70%);
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            animation: pulse 3s ease-in-out infinite;
-        }
-
-        @keyframes pulse {
-
-            0%,
-            100% {
-                opacity: 0.6;
-                transform: translate(-50%, -50%) scale(1);
-            }
-
-            50% {
-                opacity: 1;
-                transform: translate(-50%, -50%) scale(1.1);
-            }
-        }
-
         .banner {
-            width: 280px;
+            width: 800px;
+            /* Slightly larger for better splash presence */
             height: auto;
             object-fit: contain;
-            position: relative;
-            z-index: 1;
-            animation: fadeIn 0.5s ease-out;
-        }
-
-        .dots {
-            display: flex;
-            gap: 6px;
-            margin-top: 24px;
-            position: relative;
-            z-index: 1;
-            animation: fadeIn 0.5s ease-out 0.15s both;
-        }
-
-        .dot {
-            width: 5px;
-            height: 5px;
-            border-radius: 50%;
-            background: #6366f1;
-            animation: bounce 1.4s ease-in-out infinite;
-        }
-
-        .dot:nth-child(2) {
-            animation-delay: 0.15s;
-        }
-
-        .dot:nth-child(3) {
-            animation-delay: 0.3s;
-        }
-
-        @keyframes bounce {
-
-            0%,
-            80%,
-            100% {
-                transform: translateY(0);
-                opacity: 0.4;
-            }
-
-            40% {
-                transform: translateY(-8px);
-                opacity: 1;
-            }
+            filter: drop-shadow(0 20px 50px rgba(0, 0, 0, 0.3));
+            animation: fadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         @keyframes fadeIn {
             from {
                 opacity: 0;
-                transform: translateY(8px);
+                transform: scale(0.95) translateY(10px);
             }
 
             to {
                 opacity: 1;
-                transform: translateY(0);
+                transform: scale(1) translateY(0);
             }
-        }
-
-        .version {
-            position: absolute;
-            bottom: 16px;
-            font-size: 10px;
-            color: rgba(0, 0, 0, 0.15);
-            font-weight: 600;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            z-index: 1;
         }
     </style>
 </head>
 
 <body>
-    <div class="glow"></div>
     <img class="banner" src="banner.png" alt="Citadel" />
-    <div class="dots">
-        <div class="dot"></div>
-        <div class="dot"></div>
-        <div class="dot"></div>
-    </div>
-    <div class="version">Loading</div>
 </body>
 
 </html>

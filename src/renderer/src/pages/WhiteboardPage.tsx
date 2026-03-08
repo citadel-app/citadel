@@ -128,7 +128,7 @@ export const WhiteboardPage = () => {
             excalidrawAPI.updateScene({
                 appState: {
                     ...current,
-                    viewBackgroundColor: resolvedTheme === 'dark' ? '#ffffff' : '#ffffff',
+                    viewBackgroundColor: '#ffffff',
                     theme: themeMode,
                 }
             });
@@ -147,7 +147,7 @@ export const WhiteboardPage = () => {
                     theme={resolvedTheme === 'dark' ? 'dark' : 'light'}
                     initialData={{
                         appState: {
-                            viewBackgroundColor: resolvedTheme === 'dark' ? '#1e1e1e' : '#ffffff',
+                            viewBackgroundColor: '#ffffff',
                             currentItemFontFamily: 1,
                         }
                     }}
@@ -160,7 +160,7 @@ export const WhiteboardPage = () => {
                         <MainMenu.DefaultItems.SaveAsImage />
                         <MainMenu.DefaultItems.ClearCanvas />
                         <MainMenu.DefaultItems.Help />
-                        <MainMenu.DefaultItems.ChangeCanvasBackground />
+                        {/* <MainMenu.DefaultItems.ChangeCanvasBackground /> */}
                     </MainMenu>
                     <WelcomeScreen />
                 </Excalidraw>

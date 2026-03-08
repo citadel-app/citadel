@@ -4,15 +4,19 @@ import { Icon } from './IconRegistry';
 import { MarkdownViewer } from './MarkdownViewer';
 import { ChatMessage } from '../lib/db';
 import { useNavigate } from 'react-router-dom';
+import { CommandProposal } from './CommandProposal';
+import { commandRegistry } from '../commands/CommandRegistry';
+import { db } from '../lib/db';
 
 interface ChatMessageItemProps {
     msg: ChatMessage;
     isZen?: boolean;
     isLast?: boolean;
     isGenerating?: boolean;
+    onStatusChange?: (status: 'approved' | 'rejected') => void;
 }
 
-export const ChatMessageItem = memo(({ msg, isZen, isLast, isGenerating }: ChatMessageItemProps) => {
+export const ChatMessageItem = memo(({ msg, isZen, isLast, isGenerating, onStatusChange }: ChatMessageItemProps) => {
     const navigate = useNavigate();
 
     // Parse actions from message content
@@ -92,6 +96,35 @@ export const ChatMessageItem = memo(({ msg, isZen, isLast, isGenerating }: ChatM
                             <span>Navigate to {action.title}</span>
                         </button>
                     ))}
+                </div>
+            )}
+
+            {/* Command Proposal */}
+            {msg.commandProposal && (
+                <div className="w-full max-w-[85%]">
+                    <CommandProposal
+                        commandId={msg.commandProposal.commandId}
+                        args={msg.commandProposal.args}
+                        status={msg.commandProposal.status}
+                        onApprove={async () => {
+                            if (!msg.commandProposal) return;
+
+                            // 1. Get command to check for navigation
+                            const cmd = commandRegistry.getCommand(msg.commandProposal.commandId);
+                            if (cmd?.navigationTarget) {
+                                navigate(cmd.navigationTarget);
+                            }
+
+                            // 2. Execute command
+                            await commandRegistry.execute(msg.commandProposal.commandId, msg.commandProposal.args);
+
+                            // 3. Update status
+                            onStatusChange?.('approved');
+                        }}
+                        onReject={() => {
+                            onStatusChange?.('rejected');
+                        }}
+                    />
                 </div>
             )}
 

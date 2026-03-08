@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { CodexEntry } from '../lib/db';
 import { dataManager } from '../lib/data-manager';
 import { useConfig } from '../context/ConfigContext';
-import { StandardMarkdownSerializer } from '../lib/serializers/markdown-serializer';
+import { StandardMarkdownSerializer } from '@shared';
 
 interface UseEntryContentOptions {
     entry: CodexEntry | undefined;

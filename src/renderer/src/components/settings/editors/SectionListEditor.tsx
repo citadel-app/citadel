@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { SectionConfig } from '../../../config/entry-types';
+import { type SectionConfig } from '@shared';
 import { Plus, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
 import { cn } from '../../../lib/utils';
 import { Icon } from '../../IconRegistry';

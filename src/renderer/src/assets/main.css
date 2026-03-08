@@ -4,20 +4,28 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --background: 220 10% 97%;
+    --foreground: 222.2 47.4% 11.2%;
     --primary: 222.2 47.4% 11.2%;
     --primary-foreground: 210 40% 98%;
-    --muted: 210 40% 96.1%;
+    --muted: 220 10% 94%;
     --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
+    --accent: 220 10% 94%;
     --accent-foreground: 222.2 47.4% 11.2%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
+    --border: 220 10% 90%;
+    --input: 220 10% 90%;
     --ring: 222.2 84% 4.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover: 220 10% 97%;
     --primary-rgb: 0, 122, 204;
+
+    --radius-base: 0.5rem;
+    --radius-xl: 1rem;
+    --radius-2xl: 1.5rem;
+    --radius-premium: 2.5rem;
+
+    --shadow-citadel: 0 0 20px -5px hsl(var(--primary) / 0.3);
+    --transition-premium: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --titlebar-height: 0px;
   }
 
   .dark {
@@ -247,4 +255,250 @@
   .prose tr:nth-child(even) {
     background-color: hsl(var(--muted) / 0.2);
   }
+}
+
+/* Medieval Theme Enhancements */
+@layer components {
+  .font-medieval {
+    font-family: 'Cinzel', serif;
+    letter-spacing: 0.05em;
+  }
+
+  .font-medieval-decorative {
+    font-family: 'Cinzel Decorative', serif;
+    letter-spacing: 0.1em;
+  }
+
+  /* Ornate Border System */
+  .citadel-border {
+    position: relative;
+    border: 1px solid hsl(var(--border));
+    background-color: hsl(var(--background));
+  }
+
+  .citadel-border::before,
+  .citadel-border::after {
+    content: "";
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    border: 2px solid hsl(var(--primary) / 0.5);
+    pointer-events: none;
+    z-index: 10;
+  }
+
+  /* Top Left Corner */
+  .citadel-border::before {
+    top: -3px;
+    left: -3px;
+    border-right: none;
+    border-bottom: none;
+  }
+
+  /* Top Right Corner */
+  .citadel-border::after {
+    top: -3px;
+    right: -3px;
+    border-left: none;
+    border-bottom: none;
+  }
+
+  /* Gothic Side Panel Decoration */
+  .gothic-activity-bar {
+    position: relative;
+  }
+
+  .gothic-activity-bar::after {
+    content: "";
+    position: absolute;
+    right: 0;
+    top: 5%;
+    bottom: 5%;
+    width: 1px;
+    background: linear-gradient(to bottom, transparent, hsl(var(--primary) / 0.3), transparent);
+    box-shadow: 0 0 10px hsl(var(--primary) / 0.2);
+  }
+
+  /* Medieval Navigation Item Accent */
+  .nav-accent {
+    position: relative;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .nav-accent:hover {
+    background: linear-gradient(90deg, hsl(var(--primary) / 0.1) 0%, transparent 100%);
+  }
+
+  .nav-active-gem {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%) rotate(45deg);
+    width: 6px;
+    height: 6px;
+    background: hsl(var(--primary));
+    box-shadow: 0 0 12px hsl(var(--primary));
+    z-index: 20;
+  }
+
+  /* Forged UI Elements */
+  .btn-forged {
+    @apply font-medieval outline-none relative transition-all;
+    clip-path: polygon(5% 0, 95% 0, 100% 50%, 95% 100%, 5% 100%, 0 50%);
+  }
+
+  .clip-path-forged {
+    clip-path: polygon(5% 0, 95% 0, 100% 50%, 95% 100%, 5% 100%, 0 50%);
+  }
+
+  .clip-path-forged-left {
+    clip-path: polygon(5% 0, 100% 0, 100% 100%, 5% 100%, 0 50%);
+  }
+
+  .clip-path-forged-right {
+    clip-path: polygon(0 0, 95% 0, 100% 50%, 95% 100%, 0 100%);
+  }
+
+  /* Dialog Specific Forged Shapes */
+  .clip-path-forged-dialog {
+    clip-path: polygon(2% 0, 98% 0, 100% 5%, 100% 95%, 98% 100%, 2% 100%, 0 95%, 0 5%);
+  }
+
+  .forged-dialog-border {
+    fill: none;
+    stroke: hsl(var(--primary) / 0.4);
+    stroke-width: 2px;
+    vector-effect: non-scaling-stroke;
+  }
+
+  .forged-border-svg {
+    stroke: hsl(var(--primary) / 0.6);
+    fill: none;
+    stroke-width: 2px;
+    vector-effect: non-scaling-stroke;
+    transition: all 0.2s ease;
+  }
+
+  .variant-secondary .forged-border-svg {
+    stroke: hsl(var(--secondary) / 0.6);
+  }
+
+  .variant-destructive .forged-border-svg {
+    stroke: hsl(var(--destructive) / 0.8);
+  }
+
+  /* Ghost/Outline logic for forged svg borders */
+  .variant-outline .forged-border-svg {
+    stroke-opacity: 0.5;
+  }
+
+  .variant-ghost .forged-border-svg {
+    stroke-opacity: 0;
+  }
+
+  .btn-forged:hover .forged-border-svg {
+    stroke-opacity: 1;
+    stroke-width: 2.5px;
+  }
+
+  .btn-forged:hover {
+    filter: drop-shadow(0 0 4px hsl(var(--primary) / 0.4));
+    transform: translateY(-1px);
+  }
+
+  .btn-forged:active {
+    transform: translateY(0);
+    filter: drop-shadow(0 0 2px hsl(var(--primary) / 0.2));
+  }
+
+  /* Ancient Scroll style titles */
+  .scroll-header {
+    @apply font-medieval text-primary uppercase tracking-widest text-lg py-2 my-4 border-b border-primary/20;
+    background: linear-gradient(90deg, hsl(var(--primary) / 0.05) 0%, transparent 100%);
+  }
+}
+
+/* Global Typography Overrides */
+h1,
+h2,
+h3,
+.title-citadel {
+  @apply font-medieval font-bold capitalize tracking-tight;
+}
+
+h1 {
+  @apply text-3xl tracking-wide uppercase;
+}
+
+.hero-citadel {
+  @apply font-medieval-decorative font-black;
+}
+
+/* Quick Ask Modal Styles */
+.mini-chat-input input {
+  @apply h-10 pl-10 pr-20 text-sm rounded-xl !important;
+}
+
+.mini-chat-input .absolute.left-4 {
+  @apply left-3 !important;
+}
+
+.mini-chat-input .absolute.left-4 svg {
+  @apply w-4 h-4 !important;
+}
+
+.mini-chat-input .absolute.right-2 {
+  @apply right-1.5 !important;
+}
+
+.mini-chat-input button {
+  @apply p-1.5 rounded-lg !important;
+}
+
+.mini-chat-input button svg {
+  @apply w-3.5 h-3.5 !important;
+}
+
+/* Custom Scrollbar for Quick Ask */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  @apply bg-primary/20 rounded-full;
+}
+
+/* Omni Search Results Dropdown */
+[cmdk-item] {
+  @apply flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition-all text-sm font-medium;
+  content-visibility: auto;
+  user-select: none;
+}
+
+[cmdk-item][aria-selected='true'] {
+  @apply bg-primary/10 text-primary !important;
+}
+
+[cmdk-item][aria-disabled='true'] {
+  @apply text-muted-foreground opacity-50 cursor-not-allowed;
+}
+
+[cmdk-group-heading] {
+  @apply px-2 py-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/50 border-b border-border/10 mb-1;
+}
+
+@keyframes toast-slide-in {
+  from {
+    transform: translateX(100%) scale(0.95);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-toast-in {
+  animation: toast-slide-in 0.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }

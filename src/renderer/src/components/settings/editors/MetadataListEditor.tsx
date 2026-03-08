@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { EntryMetadataConfig } from '../../../config/entry-types';
+import { type EntryMetadataConfig } from '@shared';
 import { Plus, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
 import { cn } from '../../../lib/utils';
 import { Icon, LUCIDE_ICON_NAMES } from '../../IconRegistry';

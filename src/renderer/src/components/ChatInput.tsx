@@ -1,19 +1,22 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Icon } from './IconRegistry';
 import { InlineEntrySelector } from './InlineEntrySelector';
+import { InlineSearchIntellisense } from '../search/components/InlineSearchIntellisense';
+import { useSearchIntellisense } from '../search/hooks/useSearchIntellisense';
 import { cn } from '../lib/utils';
 import { CodexEntry } from '../lib/db';
 
 interface ChatInputProps {
     onSearch: (query: string) => void;
     isSearching: boolean;
-    onAttachContext: () => void;
-    hasContext: boolean;
+    onAttachContext?: () => void;
+    hasContext?: boolean;
     placeholder?: string;
     className?: string;
     variant?: 'empty' | 'chat';
     initialValue?: string;
-    onSelectMention: (entry: CodexEntry, query: string, triggerIndex: number) => void;
+    isOffline?: boolean;
+    onSelectMention?: (entry: CodexEntry, query: string, triggerIndex: number) => void;
 }
 
 export const ChatInput = ({
@@ -25,6 +28,7 @@ export const ChatInput = ({
     className,
     variant = 'chat',
     initialValue = '',
+    isOffline,
     onSelectMention
 }: ChatInputProps) => {
     const [value, setValue] = useState(initialValue);
@@ -33,12 +37,25 @@ export const ChatInput = ({
     const [mentionTriggerIndex, setMentionTriggerIndex] = useState(-1);
     const [pendingMentionSelect, setPendingMentionSelect] = useState(false);
 
+    const [cursorPos, setCursorPos] = useState(-1);
+    const [searchIntellisenseIndex, setSearchIntellisenseIndex] = useState(0);
+    const [showSearchIntellisense, setShowSearchIntellisense] = useState(false);
+
+    const inputRef = useRef<HTMLInputElement>(null);
+
+    const { suggestions, range } = useSearchIntellisense(isOffline ? value : '', cursorPos);
+
     useEffect(() => {
         setValue(initialValue);
     }, [initialValue]);
 
     const handleInputChange = (val: string) => {
         setValue(val);
+
+        if (isOffline) {
+            setShowSearchIntellisense(true);
+            setSearchIntellisenseIndex(0);
+        }
 
         // Detect @ mention trigger
         const lastAtPos = val.lastIndexOf('@');
@@ -62,6 +79,7 @@ export const ChatInput = ({
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
         if (mentionQuery !== null) {
+            // ... (existing mention logic) ...
             if (e.key === 'ArrowDown') {
                 e.preventDefault();
                 setMentionActiveIndex(prev => prev + 1);
@@ -78,13 +96,68 @@ export const ChatInput = ({
             return;
         }
 
+        if (isOffline && showSearchIntellisense && suggestions.length > 0) {
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                setSearchIntellisenseIndex(prev => (prev + 1) % suggestions.length);
+                return;
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                setSearchIntellisenseIndex(prev => (prev - 1 + suggestions.length) % suggestions.length);
+                return;
+            } else if (e.key === 'Enter' || e.key === 'Tab') {
+                if (suggestions[searchIntellisenseIndex]) {
+                    e.preventDefault();
+                    handleSelectSuggestion(suggestions[searchIntellisenseIndex]);
+                    return;
+                }
+            } else if (e.key === 'Escape') {
+                setShowSearchIntellisense(false);
+                return;
+            }
+        }
+
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
             if (value.trim() && !isSearching) {
                 onSearch(value);
                 setValue('');
+                setShowSearchIntellisense(false);
             }
         }
+    };
+
+    const handleSelectSuggestion = (suggestion: any) => {
+        if (!range) return;
+
+        let insertText = suggestion.text;
+        if (suggestion.type === 'operator') {
+            insertText += ' ';
+        } else if (suggestion.type === 'field' && !insertText.endsWith(':')) {
+            insertText += ':';
+        }
+
+        const newQuery = value.slice(0, range.start) +
+            insertText +
+            value.slice(range.end);
+
+        setValue(newQuery);
+
+        const newPos = range.start + insertText.length;
+        setTimeout(() => {
+            if (inputRef.current) {
+                inputRef.current.focus();
+                inputRef.current.setSelectionRange(newPos, newPos);
+                setCursorPos(newPos);
+            }
+        }, 0);
+
+        setShowSearchIntellisense(false);
+    };
+
+    const updateCursorPos = (e: React.SyntheticEvent<HTMLInputElement>) => {
+        const pos = e.currentTarget.selectionStart;
+        if (pos !== null) setCursorPos(pos);
     };
 
     const handleSelect = (entry: CodexEntry) => {
@@ -101,12 +174,18 @@ export const ChatInput = ({
                     <Icon name="Search" size={24} />
                 </div>
                 <input
+                    ref={inputRef}
                     type="text"
                     autoFocus
                     value={value}
                     onChange={(e) => handleInputChange(e.target.value)}
                     onKeyDown={handleKeyDown}
-                    placeholder={placeholder || "What are we building today?"}
+                    onKeyUp={updateCursorPos}
+                    onSelect={updateCursorPos}
+                    onClick={updateCursorPos}
+                    onFocus={() => isOffline && setShowSearchIntellisense(true)}
+                    onBlur={() => setTimeout(() => setShowSearchIntellisense(false), 200)}
+                    placeholder={placeholder || (isOffline ? "Search the Archives..." : "What are we building today?")}
                     className="w-full h-16 pl-16 pr-32 rounded-3xl border border-border bg-card focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none text-xl transition-all shadow-xl hover:shadow-2xl"
                 />
                 {mentionQuery !== null && (
@@ -119,24 +198,34 @@ export const ChatInput = ({
                         onSelectionProcessed={() => setPendingMentionSelect(false)}
                     />
                 )}
+                {isOffline && showSearchIntellisense && suggestions.length > 0 && (
+                    <InlineSearchIntellisense
+                        suggestions={suggestions}
+                        selectedIndex={searchIntellisenseIndex}
+                        onSelectIndexChange={(idx) => setSearchIntellisenseIndex(idx)}
+                        onSelect={handleSelectSuggestion}
+                    />
+                )}
                 <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-3">
+                    {onAttachContext && (
+                        <button
+                            onClick={onAttachContext}
+                            className={cn(
+                                "p-3 rounded-2xl border border-border transition-all hover:bg-muted",
+                                hasContext ? "bg-primary/10 border-primary/30 text-primary" : "text-muted-foreground font-bold"
+                            )}
+                            title="Attach Context"
+                        >
+                            <Icon name="Paperclip" size={20} />
+                        </button>
+                    )}
                     <button
-                        onClick={onAttachContext}
-                        className={cn(
-                            "p-3 rounded-2xl border border-border transition-all hover:bg-muted",
-                            hasContext ? "bg-primary/10 border-primary/30 text-primary" : "text-muted-foreground font-bold"
-                        )}
-                        title="Attach Context"
-                    >
-                        <Icon name="Paperclip" size={20} />
-                    </button>
-                    <button
-                        onClick={() => { onSearch(value); setValue(''); }}
+                        onClick={() => { onSearch(value); setValue(''); setShowSearchIntellisense(false); }}
                         disabled={isSearching || !value.trim()}
                         className="px-6 h-12 bg-primary text-primary-foreground rounded-2xl hover:bg-primary/90 transition-all disabled:opacity-50 font-bold flex items-center gap-2 shadow-lg"
                     >
-                        <span>Search</span>
-                        <Icon name="ArrowRight" size={18} />
+                        <span>{isOffline ? 'Browse' : 'Search'}</span>
+                        <Icon name={isOffline ? 'Library' : 'ArrowRight'} size={18} />
                     </button>
                 </div>
             </div>
@@ -149,11 +238,17 @@ export const ChatInput = ({
                 <Icon name="Search" size={20} />
             </div>
             <input
+                ref={inputRef}
                 type="text"
                 value={value}
                 onChange={(e) => handleInputChange(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder={placeholder || "Ask a follow-up or a new question..."}
+                onKeyUp={updateCursorPos}
+                onSelect={updateCursorPos}
+                onClick={updateCursorPos}
+                onFocus={() => isOffline && setShowSearchIntellisense(true)}
+                onBlur={() => setTimeout(() => setShowSearchIntellisense(false), 200)}
+                placeholder={placeholder || (isOffline ? "Search the Archives..." : "Ask a follow-up or a new question...")}
                 className="w-full h-12 pl-12 pr-28 rounded-2xl border border-border bg-background focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-base transition-all shadow-md"
             />
             {mentionQuery !== null && (
@@ -166,24 +261,34 @@ export const ChatInput = ({
                     onSelectionProcessed={() => setPendingMentionSelect(false)}
                 />
             )}
+            {isOffline && showSearchIntellisense && suggestions.length > 0 && (
+                <InlineSearchIntellisense
+                    suggestions={suggestions}
+                    selectedIndex={searchIntellisenseIndex}
+                    onSelectIndexChange={(idx) => setSearchIntellisenseIndex(idx)}
+                    onSelect={handleSelectSuggestion}
+                />
+            )}
             <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-2">
                 <button
-                    onClick={() => { onSearch(value); setValue(''); }}
+                    onClick={() => { onSearch(value); setValue(''); setShowSearchIntellisense(false); }}
                     disabled={isSearching || !value.trim()}
                     className="p-2 bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-colors disabled:opacity-50"
                 >
                     <Icon name="ArrowUp" size={18} />
                 </button>
-                <button
-                    onClick={onAttachContext}
-                    className={cn(
-                        "p-2 rounded-xl border border-border transition-all hover:bg-muted",
-                        hasContext ? "bg-primary/10 border-primary/30 text-primary" : "text-muted-foreground"
-                    )}
-                    title="Attach Context"
-                >
-                    <Icon name="Paperclip" size={18} />
-                </button>
+                {onAttachContext && (
+                    <button
+                        onClick={onAttachContext}
+                        className={cn(
+                            "p-2 rounded-xl border border-border transition-all hover:bg-muted",
+                            hasContext ? "bg-primary/10 border-primary/30 text-primary" : "text-muted-foreground"
+                        )}
+                        title="Attach Context"
+                    >
+                        <Icon name="Paperclip" size={18} />
+                    </button>
+                )}
             </div>
         </div>
     );

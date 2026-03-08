@@ -8,7 +8,16 @@ export type { Suggestion };
 
 export const useSearchIntellisense = (query: string, cursorPosition: number) => {
     const { entryTypes } = useConfig();
-    const allEntries = useLiveQuery(() => db.entries.toArray()) || [];
+    const allEntries = useLiveQuery(async () => {
+        const entries = await db.entries.toArray();
+        return entries.map(e => ({
+            ...e,
+            content: undefined,
+            highlights: undefined,
+            whiteboard: undefined,
+            code: undefined
+        }));
+    }) || [];
 
     const metadata = useMemo(() => 
         SearchService.aggregateMetadata(allEntries, entryTypes),

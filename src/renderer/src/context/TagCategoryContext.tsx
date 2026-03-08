@@ -12,14 +12,13 @@ export interface TagCategory {
 
 interface TagCategoryContextType {
     categories: TagCategory[];
-    loading: boolean;
-    addCategory: (name: string, color: string) => void;
-    updateCategory: (id: string, updates: Partial<TagCategory>) => void;
-    removeCategory: (id: string) => void;
-    addTagToCategory: (categoryId: string, tag: string) => void;
-    removeTagFromCategory: (categoryId: string, tag: string) => void;
-    getCategoryForTag: (tag: string) => TagCategory | undefined;
-    syncCategories: () => Promise<void>;
+    isLoading: boolean;
+    addCategory: (category: Omit<TagCategory, 'id'>) => void;
+    updateCategory: (id: string, updates: Partial<Omit<TagCategory, 'id'>>) => void;
+    deleteCategory: (id: string) => void;
+    moveTag: (tag: string, fromCategoryId: string | null, toCategoryId: string) => void;
+    reorderCategories: (newCategories: TagCategory[]) => void;
+    refresh: () => Promise<void>;
 }
 
 const TagCategoryContext = createContext<TagCategoryContextType | undefined>(undefined);
@@ -34,19 +33,20 @@ export const useTagCategories = () => {
 
 export const TagCategoryProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [categories, setCategories] = useState<TagCategory[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [isLoading, setIsLoading] = useState(true);
     const { vaultPath } = useConfig();
 
     const loadCategories = useCallback(async () => {
         if (!vaultPath) return;
-        setLoading(true);
+        setIsLoading(true);
         try {
             const data = await dataManager.loadTagCategories();
+            console.log('[TagCategoryContext] categories loaded:', data?.length);
             setCategories(data || []);
-        } catch (e) {
-            console.error('Failed to load tag categories', e);
+        } catch (error) {
+            console.error('[TagCategoryContext] Failed to load categories:', error);
         } finally {
-            setLoading(false);
+            setIsLoading(false);
         }
     }, [vaultPath]);
 
@@ -54,80 +54,80 @@ export const TagCategoryProvider: React.FC<{ children: React.ReactNode }> = ({ c
         loadCategories();
     }, [loadCategories]);
 
-    const syncCategories = useCallback(async (newCategories: TagCategory[]) => {
+    const saveCategories = useCallback(async (newCategories: TagCategory[]) => {
+        if (!vaultPath || isLoading) {
+            console.warn('[TagCategoryContext] Skipping save: vaultPath missing or still loading', { vaultPath, isLoading });
+            return;
+        }
         try {
             await dataManager.saveTagCategories(newCategories);
-        } catch (e) {
-            console.error('Failed to save tag categories', e);
+        } catch (error) {
+            console.error('[TagCategoryContext] Failed to save categories:', error);
         }
-    }, []);
+    }, [vaultPath, isLoading]);
 
-    const addCategory = (name: string, color: string) => {
-        const newCategory: TagCategory = {
-            id: uuidv4(),
-            name,
-            color,
-            tags: []
-        };
-        const updated = [...categories, newCategory];
-        setCategories(updated);
-        syncCategories(updated);
-    };
-
-    const updateCategory = (id: string, updates: Partial<TagCategory>) => {
-        const updated = categories.map(cat =>
-            cat.id === id ? { ...cat, ...updates } : cat
-        );
-        setCategories(updated);
-        syncCategories(updated);
-    };
-
-    const removeCategory = (id: string) => {
-        const updated = categories.filter(cat => cat.id !== id);
-        setCategories(updated);
-        syncCategories(updated);
-    };
-
-    const addTagToCategory = (categoryId: string, tag: string) => {
-        // Enforce: A tag cannot belong to multiple categories
-        const updated = categories.map(cat => {
-            // Remove tag from other categories
-            if (cat.id !== categoryId && cat.tags.includes(tag)) {
-                return { ...cat, tags: cat.tags.filter(t => t !== tag) };
-            }
-            // Add tag to target category
-            if (cat.id === categoryId && !cat.tags.includes(tag)) {
-                return { ...cat, tags: [...cat.tags, tag] };
-            }
-            return cat;
+    const addCategory = useCallback((category: Omit<TagCategory, 'id'>) => {
+        const id = crypto.randomUUID();
+        setCategories(prev => {
+            const updated = [...prev, { ...category, id }];
+            saveCategories(updated);
+            return updated;
         });
-        setCategories(updated);
-        syncCategories(updated);
-    };
+    }, [saveCategories]);
 
-    const removeTagFromCategory = (categoryId: string, tag: string) => {
-        const updated = categories.map(cat =>
-            cat.id === categoryId ? { ...cat, tags: cat.tags.filter(t => t !== tag) } : cat
-        );
-        setCategories(updated);
-        syncCategories(updated);
-    };
+    const updateCategory = useCallback((id: string, updates: Partial<Omit<TagCategory, 'id'>>) => {
+        setCategories(prev => {
+            const updated = prev.map(c => c.id === id ? { ...c, ...updates } : c);
+            saveCategories(updated);
+            return updated;
+        });
+    }, [saveCategories]);
 
-    const getCategoryForTag = (tag: string) => {
-        return categories.find(cat => cat.tags.includes(tag));
-    };
+    const deleteCategory = useCallback((id: string) => {
+        setCategories(prev => {
+            const updated = prev.filter(c => c.id !== id);
+            saveCategories(updated);
+            return updated;
+        });
+    }, [saveCategories]);
+
+    const moveTag = useCallback((tag: string, fromCategoryId: string | null, toCategoryId: string) => {
+        setCategories(prev => {
+            const updated = prev.map(c => {
+                // Remove from source if it was in another category
+                if (c.id === fromCategoryId) {
+                    return { ...c, tags: c.tags.filter(t => t !== tag) };
+                }
+                // Ensure it's not in ANY other category (enforce exclusivity)
+                if (c.id !== toCategoryId && c.tags.includes(tag)) {
+                    return { ...c, tags: c.tags.filter(t => t !== tag) };
+                }
+                // Add to target
+                if (c.id === toCategoryId) {
+                    return { ...c, tags: [...new Set([...c.tags, tag])] };
+                }
+                return c;
+            });
+            saveCategories(updated);
+            return updated;
+        });
+    }, [saveCategories]);
+
+    const reorderCategories = useCallback((newCategories: TagCategory[]) => {
+        setCategories(newCategories);
+        saveCategories(newCategories);
+    }, [saveCategories]);
 
     return (
         <TagCategoryContext.Provider value={{
             categories,
-            loading,
+            isLoading,
             addCategory,
             updateCategory,
-            removeCategory,
-            addTagToCategory,
-            removeTagFromCategory,
-            getCategoryForTag,
-            syncCategories: () => syncCategories(categories)
+            deleteCategory,
+            moveTag,
+            reorderCategories,
+            refresh: loadCategories
         }}>
             {children}
         </TagCategoryContext.Provider>

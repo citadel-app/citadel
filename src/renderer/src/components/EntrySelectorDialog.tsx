@@ -62,7 +62,16 @@ const EntryRow = memo((props: {
 export const EntrySelectorDialog = ({ open, onOpenChange, selectedIds, onSelectionChange }: EntrySelectorDialogProps) => {
     const [searchQuery, setSearchQuery] = useState('');
 
-    const allEntries = useLiveQuery(() => db.entries.toArray(), []) || [];
+    const allEntries = useLiveQuery(async () => {
+        const entries = await db.entries.toArray();
+        return entries.map(e => ({
+            ...e,
+            content: undefined,
+            highlights: undefined,
+            whiteboard: undefined,
+            code: undefined
+        }));
+    }, []) || [];
 
     const filteredEntries = useMemo(() => {
         if (!searchQuery.trim()) return allEntries;

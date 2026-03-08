@@ -1,6 +1,7 @@
 // Import from react-resizable-panels using the exports found in SplitPaneLayout.tsx
 import { Panel, Group, Separator } from 'react-resizable-panels';
-import { useRSS, FeedItem } from '../../context/RSSContext';
+import { useRSS } from '../../context/RSSContext';
+import { FeedItem } from '@shared';
 import { Icon } from '../IconRegistry';
 import { cn } from '../../lib/utils';
 import { useMemo, useState, useRef, useEffect, memo } from 'react';

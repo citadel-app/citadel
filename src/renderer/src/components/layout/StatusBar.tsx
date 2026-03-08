@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { useConfig } from '../../context/ConfigContext';
 
 import { useAppSettings } from '../../context/AppSettingsContext';
-import { ollamaClient, vectorService } from '../../ai';
+
 
 export const StatusBar = () => {
     const { status, isRepo, loading: gitLoading, refreshStatus } = useGit();
@@ -52,50 +52,29 @@ export const StatusBar = () => {
         setLogSeverity('none');
     };
 
-    // Service Health Polling
     useEffect(() => {
         if (!appSettings.ai?.enabled) return;
 
         const pollServices = async () => {
-            // Sync URLs first
-            if (appSettings.ai?.ollama?.baseUrl) {
-                ollamaClient.setBaseUrl(appSettings.ai.ollama.baseUrl);
-            }
-
             try {
-                const checks = [
-                    ollamaClient.checkConnection(),
-                    vectorService.checkConnection(),
-                ];
+                const results = await window.api.ai.isAvailable();
+                setOllamaConnected(results.services?.ollama || false);
+                setQdrantConnected(results.services?.ragAvailable || false);
 
-                // Only check TTS if enabled
+                // Check TTS if enabled
                 if (appSettings.ttsEnabled) {
-                    checks.push(fetch(`${appSettings.ttsUrl || 'http://localhost:5050'}/status`).then(r => r.ok).catch(() => false));
-                }
-
-                const results = await Promise.all(checks);
-
-                setOllamaConnected(results[0]);
-                setQdrantConnected(results[1]);
-                if (appSettings.ttsEnabled) {
-                    setTtsConnected(results[2]);
+                    const ttsRes = await fetch(`${appSettings.ttsUrl || 'http://localhost:5050'}/status`).then(r => r.ok).catch(() => false);
+                    setTtsConnected(ttsRes);
                 } else {
                     setTtsConnected(false);
                 }
 
                 // Check execution server
-                try {
-                    const execUrl = (appSettings.executionUrl || 'http://localhost:5051').replace('localhost', '127.0.0.1');
-                    const execRes = await fetch(`${execUrl}/health`).then(r => r.ok).catch(() => false);
-                    setExecutionConnected(execRes);
-                } catch {
-                    setExecutionConnected(false);
-                }
+                const execUrl = (appSettings.executionUrl || 'http://localhost:5051').replace('localhost', '127.0.0.1');
+                const execRes = await fetch(`${execUrl}/health`).then(r => r.ok).catch(() => false);
+                setExecutionConnected(execRes);
             } catch (e) {
-                // If checking one fails, they might all fail or partial.
-                // Promise.all rejects immediately if one fails if not caught individually.
-                // But checkConnection() catches its own errors usually.
-                // Fetch needs catch above.
+                // Silently handle errors in status polling
             }
         };
 
@@ -105,7 +84,7 @@ export const StatusBar = () => {
         const interval = setInterval(pollServices, intervalMs);
 
         return () => clearInterval(interval);
-    }, [appSettings.ai?.enabled, appSettings.ai?.ollama?.baseUrl, appSettings.ai?.qdrant?.baseUrl, appSettings.system?.statusPollInterval]);
+    }, [appSettings.ai?.enabled, appSettings.ai?.ollama?.baseUrl, appSettings.ai?.qdrant?.baseUrl, appSettings.system?.statusPollInterval, appSettings.ttsEnabled, appSettings.ttsUrl, appSettings.executionUrl]);
 
     const handleServiceClick = () => {
         navigate('/settings/system');
@@ -141,11 +120,11 @@ export const StatusBar = () => {
             <div className="flex items-center gap-4">
                 <div
                     className="flex items-center gap-1.5 hover:bg-muted/50 px-1.5 py-0.5 rounded cursor-pointer transition-colors"
-                    title={isRepo ? "Current Branch (Click to Manage)" : "Initialize Git Repository"}
+                    title={isRepo ? "Current Branch (Click to Manage)" : "Initialize Bastion"}
                     onClick={handleBranchClick}
                 >
                     <Icon name="GitBranch" size={12} />
-                    <span>{isRepo ? `${status?.current || defaultBranch}${status?.files?.length ? '*' : ''}` : 'No Repo'}</span>
+                    <span>{isRepo ? `${status?.current || defaultBranch}${status?.files?.length ? '*' : ''}` : 'No Bastion'}</span>
                     {status?.ahead ? <span className="text-xs">↑{status.ahead}</span> : null}
                     {status?.behind ? <span className="text-xs">↓{status.behind}</span> : null}
                 </div>
@@ -153,7 +132,7 @@ export const StatusBar = () => {
                 {isRepo && (
                     <div
                         className="flex items-center gap-1 hover:bg-white/10 px-1 rounded cursor-pointer transition-colors"
-                        title="Sync (Pull & Push)"
+                        title="Synchronize Bastion"
                         onClick={handleSyncClick}
                     >
                         <Icon name="RefreshCw" size={12} className={cn((isSyncing || gitLoading) && "animate-spin")} />

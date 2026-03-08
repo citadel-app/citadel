@@ -1,17 +1,24 @@
 import { ipcMain, BrowserWindow } from 'electron';
-import chokidar from 'chokidar';
+import * as chokidar from 'chokidar';
+import { IPC_CHANNELS } from '@shared';
+
+import { GuardrailService } from './GuardrailService';
 
 export class FileWatcherService {
   private watcher: chokidar.FSWatcher | null = null;
-  // private currentPath: string | null = null;
+  private guardrail: GuardrailService;
 
-  constructor() {
-    this.registerIpcHandlers();
+  constructor(guardrail: GuardrailService) {
+    this.guardrail = guardrail;
+    this.registerHandlers();
   }
 
-  private registerIpcHandlers() {
-    ipcMain.handle('fs:watch-path', async (_, watchPath: string | null) => {
-      this.setWatchPath(watchPath);
+  private registerHandlers() {
+    ipcMain.handle(IPC_CHANNELS.FS_WATCH_PATH, async (_, watchPath: string | null) => {
+      if (watchPath) {
+        this.guardrail.validate(watchPath);
+      }
+      return this.setWatchPath(watchPath);
     });
   }
 
@@ -48,7 +55,7 @@ export class FileWatcherService {
     const windows = BrowserWindow.getAllWindows();
     if (windows.length > 0) {
       console.log(`[FileWatcherService] Event: ${type} -> ${filePath}`);
-      windows[0].webContents.send('fs:file-changed', { type, path: filePath });
+      windows[0].webContents.send(IPC_CHANNELS.FS_ON_FILE_CHANGED, { type, path: filePath });
     }
   }
 }

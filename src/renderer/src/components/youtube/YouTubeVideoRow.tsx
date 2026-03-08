@@ -1,4 +1,4 @@
-import { FeedItem } from '../../context/YouTubeContext';
+import { FeedItem } from '@shared';
 import { Icon } from '../IconRegistry';
 import { formatDistanceToNow } from 'date-fns';
 import { cn } from '../../lib/utils';

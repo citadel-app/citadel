@@ -3,12 +3,35 @@ import { defineConfig } from 'electron-vite'
 import react from '@vitejs/plugin-react'
 
 export default defineConfig({
-  main: {},
-  preload: {},
+  main: {
+    resolve: {
+      alias: {
+        '@shared': resolve('src/shared/index.ts')
+      }
+    },
+    build: {
+      rollupOptions: {
+        external: ['canvas']
+      }
+    }
+  },
+  preload: {
+    resolve: {
+      alias: {
+        '@shared': resolve('src/shared/index.ts')
+      }
+    },
+    build: {
+      rollupOptions: {
+        external: ['canvas']
+      }
+    }
+  },
   renderer: {
     resolve: {
       alias: {
         '@renderer': resolve('src/renderer/src'),
+        '@shared': resolve('src/shared/index.ts'),
         'lodash': 'lodash-es'
       }
     },
@@ -18,7 +41,7 @@ export default defineConfig({
     plugins: [react()],
     build: {
       rollupOptions: {
-        external: ['pdfjs-dist/build/pdf.worker.min.mjs?url'],
+        external: ['canvas'],
         output: {
           manualChunks: {
             'monaco-editor': ['monaco-editor'],

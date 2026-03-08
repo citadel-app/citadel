@@ -4,7 +4,6 @@ import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import fs from 'fs-extra'
 import path from 'path'
-import os from 'os'
 import * as http from 'http';
 import { LspServer } from './lsp/LspServer';
 // import { LspManager } from './lsp-manager'
@@ -18,7 +17,33 @@ import { FileWatcherService } from './services/FileWatcherService'
 import { registerLatexHandlers } from './latex-compiler'
 import { BackendServiceManager } from './services/BackendServiceManager';
 import { DockerReplService } from './services/DockerReplService';
+import { IPC_CHANNELS } from '@shared';
+import { GuardrailService } from './services/GuardrailService';
 import { feedDb } from './db';
+import { AIOrchestrator } from './ai/AIOrchestrator';
+
+// Determine initial workspace from CLI
+let initialWorkspacePath: string | null = null
+// Look for a path argument that isn't a flag, skipping the app path itself
+const args = process.argv.slice(1);
+const potentialPath = args.find(arg => {
+  if (arg.startsWith('-') || arg.endsWith('.exe') || arg.includes('node_modules')) return false;
+  if (arg.startsWith('citadel://') || arg.startsWith('codex://')) return false;
+  const resolved = path.resolve(arg);
+  // In dev mode, the first arg is often '.', ignore it
+  if (is.dev && (arg === '.' || resolved === path.resolve(process.cwd()))) return false;
+  return fs.existsSync(resolved);
+});
+
+if (potentialPath) {
+  initialWorkspacePath = path.resolve(potentialPath);
+  console.log(`[Main] Initial workspace detected from CLI: ${initialWorkspacePath}`);
+}
+
+const guardrail = new GuardrailService(initialWorkspacePath);
+const aiOrchestrator = new AIOrchestrator(appSettings, feedDb);
+const backendManager = new BackendServiceManager(appSettings);
+const dockerReplService = new DockerReplService();
 
 // Gracefully handle known Electron ByteString header bug
 // Some servers return non-ASCII chars in HTTP headers which crashes Electron's undici layer
@@ -31,13 +56,6 @@ process.on('uncaughtException', (error) => {
     throw error;
 });
 
-// Parse CLI Args for Services
-const args = process.argv.slice(1);
-
-const backendManager = new BackendServiceManager(appSettings);
-const dockerReplService = new DockerReplService();
-
-// --- SINGLE INSTANCE LOCK ---
 const isNoLock = args.includes('--no-lock');
 const gotTheLock = isNoLock ? true : app.requestSingleInstanceLock()
 if (!gotTheLock) {
@@ -46,19 +64,23 @@ if (!gotTheLock) {
 } else {
   if (!isNoLock) {
     app.on('second-instance', (_event, commandLine) => {
-      console.log('[Main] Second instance launched. Focusing existing instance...')
+      console.log(`[Main] Second instance launched. Full command line: ${commandLine.join(' ')}`);
       
-      // Look for a deep link (e.g., citadel://clone?url=...) in the command line args
-      // Typical args: [ 'path/to/exe', 'citadel://clone?url=...' ]
-      const urlMatch = commandLine.find(arg => arg.startsWith('citadel://') || arg.startsWith('codex://'));
+      // Use RegEx to find the deep link (e.g., "citadel://clone?url=...") in any argument
+      const protocolRegex = /^(["']?)(citadel|codex):\/\/.*?\1$/i;
+      const urlMatchRaw = commandLine.find(arg => protocolRegex.test(arg));
+      // Strip quotes if they were added by the shell
+      const urlMatch = urlMatchRaw ? urlMatchRaw.replace(/^["']|["']$/g, '') : null;
       
       if (mainWindow) {
         if (mainWindow.isMinimized()) mainWindow.restore()
         mainWindow.focus()
         
         if (urlMatch) {
-          console.log(`[Main] Forwarding deep link to renderer: ${urlMatch}`);
+          console.log(`[Main] Forwarding deep link to renderer (second-instance): ${urlMatch}`);
           mainWindow.webContents.send('app:onDeepLink', urlMatch);
+        } else {
+          console.log(`[Main] Second instance triggered, but no valid deep link found.`);
         }
       } else if (urlMatch) {
         // If window isn't ready yet, save it to be processed later
@@ -128,7 +150,7 @@ app.on('open-url', (event, url) => {
   event.preventDefault();
   
   if (mainWindow && !mainWindow.isDestroyed()) {
-    mainWindow.webContents.send('app:onDeepLink', url);
+    mainWindow.webContents.send(IPC_CHANNELS.APP_ON_DEEP_LINK, url);
     if (mainWindow.isMinimized()) mainWindow.restore();
     mainWindow.focus();
   } else {
@@ -141,21 +163,8 @@ let mainWindow: BrowserWindow | null = null
 let splashWindow: BrowserWindow | null = null
 // const lspManager = new LspManager()
 
-// Determine initial workspace from CLI
-let initialWorkspacePath: string | null = null
-// Look for a path argument that isn't a flag, skipping the app path itself
-const potentialPath = args.find(arg => {
-  if (arg.startsWith('-') || arg.endsWith('.exe') || arg.includes('node_modules')) return false;
-  if (arg.startsWith('citadel://') || arg.startsWith('codex://')) return false;
-  const resolved = path.resolve(arg);
-  // In dev mode, the first arg is often '.', ignore it
-  if (is.dev && (arg === '.' || resolved === path.resolve(process.cwd()))) return false;
-  return fs.existsSync(resolved);
-});
-
 if (potentialPath) {
-  initialWorkspacePath = path.resolve(potentialPath);
-  console.log(`[Main] Initial workspace detected from CLI: ${initialWorkspacePath}`);
+  // Already handled above
 } else {
   console.log(`[Main] No workspace detected in CLI args: ${args.join(' ')}`);
 }
@@ -175,8 +184,8 @@ function createSplashWindow(): void {
   console.log(`Work Area: ${workWidth}x${workHeight}`);
   
   splashWindow = new BrowserWindow({
-    width: 480,
-    height: 300,
+    width: 1000,
+    height: 600,
     frame: false,
     transparent: true,
     resizable: false,
@@ -208,8 +217,8 @@ function createWindow(): void {
     height: 700,
     show: false,
     autoHideMenuBar: true,
-    resizable: false,
-    maximizable: false,
+    resizable: true,
+    maximizable: true,
     titleBarStyle: 'hidden', // Frameless but resizable
     titleBarOverlay: false, // We will draw our own controls
     icon,
@@ -248,18 +257,12 @@ function createWindow(): void {
 
     // Check if we have a deep link from startup that needs to be processed
     if (!deepLinkUrl && process.platform !== 'darwin') {
-      const urlMatch = process.argv.find(arg => arg.startsWith('citadel://') || arg.startsWith('codex://'));
-      if (urlMatch) deepLinkUrl = urlMatch;
+      const protocolRegex = /^(["']?)(citadel|codex):\/\/.*?\1$/i;
+      const urlMatchRaw = process.argv.find(arg => protocolRegex.test(arg));
+      if (urlMatchRaw) deepLinkUrl = urlMatchRaw.replace(/^["']|["']$/g, '');
     }
 
-    if (deepLinkUrl) {
-      console.log(`[Main] Sending initial deep link to renderer: ${deepLinkUrl}`);
-      // Slight delay to ensure React has mounted its event listeners
-      setTimeout(() => {
-        mainWindow?.webContents.send('app:onDeepLink', deepLinkUrl);
-        deepLinkUrl = null;
-      }, 500);
-    }
+    // Initial deep link is now pulled by renderer via get-init-context.
   })
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
@@ -288,13 +291,14 @@ app.whenReady().then(() => {
   // Set app user model id for windows
   electronApp.setAppUserModelId('com.electron')
 
-  new GitService()
+  new GitService(guardrail)
   new GitHubService()
   new GitHubAuthService()
   new SecretStorageService()
   // appSettings already initialized
-  new FileWatcherService()
+  new FileWatcherService(guardrail)
   registerLatexHandlers()
+  aiOrchestrator.registerHandlers()
 
   // Initialize SQLite feed database for this workspace
   if (initialWorkspacePath) {
@@ -304,47 +308,47 @@ app.whenReady().then(() => {
   }
 
   // Docker REPL IPC
-  ipcMain.handle('repl:start-session', async (_, lang: string) => {
+  ipcMain.handle(IPC_CHANNELS.REPL_START_SESSION, async (_, lang: string) => {
       return dockerReplService.startSession(lang);
   });
   ipcMain.on('repl:send-input', (_, sessionId: string, data: string) => {
       dockerReplService.sendInput(sessionId, data);
   });
-  ipcMain.handle('repl:stop-session', async (_, sessionId: string) => {
+  ipcMain.handle(IPC_CHANNELS.REPL_STOP_SESSION, async (_, sessionId: string) => {
       return dockerReplService.stopSession(sessionId);
   });
-  ipcMain.handle('repl:list-containers', async () => {
+  ipcMain.handle(IPC_CHANNELS.REPL_LIST_CONTAINERS, async () => {
       return dockerReplService.listContainers();
   });
-  ipcMain.handle('repl:stop-container', async (_, containerId: string) => {
+  ipcMain.handle(IPC_CHANNELS.REPL_STOP_CONTAINER, async (_, containerId: string) => {
       return dockerReplService.stopContainer(containerId);
   });
-  ipcMain.handle('repl:remove-container', async (_, containerId: string) => {
+  ipcMain.handle(IPC_CHANNELS.REPL_REMOVE_CONTAINER, async (_, containerId: string) => {
       return dockerReplService.removeContainer(containerId);
   });
 
   dockerReplService.on('output', ({ sessionId, data }) => {
       BrowserWindow.getAllWindows().forEach(win => {
-          win.webContents.send('repl:output', { sessionId, data });
+          win.webContents.send(IPC_CHANNELS.REPL_ON_OUTPUT, { sessionId, data });
       });
   });
 
   dockerReplService.on('closed', ({ sessionId, code }) => {
       BrowserWindow.getAllWindows().forEach(win => {
-          win.webContents.send('repl:closed', { sessionId, code });
+          win.webContents.send(IPC_CHANNELS.REPL_ON_CLOSED, { sessionId, code });
       });
   });
 
   // Register Backend Service IPC
-  ipcMain.handle('service:start', (_, service: 'execution' | 'tts') => {
+  ipcMain.handle(IPC_CHANNELS.SERVICE_START, (_, service: 'execution' | 'tts') => {
       return backendManager.start(service);
   });
 
-  ipcMain.handle('service:stop', (_, service: 'execution' | 'tts') => {
+  ipcMain.handle(IPC_CHANNELS.SERVICE_STOP, (_, service: 'execution' | 'tts') => {
       return backendManager.stop(service);
   });
 
-  ipcMain.handle('service:status', (_, service: 'execution' | 'tts') => {
+  ipcMain.handle(IPC_CHANNELS.SERVICE_STATUS, (_, service: 'execution' | 'tts') => {
       return backendManager.getStatus(service);
   });
   
@@ -361,40 +365,54 @@ app.whenReady().then(() => {
     res.end();
   });
   new LspServer(lspServer);
+  lspServer.on('error', (err: any) => {
+    if (err.code === 'EADDRINUSE') {
+      console.error(`[Main] LSP Server port 3000 in use. Continuing without LSP...`);
+    } else {
+      console.error(`[Main] LSP Server error: ${err.message}`);
+    }
+  });
+
   lspServer.listen(3000, () => {
     console.log('[Main] LSP Server listening on port 3000');
   });
   
   // Register Workspace Discovery IPC
-  ipcMain.handle('app:get-init-context', () => ({
-    workspacePath: initialWorkspacePath,
-    appVersion: app.getVersion(),
-    platform: process.platform
-  }))
+  ipcMain.handle(IPC_CHANNELS.APP_GET_INIT_CONTEXT, () => {
+    const url = deepLinkUrl;
+    deepLinkUrl = null; // Consume it once read
+    return {
+      workspacePath: initialWorkspacePath,
+      appVersion: app.getVersion(),
+      platform: process.platform,
+      deepLinkUrl: url
+    };
+  });
 
-  ipcMain.handle('app:open-workspace', async (_, path: string) => {
+  ipcMain.handle(IPC_CHANNELS.APP_OPEN_WORKSPACE, async (_, path: string) => {
     initialWorkspacePath = path;
     // We relaunch to ensure clean state, passing the new workspace path as an argument
     app.relaunch({ args: process.argv.slice(1).concat([path]) });
     app.exit();
   })
 
-  ipcMain.handle('app:set-active-workspace', async (_, path: string) => {
+  ipcMain.handle(IPC_CHANNELS.APP_SET_ACTIVE_WORKSPACE, async (_, path: string) => {
        console.log(`[Main] Setting active workspace to: ${path}`);
        if (fs.existsSync(path)) {
-           initialWorkspacePath = path; // Update the global variable used by guardrails
+           initialWorkspacePath = path; // Update the global variable
+           guardrail.setActiveWorkspace(path); // Update the guardrail service state
            return true;
        }
        return false;
   })
 
-  ipcMain.handle('window:set-zoom', (event, zoomFactor: number) => {
+  ipcMain.handle(IPC_CHANNELS.WINDOW_SET_ZOOM, (event, zoomFactor: number) => {
     const webContents = event.sender;
     webContents.setZoomFactor(zoomFactor);
     return webContents.getZoomFactor();
   });
 
-  ipcMain.handle('window:get-zoom', (event) => {
+  ipcMain.handle(IPC_CHANNELS.WINDOW_GET_ZOOM, (event) => {
     return event.sender.getZoomFactor();
   });
   
@@ -555,15 +573,15 @@ app.whenReady().then(() => {
   })
 
   // IPC test
-  ipcMain.on('ping', () => console.log('pong'))
+  ipcMain.on(IPC_CHANNELS.APP_PING, () => console.log('pong'))
 
   // Window Controls IPC
-  ipcMain.on('window:minimize', (event) => {
+  ipcMain.on(IPC_CHANNELS.WINDOW_MINIMIZE, (event) => {
     const win = BrowserWindow.fromWebContents(event.sender)
     win?.minimize()
   })
 
-  ipcMain.on('window:maximize', (event) => {
+  ipcMain.on(IPC_CHANNELS.WINDOW_MAXIMIZE, (event) => {
     const win = BrowserWindow.fromWebContents(event.sender)
     if (win?.isMaximized()) {
       win.unmaximize()
@@ -572,37 +590,46 @@ app.whenReady().then(() => {
     }
   })
 
-  ipcMain.on('window:close', (event) => {
+  ipcMain.on(IPC_CHANNELS.WINDOW_CLOSE, (event) => {
     const win = BrowserWindow.fromWebContents(event.sender)
     win?.close()
   })
 
   // --- Dynamic Window Mode IPCs ---
-  ipcMain.on('window:setup-welcome', (event) => {
+  ipcMain.on(IPC_CHANNELS.WINDOW_SETUP_WELCOME, (event) => {
     const win = BrowserWindow.fromWebContents(event.sender)
     if (!win) return
-    win.setResizable(false)
-    win.setMaximizable(false)
-    if (win.isMaximized()) win.unmaximize()
+    win.setResizable(true)
+    win.setMaximizable(true)
+    win.setFullScreenable(true)
+    win.setMinimumSize(800, 600)
     win.setSize(1000, 700)
     win.center()
   })
 
-  ipcMain.on('window:setup-builder', (event) => {
+  ipcMain.on(IPC_CHANNELS.WINDOW_SETUP_BUILDER, (event) => {
     const win = BrowserWindow.fromWebContents(event.sender)
     if (!win) return
     win.setResizable(true)
     win.setMaximizable(true)
-    win.setSize(1100, 800)
+    win.setFullScreenable(true)
+    win.setMinimumSize(1024, 768)
+    win.setSize(1280, 800)
     win.center()
   })
 
-  ipcMain.on('window:setup-main', (event) => {
+  ipcMain.on(IPC_CHANNELS.WINDOW_SETUP_MAIN, (event) => {
     const win = BrowserWindow.fromWebContents(event.sender)
     if (!win) return
     win.setResizable(true)
     win.setMaximizable(true)
-    win.setSize(1200, 800)
+    win.setFullScreenable(true)
+    win.setMinimumSize(1200, 800)
+    if (is.dev) {
+        win.setSize(1600, 1000)
+    } else {
+        win.maximize()
+    }
     win.center()
   })
 
@@ -627,81 +654,35 @@ app.on('window-all-closed', () => {
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.
 
-// Helper to validate paths
-const pendingWorkspacePaths = new Set<string>();
-
-function isAllowedWritePath(targetPath: string): boolean {
-  const resolved = path.resolve(targetPath);
-  
-  // 1. Allow UserData (for app-settings.json)
-  const userDataPath = app.getPath('userData');
-  if (resolved.startsWith(path.resolve(userDataPath))) {
-    return true;
-  }
-
-  // 2. Allow Workspace
-  if (initialWorkspacePath && resolved.startsWith(path.resolve(initialWorkspacePath))) {
-    return true;
-  }
-
-  // 3. Allow Temp (for intermediate latex files)
-  const tempDir = os.tmpdir();
-  if (resolved.startsWith(path.resolve(tempDir))) {
-     return true;
-  }
-
-  // 4. Allow pending workspace creation paths
-  for (const allowed of pendingWorkspacePaths) {
-    if (resolved.startsWith(path.resolve(allowed))) {
-      return true;
-    }
-  }
-
-  console.error(`[Main] Blocked write to unauthorized path: ${resolved}`);
-  return false;
-}
-
-ipcMain.handle('fs:allowPath', async (_, targetPath: string) => {
-  const resolved = path.resolve(targetPath);
-  
-  // Hard block writing to the exact process.cwd() or application root 
-  // to avoid accidentally cloning repositories into the source code bundle.
-  const cwd = path.resolve(process.cwd());
-  const dirname = path.resolve(__dirname);
-  
-  if (resolved === cwd || resolved === dirname) {
-     console.error(`[Main] CRITICAL: Blocked attempt to authorize the application root directory as a workspace: ${resolved}`);
-     throw new Error("Cannot use the application's source directory as a workspace. Please choose a different folder.");
-  }
-  
-  pendingWorkspacePaths.add(resolved);
-  console.log(`[Main] Allowed write path: ${resolved}`);
+// Guardrail authorization handled via dedicated service
+ipcMain.handle(IPC_CHANNELS.FS_ALLOW_PATH, async (_, targetPath: string) => {
+  guardrail.setActiveWorkspace(targetPath);
+  console.log(`[Main] Explicitly allowed write path (and set as workspace): ${targetPath}`);
 })
 
-ipcMain.handle('fs:readDirectory', async (_, path) => {
+ipcMain.handle(IPC_CHANNELS.FS_READ_DIRECTORY, async (_, path) => {
+  guardrail.validate(path);
   return fs.readdir(path)
 })
 
-ipcMain.handle('fs:readFile', async (_, path) => {
+ipcMain.handle(IPC_CHANNELS.FS_READ_FILE, async (_, path) => {
+  guardrail.validate(path);
   return fs.readFile(path, 'utf-8')
 })
 
-ipcMain.handle('fs:readFileBinary', async (_, path) => {
+ipcMain.handle(IPC_CHANNELS.FS_READ_FILE_BINARY, async (_, path) => {
+  guardrail.validate(path);
   const buffer = await fs.readFile(path)
   return buffer
 })
 
-ipcMain.handle('fs:writeFile', async (_, path, content) => {
-  if (!isAllowedWritePath(path)) {
-      throw new Error(`Access Denied: Cannot write to ${path}`);
-  }
+ipcMain.handle(IPC_CHANNELS.FS_WRITE_FILE, async (_, path, content) => {
+  guardrail.validate(path);
   return fs.outputFile(path, content)
 })
 
-ipcMain.handle('fs:writeAsset', async (_, path, content) => {
-  if (!isAllowedWritePath(path)) {
-      throw new Error(`Access Denied: Cannot write to ${path}`);
-  }
+ipcMain.handle(IPC_CHANNELS.FS_WRITE_ASSET, async (_, path, content) => {
+  guardrail.validate(path);
   console.log(`[Main] Writing asset to ${path}. Size: ${content.length}`)
   try {
       await fs.outputFile(path, content)
@@ -713,17 +694,13 @@ ipcMain.handle('fs:writeAsset', async (_, path, content) => {
   }
 })
 
-ipcMain.handle('fs:createDirectory', async (_, path) => {
-  if (!isAllowedWritePath(path)) {
-      throw new Error(`Access Denied: Cannot create directory at ${path}`);
-  }
+ipcMain.handle(IPC_CHANNELS.FS_CREATE_DIRECTORY, async (_, path) => {
+  guardrail.validate(path);
   return fs.ensureDir(path)
 })
 
-ipcMain.handle('fs:scaffoldWorkspace', async (_, targetPath: string, workspaceName: string, cloneUrl: string) => {
-  if (!isAllowedWritePath(targetPath)) {
-      throw new Error(`Access Denied: Cannot scaffold to unauthorized path ${targetPath}`);
-  }
+ipcMain.handle(IPC_CHANNELS.FS_SCAFFOLD_WORKSPACE, async (_, targetPath: string, workspaceName: string, cloneUrl: string) => {
+  guardrail.validate(targetPath);
   
   const templateDir = is.dev 
       ? join(__dirname, '../../resources/template')
@@ -751,39 +728,38 @@ ipcMain.handle('fs:scaffoldWorkspace', async (_, targetPath: string, workspaceNa
   return true;
 })
 
-ipcMain.handle('fs:exists', async (_, path) => {
+ipcMain.handle(IPC_CHANNELS.FS_EXISTS, async (_, path) => {
+  // Exists is generally safe to allow for checking if a workspace is valid, 
+  // but we should still validate to avoid path probing.
+  guardrail.validate(path);
   return fs.pathExists(path)
 })
 
-ipcMain.handle('fs:rename', async (_, oldPath, newPath) => {
-  // We must ensure we are not moving something OUT of the workspace, 
-  // nor moving something INTO a protected area (though inconsistent).
-  // Safest is to require both source and dest to be allowed, 
-  // or at least destination.
-  // Let's enforce destination is allowed. Moving a file FROM outside TO inside might be okay?
-  // But moving FROM outside effectively deletes it from outside. 
-  // So both must be safe.
-  if (!isAllowedWritePath(oldPath)) {
-       throw new Error(`Access Denied: Cannot rename from unauthorized path ${oldPath}`);
-  }
-  if (!isAllowedWritePath(newPath)) {
-       throw new Error(`Access Denied: Cannot rename to unauthorized path ${newPath}`);
-  }
+ipcMain.handle(IPC_CHANNELS.FS_STAT, async (_, pathArg) => {
+  guardrail.validate(pathArg);
+  const stats = await fs.stat(pathArg);
+  return { mtimeMs: stats.mtimeMs };
+})
+
+ipcMain.handle(IPC_CHANNELS.FS_RENAME, async (_, oldPath, newPath) => {
+  guardrail.validate(oldPath);
+  guardrail.validate(newPath);
   return fs.move(oldPath, newPath, { overwrite: true })
 })
 
-ipcMain.handle('app:getDocumentsPath', async () => {
+ipcMain.handle(IPC_CHANNELS.APP_GET_DOCUMENTS_PATH, async () => {
   return app.getPath('documents')
 })
+ipcMain.handle(IPC_CHANNELS.APP_GET_DOWNLOADS_PATH, async () => {
+  return app.getPath('downloads')
+})
 
-ipcMain.handle('fs:deleteFile', async (_, path) => {
-  if (!isAllowedWritePath(path)) {
-       throw new Error(`Access Denied: Cannot delete ${path}`);
-  }
+ipcMain.handle(IPC_CHANNELS.FS_DELETE_FILE, async (_, path) => {
+  guardrail.validate(path);
   return fs.remove(path)
 })
 
-ipcMain.handle('net:fetch', async (_, url, options = {}) => {
+ipcMain.handle(IPC_CHANNELS.NET_FETCH, async (_, url, options = {}) => {
   try {
     console.log(`[Main] Fetching with net.fetch: ${url}`)
     const response = await net.fetch(url, {
@@ -829,284 +805,27 @@ ipcMain.handle('net:fetch', async (_, url, options = {}) => {
   }
 })
 
-let currentChatController: AbortController | null = null;
 
-ipcMain.handle('ai:abortChat', () => {
-  if (currentChatController) {
-    console.log('[Main] Aborting active chat stream');
-    currentChatController.abort();
-    currentChatController = null;
-  }
-  return true;
-});
-
-ipcMain.handle('ai:chatStream', async (event, baseUrl: string, payload: any) => {
-  let fullText = '';
-  try {
-    // Abort any existing stream
-    if (currentChatController) {
-      currentChatController.abort();
-    }
-    currentChatController = new AbortController();
-    const signal = currentChatController.signal;
-
-    console.log(`[Main] Streaming generation from ${baseUrl} with model: ${payload.model}`);
-    console.log(`[Main] Prompt Length: ${payload.prompt?.length || 0}`);
-    console.log(`[Main] Prompt Starters: "${payload.prompt?.substring(0, 50)}..."`);
-
-    const response = await net.fetch(`${baseUrl}/api/generate`, {
-      method: 'POST',
-      body: JSON.stringify({ ...payload, stream: true }),
-      signal
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`[Main] Ollama API Error (${response.status}):`, errorText);
-      throw new Error(`Failed to stream chat: ${response.status} ${response.statusText} - ${errorText}`);
-    }
-
-    if (!response.body) return true;
-
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
-
-    let buffer = '';
-    while (true) {
-      if (signal.aborted) break;
-      const { done, value } = await reader.read();
-      if (done) break;
-
-      const chunk = decoder.decode(value, { stream: true });
-      buffer += chunk;
-      
-      const lines = buffer.split('\n');
-      buffer = lines.pop() || ''; // Keep the last partial line in the buffer
-
-      for (const line of lines) {
-        if (line.trim() === '') continue;
-        if (signal.aborted) break;
-        try {
-          const data = JSON.parse(line);
-          if (data.response) {
-            fullText += data.response;
-            event.sender.send('ai:chatChunk', data.response);
-          }
-          if (data.done) {
-            console.log(`[Main] Stream done. Total length: ${fullText.length}`);
-            break;
-          }
-        } catch (e) {
-          console.error('[Main] JSON parsing error for line:', line, e);
-        }
-      }
-    }
-    return fullText;
-  } catch (error: any) {
-    if (error.name === 'AbortError') {
-      console.log('[Main] Chat stream aborted by user');
-      return fullText;
-    }
-    console.error('[Main] Chat stream error:', error);
-    throw error;
-  } finally {
-    currentChatController = null;
-  }
-})
 ;
 
 // Cloud Provider Streaming (OpenAI SSE / Gemini)
-ipcMain.handle('ai:cloudChatStream', async (event, config: {
-  provider: 'openai' | 'gemini' | 'azure-foundry',
-  baseUrl: string,
-  apiKey: string,
-  model: string,
-  prompt: string,
-  system?: string,
-  temperature?: number
-}) => {
-  let fullText = '';
-  try {
-    if (currentChatController) {
-      currentChatController.abort();
-    }
-    currentChatController = new AbortController();
-    const signal = currentChatController.signal;
 
-    console.log(`[Main] Cloud stream: provider=${config.provider}, model=${config.model}`);
-
-    let url: string;
-    let headers: Record<string, string>;
-    let body: string;
-
-    if (config.provider === 'gemini') {
-      // Gemini streaming via streamGenerateContent
-      url = `${config.baseUrl}/models/${config.model}:streamGenerateContent?alt=sse&key=${config.apiKey}`;
-      headers = { 'Content-Type': 'application/json' };
-
-      const contents: any[] = [];
-      if (config.system) {
-        contents.push({ role: 'user', parts: [{ text: config.system }] });
-        contents.push({ role: 'model', parts: [{ text: 'Understood.' }] });
-      }
-      contents.push({ role: 'user', parts: [{ text: config.prompt }] });
-
-      body = JSON.stringify({
-        contents,
-        generationConfig: { temperature: config.temperature ?? 0.7 }
-      });
-    } else {
-      // OpenAI / Azure OpenAI SSE
-      url = `${config.baseUrl}/chat/completions`;
-      headers = {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${config.apiKey}`
-      };
-
-      const messages: any[] = [];
-      if (config.system) messages.push({ role: 'system', content: config.system });
-      messages.push({ role: 'user', content: config.prompt });
-
-      body = JSON.stringify({
-        model: config.model,
-        messages,
-        temperature: config.temperature ?? 0.7,
-        stream: true
-      });
-    }
-
-    const response = await net.fetch(url, {
-      method: 'POST',
-      headers,
-      body,
-      signal
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`[Main] Cloud API Error (${response.status}):`, errorText);
-      throw new Error(`Cloud stream failed: ${response.status} - ${errorText}`);
-    }
-
-    if (!response.body) return '';
-
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
-    let buffer = '';
-
-    while (true) {
-      if (signal.aborted) break;
-      const { done, value } = await reader.read();
-      if (done) break;
-
-      buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split('\n');
-      buffer = lines.pop() || '';
-
-      for (const line of lines) {
-        if (signal.aborted) break;
-        const trimmed = line.trim();
-        if (trimmed === '' || trimmed === 'data: [DONE]') continue;
-
-        const dataStr = trimmed.startsWith('data: ') ? trimmed.slice(6) : trimmed;
-        if (!dataStr) continue;
-
-        try {
-          const data = JSON.parse(dataStr);
-          let chunk = '';
-
-          if (config.provider === 'gemini') {
-            // Gemini SSE format
-            chunk = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-          } else {
-            // OpenAI SSE format
-            chunk = data.choices?.[0]?.delta?.content || '';
-          }
-
-          if (chunk) {
-            fullText += chunk;
-            event.sender.send('ai:chatChunk', chunk);
-          }
-        } catch (e) {
-          // Skip unparseable lines
-        }
-      }
-    }
-
-    console.log(`[Main] Cloud stream done. Total length: ${fullText.length}`);
-    return fullText;
-  } catch (error: any) {
-    if (error.name === 'AbortError') {
-      console.log('[Main] Cloud stream aborted by user');
-      return fullText;
-    }
-    console.error('[Main] Cloud stream error:', error);
-    throw error;
-  } finally {
-    currentChatController = null;
-  }
-});
-
-  ipcMain.handle('ai:pullModel', async (event, baseUrl: string, model: string) => {
-    try {
-      console.log(`[Main] Pulling model ${model} from ${baseUrl}`)
-      const response = await net.fetch(`${baseUrl}/api/pull`, {
-        method: 'POST',
-        body: JSON.stringify({ name: model, stream: true })
-      })
-
-      if (!response.ok) {
-        throw new Error(`Failed to pull model: ${response.statusText}`)
-      }
-
-      if (!response.body) return true
-
-      const reader = response.body.getReader()
-      const decoder = new TextDecoder()
-
-      while (true) {
-        const { done, value } = await reader.read()
-        if (done) break
-        
-        const chunk = decoder.decode(value)
-        const lines = chunk.split('\n').filter(Boolean)
-        
-        for (const line of lines) {
-          try {
-            const data = JSON.parse(line)
-            if (data.status) {
-              // Send detailed progress to renderer
-              event.sender.send('ai:pullProgress', {
-                status: data.status,
-                completed: data.completed,
-                total: data.total,
-                digest: data.digest
-              })
-            }
-          } catch (e) {
-            // ignore partial JSON
-          }
-        }
-      }
-      return true
-    } catch (error: any) {
-      console.error('[Main] Pull model error:', error)
-      throw error
-    }
-  })
-
-  ipcMain.handle('dialog:openDirectory', async () => {
+  
+  ipcMain.handle(IPC_CHANNELS.DIALOG_OPEN_DIRECTORY, async () => {
     const { canceled, filePaths } = await dialog.showOpenDialog(mainWindow!, {
       properties: ['openDirectory']
     })
     if (canceled) {
       return null
     } else {
-      return filePaths[0]
+      const selectedPath = filePaths[0];
+      // Whitelist this path in the guardrail so the renderer can probe it (e.g., check for .codex)
+      guardrail.allowPathTemporarily(selectedPath);
+      return selectedPath;
     }
   })
 
-  ipcMain.handle('dialog:openFile', async () => {
+  ipcMain.handle(IPC_CHANNELS.DIALOG_OPEN_FILE, async () => {
     const { canceled, filePaths } = await dialog.showOpenDialog(mainWindow!, {
       properties: ['openFile']
     })
@@ -1117,36 +836,9 @@ ipcMain.handle('ai:cloudChatStream', async (event, config: {
     }
   })
 
-  ipcMain.handle('ai:getHardwareSpecs', async () => {
-    try {
-      const si = require('systeminformation');
-      const [mem, graphics, cpu, disk] = await Promise.all([
-        si.mem(),
-        si.graphics(),
-        si.cpu(),
-        si.fsSize()
-      ]);
-
-      // Get the primary OS drive (Windows 'C:', Linux/Mac '/')
-      const mainDisk = disk.find(d => d.mount === 'C:' || d.mount === '/' || d.mount === 'C:\\') || disk[0];
-
-      return {
-        totalMemory: mem.total,
-        gpus: graphics.controllers.map(g => ({ model: g.model, vram: g.vram })),
-        cpu: {
-          flags: cpu.flags,
-          cores: cpu.cores
-        },
-        storage: mainDisk ? mainDisk.available : 0
-      };
-    } catch (error) {
-      console.error('[Main] Failed to get hardware specs:', error);
-      return null;
-    }
-  })
-
+  
   // Get process stats by name (for Ollama, Qdrant monitoring)
-  ipcMain.handle('system:getProcessStats', async (_, processNames: string[] = []) => {
+  ipcMain.handle(IPC_CHANNELS.SYSTEM_GET_PROCESS_STATS, async (_, processNames: string[] = []) => {
     try {
       const si = require('systeminformation');
       const processes = await si.processes();
@@ -1178,11 +870,11 @@ ipcMain.handle('ai:cloudChatStream', async (event, config: {
     }
   })
 
-  ipcMain.on('app:openDevTools', () => {
+  ipcMain.on(IPC_CHANNELS.SYSTEM_OPEN_DEV_TOOLS, () => {
     mainWindow?.webContents.openDevTools();
   });
 
-  ipcMain.handle('debug:triggerError', async (_, severity: 'warning' | 'error') => {
+  ipcMain.handle(IPC_CHANNELS.DEBUG_TRIGGER_ERROR, async (_, severity: 'warning' | 'error') => {
     if (severity === 'error') {
       console.error('[Debug] Test error triggered by user');
     } else {
@@ -1197,15 +889,15 @@ ipcMain.handle('ai:cloudChatStream', async (event, config: {
 
   console.warn = (...args) => {
     originalWarn(...args);
-    mainWindow?.webContents.send('app:onLog', { severity: 'warning', message: args.join(' ') });
+    mainWindow?.webContents.send(IPC_CHANNELS.APP_ON_LOG, { severity: 'warning', message: args.join(' ') });
   };
 
   console.error = (...args) => {
     originalError(...args);
-    mainWindow?.webContents.send('app:onLog', { severity: 'error', message: args.join(' ') });
+    mainWindow?.webContents.send(IPC_CHANNELS.APP_ON_LOG, { severity: 'error', message: args.join(' ') });
   };
 
-  ipcMain.handle('system:startService', async (_, name: string) => {
+  ipcMain.handle(IPC_CHANNELS.SYSTEM_START_SERVICE, async (_, name: string) => {
     const { spawn } = require('child_process');
     console.log(`[Main] Starting service: ${name}`);
     
@@ -1238,7 +930,7 @@ ipcMain.handle('ai:cloudChatStream', async (event, config: {
     }
   });
 
-  ipcMain.handle('system:stopService', async (_, name: string) => {
+  ipcMain.handle(IPC_CHANNELS.SYSTEM_STOP_SERVICE, async (_, name: string) => {
     const { exec } = require('child_process');
     const util = require('util');
     const execPromise = util.promisify(exec);
@@ -1260,7 +952,7 @@ ipcMain.handle('ai:cloudChatStream', async (event, config: {
     }
   });
 
-  ipcMain.handle('system:deployStack', async (_, service?: string) => {
+  ipcMain.handle(IPC_CHANNELS.SYSTEM_DEPLOY_STACK, async (_, service?: string) => {
     const { exec } = require('child_process');
     const util = require('util');
     const execPromise = util.promisify(exec);

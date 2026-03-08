@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { EntryTypeConfig } from '../../config/entry-types';
+import { type EntryTypeConfig } from '@shared';
 import { FieldListEditor } from './editors/FieldListEditor';
 import { MetadataListEditor } from './editors/MetadataListEditor';
 import { SectionListEditor } from './editors/SectionListEditor';

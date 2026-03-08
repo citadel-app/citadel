@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { EntryFieldConfig } from '../../../config/entry-types'; // Fix path if moved, currently in ../components/settings so ../../config/entry-types
+import { type EntryFieldConfig } from '@shared';
 import { Plus, Trash2, ChevronDown, ChevronUp, GripVertical } from 'lucide-react';
 import { cn } from '../../../lib/utils';
 import { Icon } from '../../IconRegistry';
@@ -76,7 +76,7 @@ export const FieldListEditor = ({ fields, onChange }: FieldListEditorProps) => {
                             <div className="flex-1 min-w-0">
                                 <div className="text-sm font-medium truncate">{field.label}</div>
                                 <div className="text-xs text-muted-foreground flex items-center gap-2 overflow-hidden">
-                                    <span className="font-mono bg-muted px-1 rounded flex-shrink-0">{field.key}</span>
+                                    <span className="font-mono bg-muted px-1 rounded flex-shrink-0">{String(field.key)}</span>
                                     <span className="flex-shrink-0">{field.type}</span>
                                     {field.required && <span className="text-orange-500 flex-shrink-0">Required</span>}
                                     {field.description && (
@@ -115,7 +115,7 @@ export const FieldListEditor = ({ fields, onChange }: FieldListEditorProps) => {
                                     <div className="space-y-1">
                                         <label className="text-xs font-medium">Key</label>
                                         <input
-                                            value={field.key as string}
+                                            value={String(field.key)}
                                             onChange={(e) => handleUpdate(index, { ...field, key: e.target.value })} // Note: keyof CodexEntry might be issue if strictly typed, but interface allows string
                                             className="w-full h-8 px-2 text-sm border rounded bg-background font-mono"
                                         />

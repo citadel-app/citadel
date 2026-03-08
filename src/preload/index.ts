@@ -1,168 +1,184 @@
 import { contextBridge, ipcRenderer, shell } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
+import { IPC_CHANNELS } from '../shared'
 
 // Custom APIs for renderer
 console.log('[Preload] Initializing Codex APIs v1.0.1');
 const api = {
   fs: {
-    readDirectory: (path: string) => ipcRenderer.invoke('fs:readDirectory', path),
-    readFile: (path: string) => ipcRenderer.invoke('fs:readFile', path),
-    readFileBinary: (path: string) => ipcRenderer.invoke('fs:readFileBinary', path),
-    writeFile: (path: string, content: string) => ipcRenderer.invoke('fs:writeFile', path, content),
-    writeAsset: (path: string, content: Uint8Array) => ipcRenderer.invoke('fs:writeAsset', path, content),
-    createDirectory: (path: string) => ipcRenderer.invoke('fs:createDirectory', path),
-    scaffoldWorkspace: (targetPath: string, workspaceName: string, cloneUrl: string) => ipcRenderer.invoke('fs:scaffoldWorkspace', targetPath, workspaceName, cloneUrl),
-    deleteFile: (path: string) => ipcRenderer.invoke('fs:deleteFile', path),
-    exists: (path: string) => ipcRenderer.invoke('fs:exists', path),
-    getDocumentsPath: () => ipcRenderer.invoke('app:getDocumentsPath'),
-    watchPath: (path: string | null) => ipcRenderer.invoke('fs:watch-path', path),
+    readDirectory: (path: string) => ipcRenderer.invoke(IPC_CHANNELS.FS_READ_DIRECTORY, path),
+    readFile: (path: string) => ipcRenderer.invoke(IPC_CHANNELS.FS_READ_FILE, path),
+    readFileBinary: (path: string) => ipcRenderer.invoke(IPC_CHANNELS.FS_READ_FILE_BINARY, path),
+    writeFile: (path: string, content: string) => ipcRenderer.invoke(IPC_CHANNELS.FS_WRITE_FILE, path, content),
+    writeAsset: (path: string, content: Uint8Array) => ipcRenderer.invoke(IPC_CHANNELS.FS_WRITE_ASSET, path, content),
+    createDirectory: (path: string) => ipcRenderer.invoke(IPC_CHANNELS.FS_CREATE_DIRECTORY, path),
+    scaffoldWorkspace: (targetPath: string, workspaceName: string, cloneUrl: string) => ipcRenderer.invoke(IPC_CHANNELS.FS_SCAFFOLD_WORKSPACE, targetPath, workspaceName, cloneUrl),
+    deleteFile: (path: string) => ipcRenderer.invoke(IPC_CHANNELS.FS_DELETE_FILE, path),
+    exists: (path: string) => ipcRenderer.invoke(IPC_CHANNELS.FS_EXISTS, path),
+    stat: (path: string) => ipcRenderer.invoke(IPC_CHANNELS.FS_STAT, path),
+    getDocumentsPath: () => ipcRenderer.invoke(IPC_CHANNELS.APP_GET_DOCUMENTS_PATH),
+    watchPath: (path: string | null) => ipcRenderer.invoke(IPC_CHANNELS.FS_WATCH_PATH, path),
     onFileChanged: (callback: (data: { type: 'add' | 'change' | 'unlink', path: string }) => void) => {
         const listener = (_: any, data: any) => callback(data);
-        ipcRenderer.on('fs:file-changed', listener);
-        return () => ipcRenderer.removeListener('fs:file-changed', listener);
+        ipcRenderer.on(IPC_CHANNELS.FS_ON_FILE_CHANGED, listener);
+        return () => ipcRenderer.removeListener(IPC_CHANNELS.FS_ON_FILE_CHANGED, listener);
     },
-    rename: (oldPath: string, newPath: string) => ipcRenderer.invoke('fs:rename', oldPath, newPath),
-    allowPath: (path: string) => ipcRenderer.invoke('fs:allowPath', path)
+    rename: (oldPath: string, newPath: string) => ipcRenderer.invoke(IPC_CHANNELS.FS_RENAME, oldPath, newPath),
+    allowPath: (path: string) => ipcRenderer.invoke(IPC_CHANNELS.FS_ALLOW_PATH, path)
   },
   app: {
     openExternal: (url: string) => shell.openExternal(url),
     onLog: (callback: (data: { severity: 'warning' | 'error', message: string }) => void) => {
         const listener = (_: any, data: any) => callback(data);
-        ipcRenderer.on('app:onLog', listener);
-        return () => ipcRenderer.removeListener('app:onLog', listener);
+        ipcRenderer.on(IPC_CHANNELS.APP_ON_LOG, listener);
+        return () => ipcRenderer.removeListener(IPC_CHANNELS.APP_ON_LOG, listener);
     },
     onDeepLink: (callback: (url: string) => void) => {
         const listener = (_: any, url: string) => callback(url);
-        ipcRenderer.on('app:onDeepLink', listener);
-        return () => ipcRenderer.removeListener('app:onDeepLink', listener);
+        ipcRenderer.on(IPC_CHANNELS.APP_ON_DEEP_LINK, listener);
+        return () => ipcRenderer.removeListener(IPC_CHANNELS.APP_ON_DEEP_LINK, listener);
     },
-    getInitContext: () => ipcRenderer.invoke('app:get-init-context'),
-    openWorkspace: (path: string) => ipcRenderer.invoke('app:open-workspace', path),
-    setActiveWorkspace: (path: string) => ipcRenderer.invoke('app:set-active-workspace', path)
+    getInitContext: () => ipcRenderer.invoke(IPC_CHANNELS.APP_GET_INIT_CONTEXT),
+    getDownloadsPath: () => ipcRenderer.invoke(IPC_CHANNELS.APP_GET_DOWNLOADS_PATH),
+    openWorkspace: (path: string) => ipcRenderer.invoke(IPC_CHANNELS.APP_OPEN_WORKSPACE, path),
+    setActiveWorkspace: (path: string) => ipcRenderer.invoke(IPC_CHANNELS.APP_SET_ACTIVE_WORKSPACE, path)
   },
   lsp: {
-    start: (language: string) => ipcRenderer.invoke('lsp:start', language),
-    stop: (language: string) => ipcRenderer.invoke('lsp:stop', language),
-    send: (payload: any) => ipcRenderer.invoke('lsp:send', payload)
+    start: (language: string) => ipcRenderer.invoke(IPC_CHANNELS.LSP_START, language),
+    stop: (language: string) => ipcRenderer.invoke(IPC_CHANNELS.LSP_STOP, language),
+    send: (payload: any) => ipcRenderer.invoke(IPC_CHANNELS.LSP_SEND, payload)
   },
   net: {
-    fetch: (url: string, options?: any) => ipcRenderer.invoke('net:fetch', url, options)
+    fetch: (url: string, options?: any) => ipcRenderer.invoke(IPC_CHANNELS.NET_FETCH, url, options)
   },
   window: {
-    minimize: () => ipcRenderer.send('window:minimize'),
-    maximize: () => ipcRenderer.send('window:maximize'),
-    close: () => ipcRenderer.send('window:close'),
-    setZoom: (factor: number) => ipcRenderer.invoke('window:set-zoom', factor),
-    getZoom: () => ipcRenderer.invoke('window:get-zoom'),
-    setupWelcome: () => ipcRenderer.send('window:setup-welcome'),
-    setupBuilder: () => ipcRenderer.send('window:setup-builder'),
-    setupMain: () => ipcRenderer.send('window:setup-main')
+    minimize: () => ipcRenderer.send(IPC_CHANNELS.WINDOW_MINIMIZE),
+    maximize: () => ipcRenderer.send(IPC_CHANNELS.WINDOW_MAXIMIZE),
+    close: () => ipcRenderer.send(IPC_CHANNELS.WINDOW_CLOSE),
+    setZoom: (factor: number) => ipcRenderer.invoke(IPC_CHANNELS.WINDOW_SET_ZOOM, factor),
+    getZoom: () => ipcRenderer.invoke(IPC_CHANNELS.WINDOW_GET_ZOOM),
+    setupWelcome: () => ipcRenderer.send(IPC_CHANNELS.WINDOW_SETUP_WELCOME),
+    setupBuilder: () => ipcRenderer.send(IPC_CHANNELS.WINDOW_SETUP_BUILDER),
+    setupMain: () => ipcRenderer.send(IPC_CHANNELS.WINDOW_SETUP_MAIN)
   },
   dialog: {
-    openDirectory: () => ipcRenderer.invoke('dialog:openDirectory'),
-    openFile: () => ipcRenderer.invoke('dialog:openFile')
+    openDirectory: () => ipcRenderer.invoke(IPC_CHANNELS.DIALOG_OPEN_DIRECTORY),
+    openFile: () => ipcRenderer.invoke(IPC_CHANNELS.DIALOG_OPEN_FILE)
   },
   git: {
-    status: (repoPath: string) => ipcRenderer.invoke('git:status', repoPath),
-    init: (repoPath: string) => ipcRenderer.invoke('git:init', repoPath),
-    add: (repoPath: string, files: string[]) => ipcRenderer.invoke('git:add', repoPath, files),
-    commit: (repoPath: string, message: string) => ipcRenderer.invoke('git:commit', repoPath, message),
-    push: (repoPath: string, remote?: string, branch?: string) => ipcRenderer.invoke('git:push', repoPath, remote, branch),
-    pull: (repoPath: string, remote?: string, branch?: string) => ipcRenderer.invoke('git:pull', repoPath, remote, branch),
-    history: (repoPath: string) => ipcRenderer.invoke('git:history', repoPath),
-    checkIsRepo: (repoPath: string) => ipcRenderer.invoke('git:check-is-repo', repoPath),
-    getBranches: (repoPath: string) => ipcRenderer.invoke('git:get-branches', repoPath),
-    checkout: (repoPath: string, branch: string) => ipcRenderer.invoke('git:checkout', repoPath, branch),
-    clone: (url: string, targetPath: string) => ipcRenderer.invoke('git:clone', url, targetPath),
-    discard: (repoPath: string, filePath: string) => ipcRenderer.invoke('git:discard', repoPath, filePath),
-    createBranch: (repoPath: string, branchName: string) => ipcRenderer.invoke('git:create-branch', repoPath, branchName),
-    deleteBranch: (repoPath: string, branchName: string) => ipcRenderer.invoke('git:delete-branch', repoPath, branchName),
-    addRemote: (repoPath: string, name: string, url: string) => ipcRenderer.invoke('git:add-remote', repoPath, name, url),
-    setConfig: (repoPath: string, key: string, value: string) => ipcRenderer.invoke('git:setConfig', repoPath, key, value),
-    removeRemote: (repoPath: string, name: string) => ipcRenderer.invoke('git:remove-remote', repoPath, name),
-    unstage: (repoPath: string, files: string[]) => ipcRenderer.invoke('git:unstage', repoPath, files),
-    discardBulk: (repoPath: string, files: string[]) => ipcRenderer.invoke('git:discard-bulk', repoPath, files),
-    getRemotes: (repoPath: string) => ipcRenderer.invoke('git:get-remotes', repoPath),
-    show: (repoPath: string, args: string) => ipcRenderer.invoke('git:show', repoPath, args)
+    status: (repoPath: string) => ipcRenderer.invoke(IPC_CHANNELS.GIT_STATUS, repoPath),
+    init: (repoPath: string) => ipcRenderer.invoke(IPC_CHANNELS.GIT_INIT, repoPath),
+    add: (repoPath: string, files: string[]) => ipcRenderer.invoke(IPC_CHANNELS.GIT_ADD, repoPath, files),
+    commit: (repoPath: string, message: string) => ipcRenderer.invoke(IPC_CHANNELS.GIT_COMMIT, repoPath, message),
+    push: (repoPath: string, remote?: string, branch?: string) => ipcRenderer.invoke(IPC_CHANNELS.GIT_PUSH, repoPath, remote, branch),
+    pull: (repoPath: string, remote?: string, branch?: string) => ipcRenderer.invoke(IPC_CHANNELS.GIT_PULL, repoPath, remote, branch),
+    history: (repoPath: string) => ipcRenderer.invoke(IPC_CHANNELS.GIT_HISTORY, repoPath),
+    checkIsRepo: (repoPath: string) => ipcRenderer.invoke(IPC_CHANNELS.GIT_CHECK_IS_REPO, repoPath),
+    getBranches: (repoPath: string) => ipcRenderer.invoke(IPC_CHANNELS.GIT_GET_BRANCHES, repoPath),
+    checkout: (repoPath: string, branch: string) => ipcRenderer.invoke(IPC_CHANNELS.GIT_CHECKOUT, repoPath, branch),
+    clone: (url: string, targetPath: string) => ipcRenderer.invoke(IPC_CHANNELS.GIT_CLONE, url, targetPath),
+    discard: (repoPath: string, filePath: string) => ipcRenderer.invoke(IPC_CHANNELS.GIT_DISCARD, repoPath, filePath),
+    createBranch: (repoPath: string, branchName: string) => ipcRenderer.invoke(IPC_CHANNELS.GIT_CREATE_BRANCH, repoPath, branchName),
+    deleteBranch: (repoPath: string, branchName: string) => ipcRenderer.invoke(IPC_CHANNELS.GIT_DELETE_BRANCH, repoPath, branchName),
+    addRemote: (repoPath: string, name: string, url: string) => ipcRenderer.invoke(IPC_CHANNELS.GIT_ADD_REMOTE, repoPath, name, url),
+    setConfig: (repoPath: string, key: string, value: string) => ipcRenderer.invoke(IPC_CHANNELS.GIT_SET_CONFIG, repoPath, key, value),
+    removeRemote: (repoPath: string, name: string) => ipcRenderer.invoke(IPC_CHANNELS.GIT_REMOVE_REMOTE, repoPath, name),
+    unstage: (repoPath: string, files: string[]) => ipcRenderer.invoke(IPC_CHANNELS.GIT_UNSTAGE, repoPath, files),
+    discardBulk: (repoPath: string, files: string[]) => ipcRenderer.invoke(IPC_CHANNELS.GIT_DISCARD_BULK, repoPath, files),
+    getRemotes: (repoPath: string) => ipcRenderer.invoke(IPC_CHANNELS.GIT_GET_REMOTES, repoPath),
+    show: (repoPath: string, args: string) => ipcRenderer.invoke(IPC_CHANNELS.GIT_SHOW, repoPath, args)
   },
   github: {
     createRepository: (token: string, name: string, description: string, isPrivate: boolean) => 
-      ipcRenderer.invoke('github:create-repository', token, name, description, isPrivate),
-    startDeviceFlow: () => ipcRenderer.invoke('github:start-device-flow'),
-    pollDeviceToken: (deviceCode: string) => ipcRenderer.invoke('github:poll-device-token', deviceCode),
-    getUser: (token: string) => ipcRenderer.invoke('github:get-user', token),
-    listRepos: (token: string) => ipcRenderer.invoke('github:list-repos', token),
-    forkRepository: (token: string, owner: string, repo: string) => ipcRenderer.invoke('github:fork-repository', token, owner, repo)
+      ipcRenderer.invoke(IPC_CHANNELS.GITHUB_CREATE_REPOSITORY, token, name, description, isPrivate),
+    startDeviceFlow: () => ipcRenderer.invoke(IPC_CHANNELS.GITHUB_START_DEVICE_FLOW),
+    pollDeviceToken: (deviceCode: string) => ipcRenderer.invoke(IPC_CHANNELS.GITHUB_POLL_DEVICE_TOKEN, deviceCode),
+    getUser: (token: string) => ipcRenderer.invoke(IPC_CHANNELS.GITHUB_GET_USER, token),
+    listRepos: (token: string) => ipcRenderer.invoke(IPC_CHANNELS.GITHUB_LIST_REPOS, token),
+    forkRepository: (token: string, owner: string, repo: string) => ipcRenderer.invoke(IPC_CHANNELS.GITHUB_FORK_REPOSITORY, token, owner, repo)
   },
   secrets: {
-    get: (key: string) => ipcRenderer.invoke('secrets:get', key),
-    set: (key: string, value: string) => ipcRenderer.invoke('secrets:set', key, value),
-    delete: (key: string) => ipcRenderer.invoke('secrets:delete', key)
+    get: (key: string) => ipcRenderer.invoke(IPC_CHANNELS.SECRETS_GET, key),
+    set: (key: string, value: string) => ipcRenderer.invoke(IPC_CHANNELS.SECRETS_SET, key, value),
+    delete: (key: string) => ipcRenderer.invoke(IPC_CHANNELS.SECRETS_DELETE, key)
   },
   appSettings: {
-    getSettings: () => ipcRenderer.invoke('app:get-settings'),
-    updateSetting: (key: string, value: any) => ipcRenderer.invoke('app:update-setting', key, value),
-    updateSettings: (settings: any) => ipcRenderer.invoke('app:update-settings', settings)
+    getSettings: () => ipcRenderer.invoke(IPC_CHANNELS.APP_GET_SETTINGS),
+    updateSetting: (key: string, value: any) => ipcRenderer.invoke(IPC_CHANNELS.APP_UPDATE_SETTING, key, value),
+    updateSettings: (settings: any) => ipcRenderer.invoke(IPC_CHANNELS.APP_UPDATE_SETTINGS, settings)
   },
   ai: {
-    pullModel: (baseUrl: string, model: string) => ipcRenderer.invoke('ai:pullModel', baseUrl, model),
+    isAvailable: () => ipcRenderer.invoke(IPC_CHANNELS.AI_IS_AVAILABLE),
+    chat: (messages: any[], options?: any) => ipcRenderer.invoke(IPC_CHANNELS.AI_CHAT, messages, options),
+    chatStream: (messages: any[], options?: any) => ipcRenderer.invoke(IPC_CHANNELS.AI_STREAM, messages, options),
+    analyzeIntent: (query: string, entryTypes?: any) => ipcRenderer.invoke(IPC_CHANNELS.AI_ANALYZE_INTENT, query, entryTypes),
+    indexEntry: (entry: any, config?: any) => ipcRenderer.invoke(IPC_CHANNELS.AI_INDEX_ENTRY, entry, config),
+    search: (query: string, limit?: number) => ipcRenderer.invoke(IPC_CHANNELS.AI_SEARCH, query, limit),
+    getContext: (entryId: string, query: string, maxChunks?: number) => ipcRenderer.invoke(IPC_CHANNELS.AI_GET_CONTEXT, entryId, query, maxChunks),
+    deleteEntryIndex: (entryId: string) => ipcRenderer.invoke(IPC_CHANNELS.AI_DELETE_ENTRY_INDEX, entryId),
+    getHardwareSpecs: () => ipcRenderer.invoke(IPC_CHANNELS.AI_GET_HARDWARE_SPECS),
+    scoreModel: (model: any, specs: any) => ipcRenderer.invoke(IPC_CHANNELS.AI_SCORE_MODEL, model, specs),
+    pullModel: (model: string) => ipcRenderer.invoke(IPC_CHANNELS.AI_PULL_MODEL, model),
     onPullProgress: (callback: (data: any) => void) => {
-        const listener = (_: any, data: any) => callback(data);
-        ipcRenderer.on('ai:pullProgress', listener);
-        return () => ipcRenderer.removeListener('ai:pullProgress', listener);
+      const listener = (_: any, data: any) => callback(data);
+      ipcRenderer.on(IPC_CHANNELS.AI_PULL_PROGRESS, listener);
+      return () => ipcRenderer.removeListener(IPC_CHANNELS.AI_PULL_PROGRESS, listener);
     },
-    getHardwareSpecs: () => ipcRenderer.invoke('ai:getHardwareSpecs'),
-    chatStream: (baseUrl: string, payload: any) => ipcRenderer.invoke('ai:chatStream', baseUrl, payload),
-    cloudChatStream: (config: any) => ipcRenderer.invoke('ai:cloudChatStream', config),
-    abortChat: () => ipcRenderer.invoke('ai:abortChat'),
+    getModels: () => ipcRenderer.invoke(IPC_CHANNELS.AI_GET_MODELS),
+    abortChat: () => ipcRenderer.invoke(IPC_CHANNELS.AI_ABORT_CHAT),
     onChatUpdate: (callback: (chunk: string) => void) => {
         const listener = (_: any, chunk: string) => callback(chunk);
-        ipcRenderer.on('ai:chatChunk', listener);
-        return () => ipcRenderer.removeListener('ai:chatChunk', listener);
+        ipcRenderer.on(IPC_CHANNELS.AI_CHAT_CHUNK, listener);
+        return () => ipcRenderer.removeListener(IPC_CHANNELS.AI_CHAT_CHUNK, listener);
+    },
+    onChatEnd: (callback: () => void) => {
+        const listener = () => callback();
+        ipcRenderer.on(IPC_CHANNELS.AI_CHAT_END, listener);
+        return () => ipcRenderer.removeListener(IPC_CHANNELS.AI_CHAT_END, listener);
     }
   },
   system: {
-    getProcessStats: (processNames: string[]) => ipcRenderer.invoke('system:getProcessStats', processNames),
-    startService: (name: string) => ipcRenderer.invoke('system:startService', name),
-    stopService: (name: string) => ipcRenderer.invoke('system:stopService', name),
-    deployStack: (service?: string) => ipcRenderer.invoke('system:deployStack', service),
-    openDevTools: () => ipcRenderer.send('app:openDevTools'),
-    triggerDebugError: (severity: 'warning' | 'error') => ipcRenderer.invoke('debug:triggerError', severity)
+    getProcessStats: (processNames: string[]) => ipcRenderer.invoke(IPC_CHANNELS.SYSTEM_GET_PROCESS_STATS, processNames),
+    startService: (name: string) => ipcRenderer.invoke(IPC_CHANNELS.SYSTEM_START_SERVICE, name),
+    stopService: (name: string) => ipcRenderer.invoke(IPC_CHANNELS.SYSTEM_STOP_SERVICE, name),
+    deployStack: (service?: string) => ipcRenderer.invoke(IPC_CHANNELS.SYSTEM_DEPLOY_STACK, service),
+    openDevTools: () => ipcRenderer.send(IPC_CHANNELS.SYSTEM_OPEN_DEV_TOOLS),
+    triggerDebugError: (severity: 'warning' | 'error') => ipcRenderer.invoke(IPC_CHANNELS.DEBUG_TRIGGER_ERROR, severity)
   },
   latex: {
-    check: () => ipcRenderer.invoke('latex:check'),
-    compile: (files: { name: string, content: string }[]) => ipcRenderer.invoke('latex:compile', { files })
+    check: () => ipcRenderer.invoke(IPC_CHANNELS.LATEX_CHECK),
+    compile: (files: { name: string, content: string }[]) => ipcRenderer.invoke(IPC_CHANNELS.LATEX_COMPILE, { files })
   },
   service: {
-    start: (service: 'execution' | 'tts') => ipcRenderer.invoke('service:start', service),
-    stop: (service: 'execution' | 'tts') => ipcRenderer.invoke('service:stop', service),
-    status: (service: 'execution' | 'tts') => ipcRenderer.invoke('service:status', service)
+    start: (service: 'execution' | 'tts') => ipcRenderer.invoke(IPC_CHANNELS.SERVICE_START, service),
+    stop: (service: 'execution' | 'tts') => ipcRenderer.invoke(IPC_CHANNELS.SERVICE_STOP, service),
+    status: (service: 'execution' | 'tts') => ipcRenderer.invoke(IPC_CHANNELS.SERVICE_STATUS, service)
   },
   repl: {
-    startSession: (lang: string) => ipcRenderer.invoke('repl:start-session', lang),
-    sendInput: (sessionId: string, data: string) => ipcRenderer.send('repl:send-input', sessionId, data),
-    stopSession: (sessionId: string) => ipcRenderer.invoke('repl:stop-session', sessionId),
-    listContainers: () => ipcRenderer.invoke('repl:list-containers'),
-    stopContainer: (containerId: string) => ipcRenderer.invoke('repl:stop-container', containerId),
-    removeContainer: (containerId: string) => ipcRenderer.invoke('repl:remove-container', containerId),
-    checkSession: (sessionId: string) => ipcRenderer.invoke('repl:check-session', sessionId),
+    startSession: (lang: string) => ipcRenderer.invoke(IPC_CHANNELS.REPL_START_SESSION, lang),
+    sendInput: (sessionId: string, data: string) => ipcRenderer.send(IPC_CHANNELS.REPL_SEND_INPUT, sessionId, data),
+    stopSession: (sessionId: string) => ipcRenderer.invoke(IPC_CHANNELS.REPL_STOP_SESSION, sessionId),
+    listContainers: () => ipcRenderer.invoke(IPC_CHANNELS.REPL_LIST_CONTAINERS),
+    stopContainer: (containerId: string) => ipcRenderer.invoke(IPC_CHANNELS.REPL_STOP_CONTAINER, containerId),
+    removeContainer: (containerId: string) => ipcRenderer.invoke(IPC_CHANNELS.REPL_REMOVE_CONTAINER, containerId),
+    checkSession: (sessionId: string) => ipcRenderer.invoke(IPC_CHANNELS.REPL_CHECK_SESSION, sessionId),
     onOutput: (callback: (data: { sessionId: string, data: string }) => void) => {
         const listener = (_: any, data: any) => callback(data);
-        ipcRenderer.on('repl:output', listener);
-        return () => ipcRenderer.removeListener('repl:output', listener);
+        ipcRenderer.on(IPC_CHANNELS.REPL_ON_OUTPUT, listener);
+        return () => ipcRenderer.removeListener(IPC_CHANNELS.REPL_ON_OUTPUT, listener);
     },
     onClosed: (callback: (data: { sessionId: string, code: number }) => void) => {
         const listener = (_: any, data: any) => callback(data);
-        ipcRenderer.on('repl:closed', listener);
-        return () => ipcRenderer.removeListener('repl:closed', listener);
+        ipcRenderer.on(IPC_CHANNELS.REPL_ON_CLOSED, listener);
+        return () => ipcRenderer.removeListener(IPC_CHANNELS.REPL_ON_CLOSED, listener);
     }
   },
   db: {
-    initWorkspace: (path: string) => ipcRenderer.invoke('db:init-workspace', path),
-    getFeedItems: (feedId: string, limit?: number) => ipcRenderer.invoke('db:getFeedItems', feedId, limit),
-    saveFeedItems: (feedId: string, items: any[]) => ipcRenderer.invoke('db:saveFeedItems', feedId, items),
-    getFeedStatus: () => ipcRenderer.invoke('db:getFeedStatus'),
-    updateFeedStatus: (itemId: string, status: any) => ipcRenderer.invoke('db:updateFeedStatus', itemId, status)
+    initWorkspace: (path: string) => ipcRenderer.invoke(IPC_CHANNELS.DB_INIT_WORKSPACE, path),
+    getFeedItems: (feedId: string, limit?: number) => ipcRenderer.invoke(IPC_CHANNELS.DB_GET_FEED_ITEMS, feedId, limit),
+    saveFeedItems: (feedId: string, items: any[]) => ipcRenderer.invoke(IPC_CHANNELS.DB_SAVE_FEED_ITEMS, feedId, items),
+    getFeedStatus: () => ipcRenderer.invoke(IPC_CHANNELS.DB_GET_FEED_STATUS),
+    updateFeedStatus: (itemId: string, status: any) => ipcRenderer.invoke(IPC_CHANNELS.DB_UPDATE_FEED_STATUS, itemId, status)
   }
 }
 

@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, useRef } from 'react';
-import { FeedItem } from './YouTubeContext';
+import { FeedItem } from '@shared';
 
 interface YouTubePlayerContextType {
     activeVideo: FeedItem | null;

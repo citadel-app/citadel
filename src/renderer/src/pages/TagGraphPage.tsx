@@ -24,7 +24,15 @@ const TagGraphPage = () => {
     const containerRef = useRef<HTMLDivElement>(null);
     const [searchTerm, setSearchTerm] = useState('');
 
-    const entries = useLiveQuery(() => db.entries.toArray());
+    const entries = useLiveQuery(async () => {
+        const arr = await db.entries.toArray();
+        return arr.map(e => ({
+            id: e.id,
+            title: e.title,
+            tags: e.tags,
+            type: e.type
+        }));
+    }) || [];
 
     const { nodes, links } = useMemo(() => {
         if (!entries) return { nodes: [], links: [] };
