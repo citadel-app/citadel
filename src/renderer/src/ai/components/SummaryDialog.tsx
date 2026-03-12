@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import { Icon } from '../../components/IconRegistry';
-import { metadataService, ragService } from '..';
 import { useAppSettings } from '../../context/AppSettingsContext';
 import type { CodexEntry } from '../../lib/db';
 
@@ -39,24 +38,24 @@ export const SummaryDialog = ({
     const generateSummary = async () => {
         try {
             // Check if auto-indexing on AI actions is enabled
-            const autoIndexEnabled = settings.ragAutoIndexOnAction ?? true;
-            const reindexIntervalHours = settings.ragReindexInterval ?? 24;
+            const autoIndexEnabled = settings.ai?.rag?.autoIndexOnAction ?? true;
+            const reindexIntervalHours = settings.ai?.rag?.reindexInterval ?? 24;
 
             // 1. Check if RAG is available and index entry on-demand
-            const { available } = await ragService.isAvailable();
+            const { available } = await window.api.ai.isAvailable();
             if (available && autoIndexEnabled) {
                 setStatus('indexing');
                 setIndexInfo('Checking index status...');
 
-                const needsIndex = await ragService.needsIndexing(entry, reindexIntervalHours);
+                const needsIndex = await window.api.ai.needsIndexing(entry.id, reindexIntervalHours);
                 if (needsIndex) {
                     setIndexInfo('Indexing entry for semantic search...');
-                    const result = await ragService.indexEntry(entry, {
-                        chunkSize: settings.ragChunkSize ?? 1000,
-                        chunkOverlap: settings.ragChunkOverlap ?? 100,
-                        indexPdf: settings.ragIndexPdf ?? true,
-                        indexUrl: settings.ragIndexUrl ?? true,
-                        indexMarkdown: settings.ragIndexMarkdown ?? true
+                    const result = await window.api.ai.indexEntry(entry, {
+                        chunkSize: settings.ai?.rag?.chunkSize ?? 1000,
+                        chunkOverlap: settings.ai?.rag?.chunkOverlap ?? 100,
+                        indexPdf: settings.ai?.rag?.indexPdf ?? true,
+                        indexUrl: settings.ai?.rag?.indexUrl ?? true,
+                        indexMarkdown: settings.ai?.rag?.indexMarkdown ?? true
                     });
                     setIndexInfo(`Indexed ${result.chunkCount} chunks`);
                 } else {
@@ -64,8 +63,8 @@ export const SummaryDialog = ({
                 }
 
                 // 2. Get Dual Context using RAG
-                const structuralContext = await ragService.getStructuralContext(entry.id, 3);
-                const semanticContext = await ragService.getContextForPrompt(
+                const structuralContext = await window.api.ai.getStructuralContext(entry.id, 3);
+                const semanticContext = await window.api.ai.getContext(
                     entry.id,
                     `Summary search: ${entry.title}. Core findings, technical details, and main arguments.`,
                     5
@@ -81,12 +80,11 @@ ${semanticContext}
                 // 3. Generate Summary using Liquid Template
                 setStatus('loading');
 
-                // If content is empty/missing, fallback to title so AI has *something* to work with
                 const contentToSummarize = (!content || content.trim().length === 0)
                     ? `Title: ${entry.title}`
                     : content;
 
-                const result = await metadataService.generateSummary(contentToSummarize, fullRagContext);
+                const result = await window.api.ai.generateSummary({ content: contentToSummarize, context: fullRagContext });
                 if (result) {
                     setSummary(result);
                     setStatus('review');
@@ -94,12 +92,12 @@ ${semanticContext}
                     setStatus('error');
                 }
             } else {
-                // Fallback: no RAG available, just use content directly
+                // Fallback: no RAG available
                 setStatus('loading');
                 const contentToSummarize = (!content || content.trim().length === 0)
                     ? `Title: ${entry.title}`
                     : content;
-                const result = await metadataService.generateSummary(contentToSummarize);
+                const result = await window.api.ai.generateSummary({ content: contentToSummarize });
                 if (result) {
                     setSummary(result);
                     setStatus('review');
@@ -116,7 +114,7 @@ ${semanticContext}
     const handleApply = async () => {
         onApply(summary);
         // Proactively re-index in background so RAG is fresh
-        ragService.indexEntry(entry).catch(e => console.error('[SummaryDialog] Proactive index failed', e));
+        window.api.ai.indexEntry(entry).catch(e => console.error('[SummaryDialog] Proactive index failed', e));
         onOpenChange(false);
     };
 

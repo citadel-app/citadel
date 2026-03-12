@@ -2,45 +2,27 @@ import { db, type CodexEntry } from './db';
 import { fs } from './file-system';
 import matter from 'gray-matter';
 import { v4 as uuidv4 } from 'uuid';
-import { humanizeFilename } from './utils';
-import { DEFAULT_WORKSPACE_CONFIG, WorkspaceConfig } from '../config/entry-types';
-import { APP_CONSTANTS } from '../config/constants';
+import { 
+    DEFAULT_WORKSPACE_CONFIG, 
+    type WorkspaceConfig, 
+    humanizeFilename, 
+    APP_CONSTANTS,
+    TOP_LEVEL_FIELDS,
+    SYNC_VERSION,
+    sanitizeMetadata,
+    generateDefaultReadme,
+    DEFAULT_GIT_IGNORE
+} from '@shared';
 import { ragService } from '../ai';
 
-
-
-// Fields that should be promoted from frontmatter to top-level DB properties if present
-// This ensures we can index them in Dexie.
-const TOP_LEVEL_FIELDS = [
-    'sourceUrl',
-    'companies',
-    'difficulty',
-    'author',
-    'publishedAt',
-    'relatedLinks',
-    'isbn',
-    'publisher',
-    'publishedDate',
-    'status'
-] as const;
+// SYNC_VERSION and TOP_LEVEL_FIELDS are now imported from @shared
 
 export class DataManager {
     private rootPath: string = '';
     private config: WorkspaceConfig = DEFAULT_WORKSPACE_CONFIG;
     private isSyncing: boolean = false;
 
-    private sanitizeMetadata(obj: any): any {
-        if (obj === null || typeof obj !== 'object') return obj;
-        if (Array.isArray(obj)) return obj.map(v => this.sanitizeMetadata(v));
-
-        const result: any = {};
-        Object.entries(obj).forEach(([key, value]) => {
-            if (value !== undefined) {
-                result[key] = this.sanitizeMetadata(value);
-            }
-        });
-        return result;
-    }
+    // sanitizeMetadata is now imported from @shared
 
     async init(customPath?: string) {
         // 1. Determine Root Path
@@ -78,8 +60,9 @@ export class DataManager {
         // Initialize SQLite Feed Database via Main Process
         try {
             await window.api.db.initWorkspace(this.rootPath);
-        } catch (dbInitErr) {
+        } catch (dbInitErr: any) {
             console.error('[DataManager] Failed to initialize SQLite feed database:', dbInitErr);
+            this.notify('error', `Failed to initialize feed database: ${dbInitErr.message || dbInitErr}`);
         }
 
         await this.loadConfig(DEFAULT_WORKSPACE_CONFIG);
@@ -124,11 +107,6 @@ export class DataManager {
         const workspaceName = rootPath.replace(/\\/g, '/').split('/').pop() || 'Workspace';
 
         // --- README.md ---
-        const entryTypes = Object.values(config.entries);
-        const folderList = entryTypes
-            .map(e => `- **${e.folder}/**: ${e.label} — ${e.description || ''}`)
-            .join('\n');
-
         const readmePath = rootPath.replace(/\\/g, '/') + '/README.md';
         const readmeExists = await fs.exists(readmePath);
         
@@ -136,34 +114,18 @@ export class DataManager {
         if (readmeExists) {
             readmeContent = await fs.readFile(readmePath);
         } else {
-            // Fallback generation if no template existed
-            readmeContent = `# ${workspaceName}\n\n> Created with [Citadel](https://github.com/iwannabebot/codex) — Smart workspace for software engineering and document discovery.\n\n`;
-        }
-
-        // Programmatic append for README (only if not already structuralized)
-        if (!readmeContent.includes('## Structure')) {
-            readmeContent += `\n## Structure\n\n${folderList}\n\n## Getting Started\n\n1. Open this folder in Citadel\n2. Create entries using the sidebar or \`Ctrl+N\`\n3. Your work is saved as plain markdown files, version-controlled with Git\n`;
+            readmeContent = generateDefaultReadme(rootPath, config);
             await fs.writeFile(readmePath, readmeContent);
-            console.log('[DataManager] Appended to README.md');
+            console.log('[DataManager] Created README.md');
         }
 
         // --- .gitignore ---
         const gitignorePath = rootPath.replace(/\\/g, '/') + '/.gitignore';
         const gitignoreExists = await fs.exists(gitignorePath);
         
-        let gitignoreContent = '';
-        if (gitignoreExists) {
-            gitignoreContent = await fs.readFile(gitignorePath);
-        }
-
-        // Programmatic append for .gitignore
-        const requiredIgnores = `# Citadel local data\n.codex/local/\n.codex/config/feeds.db*\n.codex/config/*.json\n\n# Dependencies\nnode_modules/\n\n# Databases\n*.db\n*.db-journal\n\n# OS files\n.DS_Store\nThumbs.db\nDesktop.ini\n\n# Editor artifacts\n*.swp\n*.swo\n*~\n`;
-        
-        if (!gitignoreContent.includes('.codex/local/')) {
-            const hasExisting = gitignoreContent.trim().length > 0;
-            gitignoreContent += (hasExisting ? '\n\n' : '') + requiredIgnores;
-            await fs.writeFile(gitignorePath, gitignoreContent);
-            console.log('[DataManager] Appended to .gitignore');
+        if (!gitignoreExists) {
+            await fs.writeFile(gitignorePath, DEFAULT_GIT_IGNORE);
+            console.log('[DataManager] Created .gitignore');
         }
     }
 
@@ -188,24 +150,51 @@ export class DataManager {
             let allEntries: CodexEntry[] = [];
             const startTime = Date.now();
 
-            // Parallelize processing of each entry type folder
-            const folderTasks = Object.values(this.config.entries).map(async (entryConfig) => {
-                const folderName = entryConfig.folder;
-                const type = entryConfig.type;
-                const folderPath = `${this.rootPath}/${folderName}`;
+            // Fetch all existing entries once to avoid per-file DB queries
+            const existingEntriesArr = await db.entries.toArray();
+            const entryMap = new Map(existingEntriesArr.map(e => [e.id, e]));
+            const pathMap = new Map(existingEntriesArr.map(e => [e.filePath, e]));
+
+            // Strictly scan only folders defined in the config
+            const folderConfigs = Object.values(this.config.entries);
+            const foldersToScan = folderConfigs.map(c => ({ folder: c.folder, type: c.type }));
+
+            const folderTasks = foldersToScan.map(async ({ folder: folderName, type }) => {
+                const folderPath = folderName === '.' ? this.rootPath : `${this.rootPath}/${folderName}`;
                 
                 if (!(await fs.exists(folderPath))) return [];
 
                 const files = await fs.readDirectory(folderPath);
-                const mdFiles = files.filter(f => f.endsWith('.md'));
+                // Filter for .md and ignore hidden files/folders
+                const mdFiles = files.filter(f => f.endsWith('.md') && !f.startsWith('.'));
                 
+                if (mdFiles.length === 0) return [];
                 console.log(`[DataManager] Syncing folder: ${folderName} (${mdFiles.length} files)`);
 
                 // Parallelize file processing within each folder
-                // We process in smaller batches if needed, but for now let's try Promise.all
                 const fileTasks = mdFiles.map(async (file) => {
                     try {
                         const filePath = `${folderPath}/${file}`;
+                        
+                        // 1. Optimized Check: Use stat to check mtime
+                        const stats = await fs.stat(filePath);
+                        
+                        // Use Map lookup instead of DB get
+                        const fallbackId = file.replace('.md', '');
+                        let existingEntry = entryMap.get(fallbackId) || pathMap.get(filePath);
+                        
+                        // Check if we can skip reading this file
+                        const storedSyncVersion = parseInt(localStorage.getItem('codex-sync-version') || '0');
+                        const isUpToDate = existingEntry && 
+                                         existingEntry.updatedAt && 
+                                         new Date(existingEntry.updatedAt).getTime() >= stats.mtimeMs &&
+                                         storedSyncVersion === (SYNC_VERSION as number);
+
+                        if (isUpToDate) {
+                            return existingEntry;
+                        }
+
+                        // 2. Read and Parse if changed (or new)
                         const content = await fs.readFile(filePath);
                         let parsed;
                         try {
@@ -213,19 +202,16 @@ export class DataManager {
                         } catch (yamlErr) {
                             console.error(`[DataManager] YAML Parse Error in ${file}:`, yamlErr);
                             // Fallback: minimal valid structure
-                            parsed = { data: { id: file.replace('.md', ''), title: file.replace('.md', '') }, content: content };
+                            parsed = { data: {}, content: content };
                         }
                         const { data, content: markdownBody } = parsed;
                         
-                        let needsRewrite = false;
-                        if (data.frontmatter) {
-                            const nested = data.frontmatter;
-                            delete data.frontmatter;
-                            Object.assign(data, nested);
-                            needsRewrite = true;
+                        // Support manual files without IDs
+                        if (!data.id) {
+                            data.id = fallbackId;
                         }
 
-                        if (!data.id) return null;
+                        let needsRewrite = false;
 
                         // ENSURE ABSOLUTE PATH (important for protocol and portability)
                         let absoluteEntryPath = filePath;
@@ -248,7 +234,7 @@ export class DataManager {
 
                         if (needsRewrite) {
                             try {
-                                const cleanedContent = matter.stringify(markdownBody, this.sanitizeMetadata(data));
+                                const cleanedContent = matter.stringify(markdownBody, sanitizeMetadata(data));
                                 await fs.writeFile(absoluteEntryPath, cleanedContent);
                             } catch (writeErr) {
                                 console.error(`[DataManager] Failed to rewrite cleaned content for ${file}:`, writeErr);
@@ -272,8 +258,7 @@ export class DataManager {
 
                         for (const field of TOP_LEVEL_FIELDS) {
                             if (data[field] !== undefined) {
-                                // @ts-ignore
-                                entry[field] = data[field];
+                                (entry as any)[field] = data[field];
                             }
                         }
 
@@ -309,6 +294,10 @@ export class DataManager {
             
             const duration = ((Date.now() - startTime) / 1000).toFixed(2);
             console.log(`[DataManager] Synced ${allEntries.length} entries in ${duration}s.`);
+            localStorage.setItem('codex-sync-version', SYNC_VERSION.toString());
+        } catch (err: any) {
+            console.error('[DataManager] Sync failed:', err);
+            this.notify('error', `FS -> DB Sync failed: ${err.message || err}`);
         } finally {
             this.isSyncing = false;
         }
@@ -405,7 +394,7 @@ export class DataManager {
         }
 
         // Write to FS first (source of truth)
-        const fileContent = matter.stringify('', this.sanitizeMetadata(frontmatter));
+        const fileContent = matter.stringify(entry.content || '', sanitizeMetadata(frontmatter));
         await fs.writeFile(filePath, fileContent);
 
         // Update DB
@@ -496,7 +485,7 @@ export class DataManager {
         }
         
         try {
-            const newFileContent = matter.stringify(body || '', this.sanitizeMetadata(updatedEntry.frontmatter));
+            const newFileContent = matter.stringify(body || '', sanitizeMetadata(updatedEntry.frontmatter));
             await fs.writeFile(entry.filePath, newFileContent);
         } catch (saveErr) {
             console.error(`[DataManager] Failed to save entry to FS:`, saveErr);
@@ -1073,7 +1062,7 @@ export class DataManager {
                 this.config = mergedConfig;
                 return mergedConfig;
             } catch (e) {
-                console.error('Failed to parse config.json, falling back to default', e);
+                console.error('Failed to parse workspace.json, falling back to default', e);
                 // Backup corrupted config
                 await fs.writeFile(`${configPath}.bak`, await fs.readFile(configPath));
             }
@@ -1223,11 +1212,10 @@ export class DataManager {
 
     async loadFeedItems(): Promise<Record<string, any>> {
         if (!this.rootPath) return {};
-        const path = `${this.rootPath}/${APP_CONSTANTS.PATHS.CONFIG_DIR}/${APP_CONSTANTS.PATHS.FEED_ITEMS_FILE}`;
-        if (await fs.exists(path)) {
+        const feedsItemsPath = `${this.rootPath}/${APP_CONSTANTS.PATHS.CONFIG_DIR}/${APP_CONSTANTS.PATHS.FEED_ITEMS_FILE}`;
+        if (await fs.exists(feedsItemsPath)) {
             try {
-                const content = await fs.readFile(path);
-                console.log('[RSS_DEBUG] dataManager.loadFeedItems read content length:', content.length);
+                const content = await fs.readFile(feedsItemsPath);
                 return JSON.parse(content);
             } catch (e) {
                 console.error('Failed to parse feed-items.json', e);
@@ -1239,23 +1227,21 @@ export class DataManager {
 
     async saveFeedItems(items: Record<string, any>): Promise<void> {
         if (!this.rootPath) return;
-        const path = `${this.rootPath}/${APP_CONSTANTS.PATHS.CONFIG_DIR}/${APP_CONSTANTS.PATHS.FEED_ITEMS_FILE}`;
-        console.log('[RSS_DEBUG] dataManager.saveFeedItems writing to:', path);
-        // Removed auto-create directory
+        const feedsItemsPath = `${this.rootPath}/${APP_CONSTANTS.PATHS.CONFIG_DIR}/${APP_CONSTANTS.PATHS.FEED_ITEMS_FILE}`;
+        console.log('[RSS_DEBUG] dataManager.saveFeedItems writing to:', feedsItemsPath);
         try {
-            await fs.writeFile(path, JSON.stringify(items, null, 2));
+            await fs.writeFile(feedsItemsPath, JSON.stringify(items, null, 2));
         } catch (e) {
             console.warn('[DataManager] Could not save feed items. Not a native workspace?');
         }
     }
 
-    // --- YouTube Feeds Management ---
     async loadYouTubeFeeds(): Promise<any[] | null> {
         if (!this.rootPath) return [];
-        const path = `${this.rootPath}/${APP_CONSTANTS.PATHS.CONFIG_DIR}/${APP_CONSTANTS.PATHS.YOUTUBE_FEED_FILE}`;
-        if (await fs.exists(path)) {
+        const youtubeFeedsPath = `${this.rootPath}/${APP_CONSTANTS.PATHS.CONFIG_DIR}/${APP_CONSTANTS.PATHS.YOUTUBE_FEED_FILE}`;
+        if (await fs.exists(youtubeFeedsPath)) {
             try {
-                const content = await fs.readFile(path);
+                const content = await fs.readFile(youtubeFeedsPath);
                 return JSON.parse(content);
             } catch (e) {
                 console.error('Failed to parse youtube-feeds.json', e);
@@ -1330,11 +1316,18 @@ export class DataManager {
             { key: 'code', dir: APP_CONSTANTS.PATHS.CODE_DIR, idKey: 'codeId' }
         ] as const;
 
-        // Parallelize checking of all external types
+        // Batch check directory existence to avoid multiple calls per entry
+        const dirsToCheck = [APP_CONSTANTS.PATHS.BOARD_DIR, APP_CONSTANTS.PATHS.HIGHLIGHTS_DIR, APP_CONSTANTS.PATHS.CODE_DIR];
+        const dirExistence = await Promise.all(dirsToCheck.map(dir => fs.exists(`${entryDir}/${dir}`)));
+        const existingDirs = new Set(dirsToCheck.filter((_, i) => dirExistence[i]));
+
+        // Parallelize checking of all external types for existing directories
         await Promise.all(mappings.map(async ({ key, dir, idKey }) => {
+            if (!existingDirs.has(dir)) return;
+
             const id = frontmatter[idKey];
             
-            // 1. Try reading by GUID
+            // 1. Try reading by GUID (preferred)
             if (id) {
                 const path = `${entryDir}/${dir}/${id}.json`;
                 if (await fs.exists(path)) {
@@ -1342,19 +1335,18 @@ export class DataManager {
                         const content = await fs.readFile(path);
                         result[key] = JSON.parse(content);
                         return;
-                    } catch (e) {
-                         // fall through
-                    }
+                    } catch (e) { /* ignore parse error */ }
                 }
             }
 
-            // 2. Fallback 1: Named file
+            // 2. Fallback: Named file (only if GUID not found or missing)
             const namedPath = `${entryDir}/${dir}/${fileName}.json`;
             if (await fs.exists(namedPath)) {
                 try {
                     const content = await fs.readFile(namedPath);
                     const data = JSON.parse(content);
                     result[key] = data;
+                    // Migrate to GUID-based path immediately for consistency
                     const newId = uuidv4();
                     await this.writeExternalMetadata(filePath, key as any, data, newId);
                     migrationIds[idKey] = newId;
@@ -1362,7 +1354,7 @@ export class DataManager {
                 } catch (e) { /* ignore */ }
             }
 
-            // 3. Fallback 2: metadata.json
+            // 3. Last Fallback: Legacy metadata.json
             const legacyPath = `${entryDir}/${dir}/metadata.json`;
             if (await fs.exists(legacyPath)) {
                 try {
@@ -1428,7 +1420,13 @@ export class DataManager {
                 const normalizedPath = event.path.replace(/\\/g, '/');
                 const pathParts = normalizedPath.split('/');
                 const folderName = pathParts[pathParts.length - 2];
-                const typeKey = Object.keys(this.config.entries).find(k => this.config.entries[k].folder === folderName) || 'standard';
+                
+                // RESTRICTION: Only process files in configured entry folders
+                const typeEntry = Object.entries(this.config.entries).find(([_, c]) => c.folder === folderName);
+                if (!typeEntry) {
+                    return; 
+                }
+                const [typeKey] = typeEntry;
 
                 const externalData = await this.readExternalMetadata(event.path, data);
 
@@ -1482,6 +1480,12 @@ export class DataManager {
                     whiteboard: 'whiteboardId',
                     code: 'codeId'
                 };
+
+                // RESTRICTION: JSON files must be in known metadata subfolders or .codex
+                const isConfigDir = normalizedPath.includes(`/${APP_CONSTANTS.PATHS.CONFIG_DIR}/`);
+                if (!fieldName && !isConfigDir) {
+                    return;
+                }
 
                 const idKey = idKeyMap[fieldName as string];
 
@@ -1550,81 +1554,43 @@ export class DataManager {
     }
 
     // 10. LaTeX Persistence
-    async loadLatexFiles(): Promise<{ name: string; content: string }[]> {
+    async loadLatexFiles(): Promise<{ name: string; content: string | null; isBinary?: boolean }[]> {
         const latexDir = `${this.rootPath}/${APP_CONSTANTS.PATHS.CONFIG_DIR}/${APP_CONSTANTS.PATHS.LATEX_DIR}`;
         if (await fs.exists(latexDir)) {
             try {
                 // Recursive file loading
-                const getAllFiles = async (dir: string, relativePath: string = ''): Promise<{ name: string; content: string; isBinary?: boolean }[]> => {
+                const getAllFiles = async (dir: string, relativePath: string = ''): Promise<{ name: string; content: string | null; isBinary?: boolean }[]> => {
                     const entries = await fs.readDirectory(dir);
-                    const results: { name: string; content: string; isBinary?: boolean }[] = [];
+                    const results: { name: string; content: string | null; isBinary?: boolean }[] = [];
 
                     for (const entry of entries) {
                          const fullPath = `${dir}/${entry}`;
                          const relPath = relativePath ? `${relativePath}/${entry}` : entry;
                          
                          // Check if directory
-                         // We don't have isDirectory exposed, but we can try readDirectory. 
-                         // If it fails (throws), it's a file. Or assume extensionless is dir? No.
-                         // Let's use fs.stat if available? No.
-                         // Let's check if it has extension? Not reliable.
-                         // Let's try to read as directory. If successful, recurse.
-                         try {
-                             // This is a bit hacky but we don't have isDirectory in our simple fs wrapper yet.
-                             // Actually, typically fs.readDirectory returns just names. 
-                             // Let's assume for now we can differentiate.
-                             // Wait, our fs wrapper wrapper window.api.fs.readDirectory.
-                             // Let's assume we can try reading it as a dir.
-                             
-                             // Optimization: if it has an extension, assume file?
-                             if (entry.includes('.')) {
-                                 throw new Error('File');
+                         if (!entry.includes('.')) { // Simple heuristic: if no extension, assume directory
+                             try {
+                                 const subFiles = await getAllFiles(fullPath, relPath);
+                                 results.push(...subFiles);
+                                 continue;
+                             } catch (e) {
+                                 // If readDirectory fails, it's likely a file. Continue to file processing.
                              }
-
-                             const subFiles = await getAllFiles(fullPath, relPath);
-                             results.push(...subFiles);
-                         } catch (e) {
-                             // It's a file
-                             const isImage = entry.match(/\.(png|jpg|jpeg|pdf)$/i);
-                             
-                             if (isImage) {
-                              const buffer = await fs.readFileBinary(fullPath);
-                              let base64 = '';
-                              
-                              if (buffer instanceof Uint8Array) {
-                                  // Use FileReader for robust conversion
-                                  base64 = await new Promise<string>((resolve) => {
-                                      const blob = new Blob([buffer as any]);
-                                      const reader = new FileReader();
-                                      reader.onloadend = () => {
-                                          const dataUrl = reader.result as string;
-                                          // remove data:application/octet-stream;base64, prefix
-                                          const base64Content = dataUrl.split(',')[1];
-                                          resolve(base64Content);
-                                      };
-                                      reader.onerror = () => {
-                                          console.error('Failed to convert blob to base64');
-                                          resolve('');
-                                      };
-                                      reader.readAsDataURL(blob);
-                                  });
-                              } else if (buffer && (buffer as any).toString) {
-                                   // Node buffer fallback (unexpected in renderer but safe)
-                                  base64 = (buffer as any).toString('base64');
-                              }
-                              
-                              console.log(`[DataManager] Loaded binary file ${entry}. Size: ${base64.length}`);
-                              results.push({ name: relPath, content: base64, isBinary: true });
+                         }
+                         
+                         const isImage = entry.match(/\.(png|jpg|jpeg|pdf)$/i);
+                         
+                         if (isImage) {
+                            // For binary files, we only return the name and a flag, not the content
+                            results.push({ name: relPath, content: null, isBinary: true });
                          } else {
-                                  // Text file
-                                  // ensure we can read it.
-                                  try {
-                                      const content = await fs.readFile(fullPath);
-                                      results.push({ name: relPath, content });
-                                  } catch (err) {
-                                      console.warn(`Skipping file ${entry}`, err);
-                                  }
-                             }
+                            // For text files, we load content
+                            try {
+                                const content = await fs.readFile(fullPath);
+                                results.push({ name: relPath, content });
+                            } catch (err) {
+                                console.warn(`Skipping file ${entry}`, err);
+                            }
                          }
                     }
                     return results;
@@ -1688,6 +1654,35 @@ export class DataManager {
         }
     }
 
+    async getLatexFileContent(name: string, isBinary: boolean): Promise<string | null> {
+        if (!this.rootPath) return null;
+        const fullPath = `${this.rootPath}/${APP_CONSTANTS.PATHS.CONFIG_DIR}/${APP_CONSTANTS.PATHS.LATEX_DIR}/${name}`;
+        
+        try {
+            if (isBinary) {
+                const buffer = await fs.readFileBinary(fullPath);
+                if (buffer instanceof Uint8Array) {
+                    return await new Promise<string>((resolve) => {
+                        const blob = new Blob([buffer as any]);
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                            const dataUrl = reader.result as string;
+                            const base64Content = dataUrl.split(',')[1];
+                            resolve(base64Content);
+                        };
+                        reader.readAsDataURL(blob);
+                    });
+                }
+                return null;
+            } else {
+                return await fs.readFile(fullPath);
+            }
+        } catch (e) {
+            console.error(`Failed to read latex file content for ${name}`, e);
+            return null;
+        }
+    }
+
     async loadTagCategories(): Promise<any[]> {
         if (!this.rootPath) return [];
         const path = `${this.rootPath}/${APP_CONSTANTS.PATHS.CONFIG_DIR}/${APP_CONSTANTS.PATHS.TAGS_FILE}`;
@@ -1706,8 +1701,19 @@ export class DataManager {
         if (!this.rootPath) {
             throw new Error("Cannot save tag categories: No active workspace.");
         }
-        const path = `${this.rootPath}/${APP_CONSTANTS.PATHS.CONFIG_DIR}/${APP_CONSTANTS.PATHS.TAGS_FILE}`;
-        await fs.writeFile(path, JSON.stringify(categories, null, 2));
+        const tagsPath = `${this.rootPath}/${APP_CONSTANTS.PATHS.CONFIG_DIR}/${APP_CONSTANTS.PATHS.TAGS_FILE}`;
+        try {
+            // Ensure .codex directory exists (using async wrapper)
+            const configDir = `${this.rootPath}/${APP_CONSTANTS.PATHS.CONFIG_DIR}`;
+            if (!(await fs.exists(configDir))) {
+                await fs.createDirectory(configDir);
+            }
+            await fs.writeFile(tagsPath, JSON.stringify(categories, null, 2));
+        } catch (error) {
+            console.error('[DataManager] Failed to save tag categories:', error);
+            this.notify('error', `Failed to save tag categories to disk: ${error instanceof Error ? error.message : error}`);
+            throw error;
+        }
     }
 }
 

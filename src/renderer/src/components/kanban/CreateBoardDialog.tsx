@@ -21,7 +21,16 @@ export const CreateBoardDialog = ({ open, onOpenChange, onSave }: CreateBoardDia
     const [pivotField, setPivotField] = useState('tags');
 
     const debouncedQuery = useDebounce(query, 300);
-    const allEntries = useLiveQuery(() => db.entries.toArray()) || [];
+    const allEntries = useLiveQuery(async () => {
+        const entries = await db.entries.toArray();
+        return entries.map(e => ({
+            ...e,
+            content: undefined,
+            highlights: undefined,
+            whiteboard: undefined,
+            code: undefined
+        }));
+    }) || [];
 
     // Dynamically discover pivots based on entries matching the query
     const availablePivots = useMemo(() => {
@@ -37,14 +46,16 @@ export const CreateBoardDialog = ({ open, onOpenChange, onSave }: CreateBoardDia
             if (!config) return;
 
             config.fields.forEach(f => {
-                if (!pivots.has(f.key)) {
-                    pivots.set(f.key, { key: f.key, label: `${f.label}` });
+                const key = f.key as string;
+                if (!pivots.has(key)) {
+                    pivots.set(key, { key, label: `${f.label}` });
                 }
             });
 
             config.metadata.forEach(m => {
-                if (!pivots.has(m.key)) {
-                    pivots.set(m.key, { key: m.key, label: `${m.label}` });
+                const key = m.key as string;
+                if (!pivots.has(key)) {
+                    pivots.set(key, { key, label: `${m.label}` });
                 }
             });
         });

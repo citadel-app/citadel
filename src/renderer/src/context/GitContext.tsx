@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { useConfig } from '@renderer/context/ConfigContext';
 import { useAppSettings } from '@renderer/context/AppSettingsContext';
+import { useToast } from '@renderer/context/ToastContext';
 import { Liquid } from 'liquidjs';
 
 const liquid = new Liquid();
@@ -39,6 +40,7 @@ export const useGit = () => {
 export const GitProvider = ({ children }: { children: React.ReactNode }) => {
     const { vaultPath } = useConfig();
     const { settings } = useAppSettings();
+    const { toast } = useToast();
     const [status, setStatus] = useState<GitStatus | null>(null);
     const statusRef = useRef<GitStatus | null>(null);
     const [isRepo, setIsRepo] = useState<boolean | null>(null);
@@ -52,9 +54,10 @@ export const GitProvider = ({ children }: { children: React.ReactNode }) => {
         statusRef.current = status;
     }, [status]);
 
-    const performGitOperation = async (operationName: string, operation: () => Promise<void>) => {
+    const performGitOperation = async (operationName: string, operation: () => Promise<void>, silent = false) => {
         if (operationLock.current) {
             console.warn(`[GitProvider] Skipping ${operationName} because another operation is in progress.`);
+            if (!silent) toast(`Another operation in progress`, { type: 'error' });
             throw new Error(`Operation ${operationName} blocked: Another git operation is in progress.`);
         }
 
@@ -65,9 +68,16 @@ export const GitProvider = ({ children }: { children: React.ReactNode }) => {
         try {
             await operation();
             console.log(`[GitProvider] Completed ${operationName}.`);
-        } catch (error) {
+            if (!silent && (operationName === 'Commit' || operationName === 'Push')) {
+                const message = operationName === 'Commit' ? 'Archives sealed and committed' : 'Chronicles synchronized with the remote keep';
+                toast(message, { type: 'success' });
+            }
+        } catch (error: any) {
             console.error(`[GitProvider] Error during ${operationName}:`, error);
-            throw error; // Re-throw to let caller handle it
+            if (!silent) {
+                toast(`The Keep's chronicles failed to ${operationName.toLowerCase()}`, { type: 'error' });
+            }
+            throw error;
         } finally {
             operationLock.current = false;
             setIsOperationPending(false);
@@ -172,7 +182,20 @@ export const GitProvider = ({ children }: { children: React.ReactNode }) => {
                         return;
                     }
 
+                    const remotes = await window.api.git.getRemotes(vaultPath);
+                    if (!remotes || remotes.length === 0) {
+                        console.log('[GitProvider] Auto-sync skipped: No remotes configured.');
+                        return;
+                    }
+
                     const remote = settings.defaultRemote || 'origin';
+                    const hasTargetRemote = remotes.some((r: any) => r.name === remote);
+
+                    if (!hasTargetRemote) {
+                        console.warn(`[GitProvider] Auto-sync skipped: Remote "${remote}" not found.`);
+                        return;
+                    }
+
                     console.log(`[GitProvider] Auto-sync using ${remote}/${branch}`);
                     await window.api.git.pull(vaultPath, remote, branch);
                     await window.api.git.push(vaultPath, remote, branch);
@@ -217,10 +240,17 @@ export const GitProvider = ({ children }: { children: React.ReactNode }) => {
                     // 4. Sync (Pull/Push)
                     const branch = currentStatus?.current;
                     if (branch) {
+                        const remotes = await window.api.git.getRemotes(vaultPath);
                         const remote = settings.defaultRemote || 'origin';
-                        console.log(`[GitProvider] Auto-commit sync using ${remote}/${branch}`);
-                        await window.api.git.pull(vaultPath, remote, branch);
-                        await window.api.git.push(vaultPath, remote, branch);
+                        const hasTargetRemote = remotes && remotes.some((r: any) => r.name === remote);
+
+                        if (hasTargetRemote) {
+                            console.log(`[GitProvider] Auto-commit sync using ${remote}/${branch}`);
+                            await window.api.git.pull(vaultPath, remote, branch);
+                            await window.api.git.push(vaultPath, remote, branch);
+                        } else {
+                            console.warn(`[GitProvider] Auto-commit sync skipped: Remote "${remote}" not found or not configured.`);
+                        }
                     } else {
                         console.warn('[GitProvider] Auto-commit sync skipped: No active branch.');
                     }

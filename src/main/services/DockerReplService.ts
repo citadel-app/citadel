@@ -189,14 +189,23 @@ export class DockerReplService extends EventEmitter {
     async cleanupAll() {
         console.log('[DockerRepl] Cleaning up all codex-repl containers...');
         return new Promise<void>((resolve) => {
+            const timeout = setTimeout(() => {
+                console.warn('[DockerRepl] Cleanup timed out');
+                resolve();
+            }, 10000);
+
             const cleanup = spawn('docker', ['ps', '-a', '-q', '--filter', `label=${APP_LABEL}`]);
             let output = '';
             cleanup.stdout.on('data', d => output += d);
             cleanup.on('close', () => {
                 const ids = output.trim().split('\n').filter(Boolean);
                 if (ids.length > 0) {
-                    spawn('docker', ['rm', '-f', ...ids]).on('close', () => resolve());
+                    spawn('docker', ['rm', '-f', ...ids]).on('close', () => {
+                        clearTimeout(timeout);
+                        resolve();
+                    });
                 } else {
+                    clearTimeout(timeout);
                     resolve();
                 }
             });

@@ -20,7 +20,16 @@ export const AddLinkDialog = ({ open, onOpenChange, currentEntryId, onAddLink }:
     const [search, setSearch] = useState('');
     const { feeds } = useRSS();
     const { getEntryTypeConfig } = useConfig();
-    const allEntries = useLiveQuery(() => db.entries.toArray()) || [];
+    const allEntries = useLiveQuery(async () => {
+        const entries = await db.entries.toArray();
+        return entries.map(e => ({
+            ...e,
+            content: undefined,
+            highlights: undefined,
+            whiteboard: undefined,
+            code: undefined
+        }));
+    }) || [];
 
     // Search Entries using SearchService
     const entries = useMemo(() => {

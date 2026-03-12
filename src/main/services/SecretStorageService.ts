@@ -1,6 +1,7 @@
 import { app, ipcMain, safeStorage } from 'electron';
 import * as fs from 'fs';
 import * as path from 'path';
+import { IPC_CHANNELS } from '@shared';
 
 export class SecretStorageService {
     private secretsPath: string;
@@ -9,14 +10,13 @@ export class SecretStorageService {
     constructor() {
         this.secretsPath = path.join(app.getPath('userData'), 'secrets.bin');
         this.loadSecrets();
-        this.registerIpcHandlers();
+        this.registerHandlers();
     }
 
-    private registerIpcHandlers() {
-        console.log('[SecretStorageService] Registering IPC handlers');
-        ipcMain.handle('secrets:get', (_, key: string) => this.getSecret(key));
-        ipcMain.handle('secrets:set', (_, key: string, value: string) => this.setSecret(key, value));
-        ipcMain.handle('secrets:delete', (_, key: string) => this.deleteSecret(key));
+    private registerHandlers() {
+        ipcMain.handle(IPC_CHANNELS.SECRETS_GET, (_, key: string) => this.getSecret(key));
+        ipcMain.handle(IPC_CHANNELS.SECRETS_SET, (_, key: string, value: string) => this.setSecret(key, value));
+        ipcMain.handle(IPC_CHANNELS.SECRETS_DELETE, (_, key: string) => this.deleteSecret(key));
     }
 
     private loadSecrets() {

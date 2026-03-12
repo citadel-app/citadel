@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import * as Popover from '@radix-ui/react-popover';
 import { Command } from 'cmdk';
 import { Icon } from '../IconRegistry';
-import { POPULAR_MODELS, ollamaClient, type AIModel } from '../../ai';
+import { POPULAR_MODELS, type AIModel } from '@shared';
 
 interface ModelSelectProps {
     value: string;
@@ -17,7 +17,7 @@ export const ModelSelect: React.FC<ModelSelectProps> = ({ value, onChange, avail
     const [specs, setSpecs] = useState<{ totalMemory: number, gpus: { model: string, vram: number }[] } | null>(null);
 
     React.useEffect(() => {
-        ollamaClient.getHardwareSpecs().then(setSpecs);
+        window.api.ai.getHardwareSpecs().then(setSpecs);
     }, []);
 
     // Filter popular models to exclude those already installed
@@ -118,7 +118,14 @@ export const ModelSelect: React.FC<ModelSelectProps> = ({ value, onChange, avail
                             {suggestions.length > 0 && (
                                 <Command.Group heading="Popular (Download)" className="px-2 py-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wider">
                                     {suggestions.map((model) => {
-                                        const score = specs ? ollamaClient.scoreModel(model, specs) : null;
+                                        const [score, setScore] = React.useState<{ score: 'excellent' | 'good' | 'poor'; reason: string } | null>(null);
+
+                                        React.useEffect(() => {
+                                            if (specs) {
+                                                window.api.ai.scoreModel(model, specs).then(setScore);
+                                            }
+                                        }, [specs, model]);
+
                                         return (
                                             <Command.Item
                                                 key={model.name}

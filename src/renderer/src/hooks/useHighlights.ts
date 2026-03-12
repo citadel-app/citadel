@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { CodexEntry } from '../lib/db';
 import { dataManager } from '../lib/data-manager';
-import { resolveResourceUrl } from '../lib/utils';
+import { resolveResourceUrl } from '@shared';
 
 interface Highlight {
     id: string;

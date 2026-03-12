@@ -15,7 +15,7 @@ interface TagPickerProps {
 }
 
 export const TagPicker = ({
-    selectedTags,
+    selectedTags = [],
     onAdd,
     placeholder = "Search tags...",
     label = "Add Tag",
@@ -24,8 +24,14 @@ export const TagPicker = ({
     const [open, setOpen] = useState(false);
     const [search, setSearch] = useState('');
 
-    // Fetch all unique tags from the database
-    const allEntries = useLiveQuery(() => db.entries.toArray()) || [];
+    // Fetch all unique tags from the database (projected to save memory)
+    const allEntries = useLiveQuery(async () => {
+        const entries = await db.entries.toArray();
+        return entries.map(e => ({
+            id: e.id,
+            tags: e.tags
+        }));
+    }) || [];
     const existingTags = useMemo(() => {
         const tagSet = new Set<string>();
         allEntries.forEach(e => {

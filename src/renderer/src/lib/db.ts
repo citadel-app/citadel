@@ -1,82 +1,18 @@
 import Dexie, { type Table } from 'dexie';
-import { simpleHash } from './hash-utils';
+import { 
+    CodexEntry, 
+    IndexStatus, 
+    ChatMessage, 
+    WhiteboardData, 
+    EditorData, 
+    NotesData, 
+    LatexData, 
+    ChatSession,
+    simpleHash 
+} from '@shared';
 
-export interface CodexEntry {
-    id: string;
-    title: string;
-    type: string;
-    tags: string[];
-    filePath: string; // Absolute path to the backing md file
-    createdAt: string;
-    updatedAt: string;
-    
-    // Module specific fields (stored as generic properties for indexing or JSON content for details)
-    sourceUrl?: string;
-    companies?: string[];
-    difficulty?: string;
-    author?: string;
-    publishedAt?: string;
-    status?: string;
-    
-    // Links to other entities
-    relatedLinks?: { id: string; type: string; title: string; url?: string }[];
-    
-    // We might not index everything, but we store the full object
-    frontmatter: any; // Complete parsing result
-    content?: string; // Markdown body content
-    highlights?: any[]; // PDF highlights
-    whiteboard?: any; // Whiteboard data (Snapshot object)
-    code?: any; // Code data
-}
+export type { CodexEntry, IndexStatus, ChatMessage, WhiteboardData, EditorData, NotesData, LatexData, ChatSession };
 
-export interface WhiteboardData {
-    id: string; // 'default' for now
-    elements: any[];
-    appState: any;
-    files: any;
-    updatedAt: string;
-}
-
-export interface EditorData {
-    id: string; // 'default' for now
-    content: string;
-    language: string;
-    updatedAt: string;
-}
-
-export interface NotesData {
-    id: string; // 'default' for now
-    content: string;
-    updatedAt: string;
-}
-
-export interface IndexStatus {
-    entryId: string;
-    lastIndexed: Date;
-    chunkCount: number;
-    contentHash: string;
-    lastError?: string;
-}
-
-export interface ChatMessage {
-    role: 'user' | 'assistant';
-    content: string;
-    sources?: { id: string; type: string; title: string }[];
-}
-
-export interface ChatSession {
-    id: string;
-    title: string;
-    messages: ChatMessage[];
-    createdAt: string;
-    updatedAt: string;
-}
-
-export interface LatexData {
-    id: string; // 'default' for now
-    content: string;
-    updatedAt: string;
-}
 
 export class CodexDatabase extends Dexie {
     entries!: Table<CodexEntry, string>;

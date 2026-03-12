@@ -1,111 +1,11 @@
 import { PDFDocumentProxy } from 'pdfjs-dist';
-import { TtsSentence } from '../hooks/useTts';
+import { TtsSentence, TextItem, detectColumnSplit, sortForReadingOrder, sanitizeForTts } from '@shared';
 
 // Regex for filtering
 const CAPTION_REGEX = /^(Fig\.|Figure|Table)\s+\d+/i;
 const PAGE_NUMBER_REGEX = /^\d+$/;
 
-/**
- * Light sanitization for TTS — replace ligatures with ASCII equivalents,
- * strip only truly non-speakable symbols (math, geometric, arrows).
- * Keeps all Latin text, digits, and common punctuation.
- */
-function sanitizeForTts(text: string): string {
-    return text
-        // Replace common PDF ligatures with ASCII
-        .replace(/\uFB00/g, 'ff')
-        .replace(/\uFB01/g, 'fi')
-        .replace(/\uFB02/g, 'fl')
-        .replace(/\uFB03/g, 'ffi')
-        .replace(/\uFB04/g, 'ffl')
-        .replace(/\uFB05/g, 'st')
-        .replace(/\uFB06/g, 'st')
-        // Strip non-speakable symbol ranges
-        .replace(/[\u2200-\u22FF]/g, '')   // Mathematical Operators
-        .replace(/[\u25A0-\u25FF]/g, '')   // Geometric Shapes
-        .replace(/[\u2500-\u259F]/g, '')   // Box Drawing + Block Elements
-        .replace(/[\u2190-\u21FF]/g, '')   // Arrows
-        .replace(/[\u2700-\u27BF]/g, '')   // Dingbats
-        .replace(/[\u2300-\u23FF]/g, '')   // Misc Technical
-        .replace(/[\u27C0-\u27EF\u2980-\u29FF\u2A00-\u2AFF]/g, '') // Misc Math
-        .replace(/\s+/g, ' ')
-        .trim();
-}
 
-interface TextItem {
-    str: string;
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-}
-
-/**
- * Detect if items on a page are laid out in 2 columns.
- * Returns the column split X coordinate, or null if single-column.
- */
-function detectColumnSplit(items: TextItem[], pageW: number): number | null {
-    if (items.length < 10) return null;
-
-    const midX = pageW / 2;
-    const gap = pageW * 0.05; // 5% gap tolerance around center
-
-    let leftCount = 0;
-    let rightCount = 0;
-
-    for (const item of items) {
-        const cx = item.x + item.width / 2;
-        if (cx < midX - gap) leftCount++;
-        else if (cx > midX + gap) rightCount++;
-    }
-
-    // If both sides have substantial content, it's likely 2-column
-    const total = items.length;
-    if (leftCount > total * 0.25 && rightCount > total * 0.25) {
-        return midX;
-    }
-    return null;
-}
-
-/**
- * Sort items for reading order, respecting 2-column layouts.
- * For 2-column: read left column top-to-bottom, then right column top-to-bottom.
- * For single-column: top-to-bottom, left-to-right.
- */
-function sortForReadingOrder(items: TextItem[], pageW: number): TextItem[] {
-    const split = detectColumnSplit(items, pageW);
-
-    if (split !== null) {
-        // 2-column: partition into left and right
-        const left: TextItem[] = [];
-        const right: TextItem[] = [];
-        for (const item of items) {
-            const cx = item.x + item.width / 2;
-            if (cx < split) left.push(item);
-            else right.push(item);
-        }
-
-        const sortColumn = (col: TextItem[]) => {
-            col.sort((a, b) => {
-                const yDiff = Math.abs(a.y - b.y);
-                if (yDiff < 5) return a.x - b.x;
-                return b.y - a.y; // Descending Y for top-to-bottom
-            });
-        };
-
-        sortColumn(left);
-        sortColumn(right);
-        return [...left, ...right];
-    }
-
-    // Single column: standard sort
-    items.sort((a, b) => {
-        const yDiff = Math.abs(a.y - b.y);
-        if (yDiff < 5) return a.x - b.x;
-        return b.y - a.y;
-    });
-    return items;
-}
 
 /**
  * Group items by approximate Y position into line groups.

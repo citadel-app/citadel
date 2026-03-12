@@ -8,10 +8,31 @@ import { useAppSettings } from '../context/AppSettingsContext';
 import { Panel, Group, Separator } from 'react-resizable-panels';
 import { Icon } from '../components/IconRegistry';
 import { cn } from '../lib/utils';
+import { useRegisterCommand } from '../hooks/useCommands';
 
 export const RSSPage = () => {
     const [searchParams, setSearchParams] = useSearchParams();
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+
+    useRegisterCommand({
+        id: 'rss.add-feed',
+        name: 'Add RSS Feed',
+        description: 'Add a new RSS feed to your library',
+        icon: 'Rss',
+        category: 'RSS',
+        navigationTarget: '/rss',
+        handler: () => setIsAddDialogOpen(true)
+    });
+
+    useRegisterCommand({
+        id: 'rss.import-opml',
+        name: 'Import OPML',
+        description: 'Import multiple feeds from an OPML file',
+        icon: 'Upload',
+        category: 'RSS',
+        navigationTarget: '/rss',
+        handler: () => setIsAddDialogOpen(true) // Opens the same dialog where import is an option
+    });
     const { settings } = useAppSettings();
     const isZen = settings?.zenMode;
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -33,7 +54,7 @@ export const RSSPage = () => {
     };
 
     return (
-        <div className="h-full w-full overflow-hidden bg-background">
+        <div className="h-full w-full overflow-hidden bg-background font-medieval">
             <Group orientation="horizontal" className="h-full">
                 {!isSidebarCollapsed && !isZen && (
                     <Panel

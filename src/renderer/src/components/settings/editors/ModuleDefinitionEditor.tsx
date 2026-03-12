@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ModuleDefinition } from '../../../config/entry-types';
+import { type ModuleDefinition } from '@shared';
 import { RequirementListEditor } from './RequirementListEditor';
 
 interface ModuleDefinitionEditorProps {

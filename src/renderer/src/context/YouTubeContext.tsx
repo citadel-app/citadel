@@ -2,36 +2,10 @@ import React, { createContext, useContext, useState, useEffect, useCallback, use
 import { v4 as uuidv4 } from 'uuid';
 import { useConfig } from '@renderer/context/ConfigContext';
 import { useAppSettings } from '@renderer/context/AppSettingsContext';
+import { useToast } from '@renderer/context/ToastContext';
 import { dataManager } from '../lib/data-manager';
 
-export interface FeedItem {
-    id: string;
-    title: string;
-    link: string;
-    pubDate?: string;
-    content?: string;
-    contentSnippet?: string;
-    author?: string;
-    thumbnail?: string;
-    videoId?: string;
-    channelId?: string;
-}
-
-export interface YouTubeFeed {
-    id: string;
-    title: string;
-    url: string;
-    description?: string;
-    link?: string;
-    items: FeedItem[];
-    lastFetched?: string;
-    error?: string;
-}
-
-export interface FeedItemStatus {
-    read: boolean;
-    relatedEntries: { id: string; type: string; title: string }[];
-}
+import { FeedItem, Feed as YouTubeFeed, FeedItemStatus, pMap, mergeFeedItems } from '@shared';
 
 interface YouTubeContextType {
     feeds: YouTubeFeed[];
@@ -48,52 +22,7 @@ interface YouTubeContextType {
 
 const YouTubeContext = createContext<YouTubeContextType | undefined>(undefined);
 
-// Concurrency helper (copied from RSSContext for stability)
-async function pMap<T, R>(
-    items: T[],
-    mapper: (item: T) => Promise<R>,
-    concurrency: number
-): Promise<R[]> {
-    const results: R[] = new Array(items.length);
-    const iterator = items.entries();
 
-    const workers = Array(Math.min(items.length, concurrency)).fill(null).map(async () => {
-        for (const [index, item] of iterator) {
-            try {
-                results[index] = await mapper(item);
-            } catch (e) {
-                console.error(`Error processing item ${index}`, e);
-                throw e;
-            }
-        }
-    });
-
-    await Promise.all(workers);
-    return results;
-}
-
-const mergeItems = (oldItems: FeedItem[], newItems: FeedItem[]): FeedItem[] => {
-    const itemMap = new Map<string, FeedItem>();
-
-    // Add old items first
-    oldItems.forEach(item => itemMap.set(item.id, item));
-
-    // Overwrite with new items (fresher data) but preserve channelId if the new item doesn't have it explicitly
-    newItems.forEach(item => {
-        const existing = itemMap.get(item.id);
-        itemMap.set(item.id, {
-            ...existing,
-            ...item,
-            channelId: item.channelId || existing?.channelId
-        });
-    });
-
-    return Array.from(itemMap.values()).sort((a, b) => {
-        const dateA = a.pubDate ? new Date(a.pubDate).getTime() : 0;
-        const dateB = b.pubDate ? new Date(b.pubDate).getTime() : 0;
-        return dateB - dateA;
-    }).slice(0, 100);
-};
 
 export const useYouTube = () => {
     const context = useContext(YouTubeContext);
@@ -105,6 +34,7 @@ export const useYouTube = () => {
 export const YouTubeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const { vaultPath } = useConfig();
     const { settings } = useAppSettings();
+    const { toast } = useToast();
     const [feeds, setFeeds] = useState<YouTubeFeed[]>([]);
     const [itemStatus, setItemStatus] = useState<Record<string, FeedItemStatus>>({});
     const [isLoading, setIsLoading] = useState(false);
@@ -324,6 +254,7 @@ export const YouTubeProvider: React.FC<{ children: React.ReactNode }> = ({ child
                     items: feedData.items || [],
                     lastFetched: new Date().toISOString()
                 }]);
+                toast(`Added YouTube scroll: ${title || feedData.title || 'Channel'}`, { type: 'success' });
                 return; // Success!
             } catch (resolveError: any) {
                 if (resolveError.message === 'Channel already exists') throw resolveError;
@@ -356,6 +287,7 @@ export const YouTubeProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
         } catch (finalError: any) {
             console.error('[YouTube] Failed to add channel after both strategies:', finalError);
+            toast(`Failed to add YouTube scroll: ${finalError.message || 'Unknown error'}`, { type: 'error' });
             throw finalError;
         } finally {
             setIsLoading(false);
@@ -393,11 +325,12 @@ export const YouTubeProvider: React.FC<{ children: React.ReactNode }> = ({ child
                         ...feedData,
                         title: newTitle,
                         url,
-                        items: mergeItems(f.items, feedData.items || []),
+                        items: mergeFeedItems(f.items, feedData.items || []),
                         lastFetched: new Date().toISOString(),
                         error: undefined
                     };
                 }));
+                toast(`Updated YouTube scroll: ${ytTitle || (feedData.title && feedData.title !== 'YouTube' ? feedData.title : 'Channel')}`, { type: 'success' });
                 return;
             } catch (resolveError: any) {
                 if (resolveError.message === 'Another channel with this URL already exists') throw resolveError;
@@ -428,7 +361,7 @@ export const YouTubeProvider: React.FC<{ children: React.ReactNode }> = ({ child
                     ...feedData,
                     title: newTitle,
                     url: legacyUrl,
-                    items: mergeItems(f.items, feedData.items || []),
+                    items: mergeFeedItems(f.items, feedData.items || []),
                     lastFetched: new Date().toISOString(),
                     error: undefined
                 };
@@ -436,6 +369,7 @@ export const YouTubeProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
         } catch (finalError: any) {
             console.error('[YouTube] Failed to update channel after both strategies:', finalError);
+            toast(`Failed to update YouTube scroll: ${finalError.message || 'Unknown error'}`, { type: 'error' });
             throw finalError;
         } finally {
             setIsLoading(false);
@@ -458,7 +392,7 @@ export const YouTubeProvider: React.FC<{ children: React.ReactNode }> = ({ child
                 }
 
                 if (update.data) {
-                    const mergedItems = mergeItems(feed.items, update.data.items || []);
+                    const mergedItems = mergeFeedItems(feed.items, update.data.items || []);
                     // Optimization: Only update if items actually changed or other metadata changed
                     const itemsChanged = mergedItems.length !== feed.items.length ||
                         (mergedItems.length > 0 && mergedItems[0].id !== (feed.items[0]?.id));
@@ -478,7 +412,7 @@ export const YouTubeProvider: React.FC<{ children: React.ReactNode }> = ({ child
                         ...feed,
                         ...update.data,
                         title: newTitle,
-                        items: mergedItems,
+                        items: mergeFeedItems(feed.items, update.data.items || []),
                         lastFetched: new Date().toISOString(),
                         error: undefined
                     };
@@ -516,10 +450,13 @@ export const YouTubeProvider: React.FC<{ children: React.ReactNode }> = ({ child
             if (pendingUpdates.length > 0) {
                 applyUpdates(pendingUpdates);
             }
+            if (!isBackground) toast('YouTube scrolls refreshed', { type: 'success' });
+        } catch (err: any) {
+            if (!isBackground) toast('Failed to refresh YouTube scrolls', { type: 'error' });
         } finally {
             if (!isBackground) setIsLoading(false);
         }
-    }, [fetchFeed, applyUpdates, settings.feedRefreshBatchSize]);
+    }, [fetchFeed, applyUpdates, settings.feedRefreshBatchSize, toast]);
 
     // Background Refresh Effect
     useEffect(() => {
@@ -554,7 +491,7 @@ export const YouTubeProvider: React.FC<{ children: React.ReactNode }> = ({ child
                     ...f,
                     ...feedData,
                     title: newTitle,
-                    items: mergeItems(f.items, feedData.items || []),
+                    items: mergeFeedItems(f.items, feedData.items || []),
                     lastFetched: new Date().toISOString(),
                     error: undefined
                 };

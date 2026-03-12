@@ -4,16 +4,18 @@ import { usePeer } from '../context/PeerContext';
 import { Icon } from '../components/IconRegistry';
 import * as Tabs from '@radix-ui/react-tabs';
 import { ConfigEditor } from '../components/settings/ConfigEditor';
-import { ollamaClient, vectorService, providerRegistry } from '../ai';
+
 import { ModelSelect } from '../components/settings/ModelSelect';
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
-import { THEMES } from '../lib/themes';
+import { useToast } from '../context/ToastContext';
+import { THEMES } from '@shared';
 import { cn } from '../lib/utils';
 import { TagCategorySettings } from '../components/settings/TagCategorySettings';
 
 export const SettingsPage = () => {
     const { vaultPath } = useConfig();
+    const { toast } = useToast();
     const { settings, updateSetting } = useAppSettings();
     const { connect, send } = usePeer();
     const navigate = useNavigate();
@@ -25,7 +27,7 @@ export const SettingsPage = () => {
 
     const [connectionStatus, setConnectionStatus] = useState<'idle' | 'checking' | 'success' | 'error'>('idle');
     const [pullStatus, setPullStatus] = useState<string>('idle');
-    const [availableModels, setAvailableModels] = useState<import('../ai/types').AIModel[]>([]);
+    const [availableModels, setAvailableModels] = useState<import('@shared').AIModel[]>([]);
     const [testRemoteId, setTestRemoteId] = useState('');
 
     // Qdrant state
@@ -33,27 +35,14 @@ export const SettingsPage = () => {
     const [embeddingPullStatus, setEmbeddingPullStatus] = useState<string>('idle');
     const [hasEmbeddingModel, setHasEmbeddingModel] = useState<boolean>(false);
 
-    // Configure provider registry when AI settings change
-    useEffect(() => {
-        if (settings.ai) {
-            providerRegistry.configure(settings);
-        }
-    }, [settings.ai]);
+
 
     useEffect(() => {
         const fetchModels = async () => {
             if (settings.ai?.enabled) {
                 try {
-                    const provider = settings.ai?.provider || 'ollama';
-                    if (provider === 'ollama') {
-                        ollamaClient.setBaseUrl(settings.ai?.ollama?.baseUrl || 'http://127.0.0.1:11434');
-                        const models = await ollamaClient.getModels();
-                        setAvailableModels(models);
-                    } else {
-                        const llm = providerRegistry.getLLMProvider();
-                        const models = await llm.getModels();
-                        setAvailableModels(models);
-                    }
+                    const models = await window.api.ai.getModels();
+                    setAvailableModels(models);
                 } catch (e) {
                     console.warn("[SettingsPage] Could not fetch models:", e);
                     setAvailableModels([]);
@@ -92,14 +81,15 @@ export const SettingsPage = () => {
                         value="intelligence"
                         className="px-4 py-3 text-sm font-medium text-muted-foreground border-b-2 border-transparent hover:text-foreground data-[state=active]:text-primary data-[state=active]:border-primary transition-all flex items-center gap-2 whitespace-nowrap"
                     >
-                        <Icon name="Brain" size={14} />
+                        <Icon name="Sparkles" size={14} />
                         Intelligence
                     </Tabs.Trigger>
                     <Tabs.Trigger
                         value="workspace"
-                        className="px-4 py-3 text-sm font-medium text-muted-foreground border-b-2 border-transparent hover:text-foreground data-[state=active]:text-primary data-[state=active]:border-primary transition-all whitespace-nowrap"
+                        className="px-4 py-3 text-sm font-medium text-muted-foreground border-b-2 border-transparent hover:text-foreground data-[state=active]:text-primary data-[state=active]:border-primary transition-all flex items-center gap-2 whitespace-nowrap"
                     >
-                        Workspace
+                        <Icon name="Archive" size={14} />
+                        Keep
                     </Tabs.Trigger>
 
                     {settings.developerMode && (
@@ -116,15 +106,15 @@ export const SettingsPage = () => {
                                 value="execution"
                                 className="px-4 py-3 text-sm font-medium text-muted-foreground border-b-2 border-transparent hover:text-foreground data-[state=active]:text-primary data-[state=active]:border-primary transition-all flex items-center gap-2 whitespace-nowrap"
                             >
-                                <Icon name="Terminal" size={14} />
+                                <Icon name="Flame" size={14} />
                                 Code Execution
                             </Tabs.Trigger>
                             <Tabs.Trigger
                                 value="system"
                                 className="px-4 py-3 text-sm font-medium text-muted-foreground border-b-2 border-transparent hover:text-foreground data-[state=active]:text-primary data-[state=active]:border-primary transition-all flex items-center gap-2 whitespace-nowrap"
                             >
-                                <Icon name="Activity" size={14} />
-                                System
+                                <Icon name="Telescope" size={14} />
+                                The WatchTower
                             </Tabs.Trigger>
                             <Tabs.Trigger
                                 value="database"
@@ -300,7 +290,10 @@ export const SettingsPage = () => {
                             </section>
 
                             <section className="space-y-4">
-                                <h2 className="text-lg font-semibold border-b border-border pb-2">Git Integration</h2>
+                                <h2 className="text-lg font-semibold border-b border-border pb-2 flex items-center gap-2">
+                                    <Icon name="Castle" size={20} />
+                                    <span>The Bastion</span>
+                                </h2>
 
                                 <div className="flex items-center gap-3">
                                     <input
@@ -311,7 +304,7 @@ export const SettingsPage = () => {
                                         onChange={(e) => updateSetting('autoSave', e.target.checked)}
                                     />
                                     <div>
-                                        <label htmlFor="autoSave" className="text-sm font-medium block">Auto-Sync</label>
+                                        <label htmlFor="autoSave" className="text-sm font-medium block">Auto-Sync (Bastion)</label>
                                         <p className="text-xs text-muted-foreground">Automatically pull and push changes.</p>
                                     </div>
                                 </div>
@@ -401,7 +394,7 @@ export const SettingsPage = () => {
                                                 />
                                             </div>
                                         </div>
-                                        <p className="text-xs text-muted-foreground">Used for new repositories if not specified in workspace config.</p>
+                                        <p className="text-xs text-muted-foreground">Used for new bastions if not specified in Keep config.</p>
                                     </div>
                                 </div>
 
@@ -511,7 +504,7 @@ export const SettingsPage = () => {
                         <div className="flex-1 overflow-y-auto p-6 space-y-8 custom-scrollbar">
                             <section className="space-y-4">
                                 <h2 className="text-lg font-semibold border-b border-border pb-2 flex items-center gap-2">
-                                    <Icon name="Terminal" size={20} />
+                                    <Icon name="Flame" size={20} />
                                     <span>Code Execution</span>
                                 </h2>
 
@@ -532,171 +525,228 @@ export const SettingsPage = () => {
                                         <p className="text-xs text-muted-foreground">URL of the local Python Execution server.</p>
                                     </div>
 
-                                    {/* List Existing Environments */}
-                                    <div className="space-y-3">
-                                        <h3 className="text-sm font-medium">Environments</h3>
-                                        {Object.entries(settings.executionEnvironments || {}).map(([lang, config]) => (
-                                            <div key={lang} className="grid gap-2 border border-border rounded p-4 bg-muted/20 relative group">
-                                                <div className="flex justify-between items-center mb-1">
-                                                    <h4 className="text-sm font-bold capitalize flex items-center gap-2">
-                                                        <span className={`w-2 h-2 rounded-full ${config.image ? 'bg-green-500' : 'bg-red-500'}`} />
-                                                        {lang}
-                                                    </h4>
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="text-xs bg-muted px-2 py-0.5 rounded text-muted-foreground font-mono">.{config.extension}</span>
+                                    {/* Tabbed Environments UI */}
+                                    <div className="space-y-4">
+                                        <div className="flex items-center justify-between">
+                                            <h3 className="text-sm font-medium">Environments</h3>
+                                            <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">Configure Runtimes</p>
+                                        </div>
+
+                                        <Tabs.Root
+                                            defaultValue={Object.keys(settings.executionEnvironments || {})[0] || 'add-new'}
+                                            className="border border-border rounded-xl overflow-hidden bg-card/30 flex flex-col min-h-[400px]"
+                                        >
+                                            <Tabs.List className="flex bg-muted/50 border-b border-border p-1 gap-1 overflow-x-auto scrollbar-none">
+                                                {Object.keys(settings.executionEnvironments || {}).map(lang => (
+                                                    <Tabs.Trigger
+                                                        key={lang}
+                                                        value={lang}
+                                                        className="px-4 py-2 text-xs font-semibold rounded-lg transition-all flex items-center gap-2 whitespace-nowrap
+                                                        data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=inactive]:hover:bg-muted text-muted-foreground"
+                                                    >
+                                                        <div className={cn(
+                                                            "w-2 h-2 rounded-full",
+                                                            settings.executionEnvironments?.[lang]?.image ? "bg-green-400" : "bg-red-400 shadow-[0_0_8px_rgba(248,113,113,0.5)]"
+                                                        )} />
+                                                        <span className="capitalize">{lang}</span>
+                                                    </Tabs.Trigger>
+                                                ))}
+                                                <Tabs.Trigger
+                                                    value="add-new"
+                                                    className="px-4 py-2 text-xs font-semibold rounded-lg transition-all flex items-center gap-2 whitespace-nowrap
+                                                    data-[state=active]:bg-secondary data-[state=active]:text-secondary-foreground data-[state=inactive]:hover:bg-muted text-muted-foreground ml-auto border border-dashed border-border"
+                                                >
+                                                    <Icon name="Plus" size={14} />
+                                                    Add New
+                                                </Tabs.Trigger>
+                                            </Tabs.List>
+
+                                            {/* Environment Settings Content */}
+                                            {Object.entries(settings.executionEnvironments || {}).map(([lang, config]) => (
+                                                <Tabs.Content key={lang} value={lang} className="p-6 outline-none animate-in fade-in slide-in-from-left-2 duration-300">
+                                                    <div className="flex justify-between items-center mb-6">
+                                                        <div className="flex items-center gap-4">
+                                                            <h4 className="text-lg font-bold capitalize flex items-center gap-2">
+                                                                {lang} Environment
+                                                            </h4>
+                                                            <span className="text-[10px] bg-muted px-2 py-1 rounded-md text-muted-foreground font-mono font-bold tracking-wider">.{config.extension}</span>
+                                                        </div>
                                                         <button
                                                             onClick={() => {
-                                                                if (confirm(`Are you sure you want to remove ${lang}?`)) {
+                                                                if (confirm(`Are you sure you want to remove the ${lang} environment?`)) {
                                                                     const newEnvs = { ...settings.executionEnvironments };
                                                                     delete newEnvs[lang];
                                                                     updateSetting('executionEnvironments', newEnvs);
                                                                 }
                                                             }}
-                                                            className="opacity-0 group-hover:opacity-100 p-1 text-muted-foreground hover:text-red-500 transition-all"
-                                                            title="Remove Environment"
+                                                            className="p-2 text-muted-foreground hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all flex items-center gap-2 text-xs font-bold"
+                                                            title="Delete Environment"
                                                         >
                                                             <Icon name="Trash2" size={14} />
+                                                            Remove
+                                                        </button>
+                                                    </div>
+
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                        <div className="space-y-2">
+                                                            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">Docker Image</label>
+                                                            <div className="relative">
+                                                                <Icon name="Box" size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground opacity-50" />
+                                                                <input
+                                                                    type="text"
+                                                                    className="w-full bg-background/50 border border-border rounded-xl pl-10 pr-4 py-2 text-sm font-mono outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                                                                    value={config.image}
+                                                                    onChange={(e) => {
+                                                                        const newEnvs = { ...settings.executionEnvironments };
+                                                                        newEnvs[lang] = { ...config, image: e.target.value };
+                                                                        updateSetting('executionEnvironments', newEnvs);
+                                                                    }}
+                                                                    placeholder="e.g. python:3.9-slim"
+                                                                />
+                                                            </div>
+                                                        </div>
+
+                                                        <div className="space-y-2">
+                                                            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">Run Command</label>
+                                                            <div className="relative">
+                                                                <Icon name="Terminal" size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground opacity-50" />
+                                                                <input
+                                                                    type="text"
+                                                                    className="w-full bg-background/50 border border-border rounded-xl pl-10 pr-4 py-2 text-sm font-mono outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                                                                    value={config.command}
+                                                                    onChange={(e) => {
+                                                                        const newEnvs = { ...settings.executionEnvironments };
+                                                                        newEnvs[lang] = { ...config, command: e.target.value };
+                                                                        updateSetting('executionEnvironments', newEnvs);
+                                                                    }}
+                                                                    placeholder="e.g. python /code/script.py"
+                                                                />
+                                                            </div>
+                                                        </div>
+
+                                                        <div className="md:col-span-2 space-y-4">
+                                                            <div className="space-y-2">
+                                                                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">LSP Command (Local)</label>
+                                                                <div className="relative">
+                                                                    <Icon name="Cpu" size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground opacity-50" />
+                                                                    <input
+                                                                        type="text"
+                                                                        className="w-full bg-background/50 border border-border rounded-xl pl-10 pr-4 py-2 text-sm font-mono outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                                                                        value={config.lspCommand || ''}
+                                                                        onChange={(e) => {
+                                                                            const newEnvs = { ...settings.executionEnvironments };
+                                                                            newEnvs[lang] = { ...config, lspCommand: e.target.value };
+                                                                            updateSetting('executionEnvironments', newEnvs);
+                                                                        }}
+                                                                        placeholder="e.g. pylsp"
+                                                                    />
+                                                                </div>
+                                                                <p className="text-[10px] text-muted-foreground pl-1 italic">Used for providing intellisense features in the workshop.</p>
+                                                            </div>
+
+                                                            <div className="space-y-2">
+                                                                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">Default Boilerplate</label>
+                                                                <textarea
+                                                                    className="w-full bg-background/50 border border-border rounded-xl px-4 py-3 text-sm font-mono outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all min-h-[120px] resize-none"
+                                                                    value={config.snippet || ''}
+                                                                    onChange={(e) => {
+                                                                        const newEnvs = { ...settings.executionEnvironments };
+                                                                        newEnvs[lang] = { ...config, snippet: e.target.value };
+                                                                        updateSetting('executionEnvironments', newEnvs);
+                                                                    }}
+                                                                    placeholder="// Initial code for new scrolls..."
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </Tabs.Content>
+                                            ))}
+
+                                            {/* Add New Environment Content */}
+                                            <Tabs.Content value="add-new" className="p-8 outline-none animate-in fade-in slide-in-from-right-2 duration-300">
+                                                <div className="max-w-xl mx-auto space-y-8">
+                                                    <div className="text-center space-y-2">
+                                                        <div className="w-16 h-16 bg-primary/10 text-primary rounded-2xl flex items-center justify-center mx-auto mb-4 border border-primary/20 shadow-xl shadow-primary/5">
+                                                            <Icon name="PlusCircle" size={32} />
+                                                        </div>
+                                                        <h3 className="text-xl font-bold">New Execution Environment</h3>
+                                                        <p className="text-sm text-muted-foreground">Add a new language runtime to your Citadel Forge.</p>
+                                                    </div>
+
+                                                    <div className="grid gap-6">
+                                                        <div className="grid grid-cols-2 gap-4">
+                                                            <div className="space-y-2">
+                                                                <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground ml-1">Language (ID)</label>
+                                                                <input
+                                                                    id="new-env-name"
+                                                                    className="w-full bg-muted/50 border border-border rounded-xl px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                                                                    placeholder="e.g. ruby"
+                                                                />
+                                                            </div>
+                                                            <div className="space-y-2">
+                                                                <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground ml-1">Extension</label>
+                                                                <input
+                                                                    id="new-env-ext"
+                                                                    className="w-full bg-muted/50 border border-border rounded-xl px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                                                                    placeholder="e.g. rb"
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                        <div className="space-y-2">
+                                                            <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground ml-1">Docker Image</label>
+                                                            <input
+                                                                id="new-env-image"
+                                                                className="w-full bg-muted/50 border border-border rounded-xl px-4 py-2 text-sm font-mono outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                                                                placeholder="e.g. ruby:alpine"
+                                                            />
+                                                        </div>
+                                                        <div className="space-y-2">
+                                                            <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground ml-1">Run Command</label>
+                                                            <input
+                                                                id="new-env-cmd"
+                                                                className="w-full bg-muted/50 border border-border rounded-xl px-4 py-2 text-sm font-mono outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                                                                placeholder="ruby /code/script.rb"
+                                                            />
+                                                        </div>
+
+                                                        <button
+                                                            onClick={() => {
+                                                                const nameInput = document.getElementById('new-env-name') as HTMLInputElement;
+                                                                const extInput = document.getElementById('new-env-ext') as HTMLInputElement;
+                                                                const imageInput = document.getElementById('new-env-image') as HTMLInputElement;
+                                                                const cmdInput = document.getElementById('new-env-cmd') as HTMLInputElement;
+
+                                                                const name = nameInput.value.trim().toLowerCase();
+                                                                if (!name) return alert("Language name is required");
+                                                                if (settings.executionEnvironments?.[name]) return alert("Environment already exists");
+
+                                                                const newEnvs = { ...settings.executionEnvironments };
+                                                                newEnvs[name] = {
+                                                                    image: imageInput.value.trim() || `${name}:latest`,
+                                                                    command: cmdInput.value.trim() || `${name} /code/script.${extInput.value.trim() || 'txt'}`,
+                                                                    extension: extInput.value.trim() || 'txt'
+                                                                };
+
+                                                                updateSetting('executionEnvironments', newEnvs);
+
+                                                                // Reset form
+                                                                nameInput.value = '';
+                                                                extInput.value = '';
+                                                                imageInput.value = '';
+                                                                cmdInput.value = '';
+                                                            }}
+                                                            className="mt-2 w-full py-3 bg-primary text-primary-foreground rounded-xl text-sm font-bold shadow-lg shadow-primary/10 hover:shadow-primary/20 hover:bg-primary/90 hover:scale-[1.01] active:scale-[0.99] transition-all"
+                                                        >
+                                                            Forged Environment
                                                         </button>
                                                     </div>
                                                 </div>
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                    <div>
-                                                        <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1 block">Docker Image</label>
-                                                        <input
-                                                            type="text"
-                                                            className="w-full bg-background border border-border rounded px-3 py-1.5 text-sm font-mono outline-none focus:ring-1 focus:ring-primary"
-                                                            value={config.image}
-                                                            onChange={(e) => {
-                                                                const newEnvs = { ...settings.executionEnvironments };
-                                                                newEnvs[lang] = { ...config, image: e.target.value };
-                                                                updateSetting('executionEnvironments', newEnvs);
-                                                            }}
-                                                            placeholder="e.g. python:3.9-slim"
-                                                        />
-                                                    </div>
-                                                    <div>
-                                                        <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1 block">Command Template</label>
-                                                        <input
-                                                            type="text"
-                                                            className="w-full bg-background border border-border rounded px-3 py-1.5 text-sm font-mono outline-none focus:ring-1 focus:ring-primary"
-                                                            value={config.command}
-                                                            onChange={(e) => {
-                                                                const newEnvs = { ...settings.executionEnvironments };
-                                                                newEnvs[lang] = { ...config, command: e.target.value };
-                                                                updateSetting('executionEnvironments', newEnvs);
-                                                            }}
-                                                            placeholder="e.g. python /code/script.py"
-                                                        />
-                                                    </div>
-                                                    <div className="md:col-span-2">
-                                                        <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1 block">LSP Command (Local)</label>
-                                                        <input
-                                                            type="text"
-                                                            className="w-full bg-background border border-border rounded px-3 py-1.5 text-sm font-mono outline-none focus:ring-1 focus:ring-primary mb-2"
-                                                            value={config.lspCommand || ''}
-                                                            onChange={(e) => {
-                                                                const newEnvs = { ...settings.executionEnvironments };
-                                                                newEnvs[lang] = { ...config, lspCommand: e.target.value };
-                                                                updateSetting('executionEnvironments', newEnvs);
-                                                            }}
-                                                            placeholder="e.g. pylsp"
-                                                        />
-                                                        <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1 block">Default Code Snippet</label>
-                                                        <textarea
-                                                            className="w-full bg-background border border-border rounded px-3 py-1.5 text-sm font-mono outline-none focus:ring-1 focus:ring-primary min-h-[60px]"
-                                                            value={config.snippet || ''}
-                                                            onChange={(e) => {
-                                                                const newEnvs = { ...settings.executionEnvironments };
-                                                                newEnvs[lang] = { ...config, snippet: e.target.value };
-                                                                updateSetting('executionEnvironments', newEnvs);
-                                                            }}
-                                                            placeholder="// Code to execute..."
-                                                        />
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-
-                                    {/* Add New Environment */}
-                                    <div className="border border-dashed border-border rounded p-4 mt-2">
-                                        <h3 className="text-sm font-medium mb-3 flex items-center gap-2">
-                                            <Icon name="PlusCircle" size={16} />
-                                            Add New Environment
-                                        </h3>
-                                        <div className="grid gap-3">
-                                            <div className="grid grid-cols-2 gap-3">
-                                                <div>
-                                                    <label className="text-xs text-muted-foreground mb-1 block">Language Name (ID)</label>
-                                                    <input
-                                                        id="new-env-name"
-                                                        className="w-full bg-background border border-border rounded px-3 py-1.5 text-sm outline-none focus:ring-1 focus:ring-primary"
-                                                        placeholder="e.g. ruby"
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <label className="text-xs text-muted-foreground mb-1 block">File Extension</label>
-                                                    <input
-                                                        id="new-env-ext"
-                                                        className="w-full bg-background border border-border rounded px-3 py-1.5 text-sm outline-none focus:ring-1 focus:ring-primary"
-                                                        placeholder="e.g. rb"
-                                                    />
-                                                </div>
-                                            </div>
-                                            <div className="grid grid-cols-2 gap-3">
-                                                <div>
-                                                    <label className="text-xs text-muted-foreground mb-1 block">Docker Image</label>
-                                                    <input
-                                                        id="new-env-image"
-                                                        className="w-full bg-background border border-border rounded px-3 py-1.5 text-sm outline-none focus:ring-1 focus:ring-primary"
-                                                        placeholder="e.g. ruby:alpine"
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <label className="text-xs text-muted-foreground mb-1 block">Command</label>
-                                                    <input
-                                                        id="new-env-cmd"
-                                                        className="w-full bg-background border border-border rounded px-3 py-1.5 text-sm outline-none focus:ring-1 focus:ring-primary"
-                                                        placeholder="ruby /code/script.rb"
-                                                    />
-                                                </div>
-                                            </div>
-                                            <button
-                                                onClick={() => {
-                                                    const nameInput = document.getElementById('new-env-name') as HTMLInputElement;
-                                                    const extInput = document.getElementById('new-env-ext') as HTMLInputElement;
-                                                    const imageInput = document.getElementById('new-env-image') as HTMLInputElement;
-                                                    const cmdInput = document.getElementById('new-env-cmd') as HTMLInputElement;
-
-                                                    const name = nameInput.value.trim().toLowerCase();
-                                                    if (!name) return alert("Language name is required");
-                                                    if (settings.executionEnvironments?.[name]) return alert("Environment already exists");
-
-                                                    const newEnvs = { ...settings.executionEnvironments };
-                                                    newEnvs[name] = {
-                                                        image: imageInput.value.trim() || `${name}:latest`,
-                                                        command: cmdInput.value.trim() || `${name} /code/script.${extInput.value.trim() || 'txt'}`,
-                                                        extension: extInput.value.trim() || 'txt'
-                                                    };
-
-                                                    updateSetting('executionEnvironments', newEnvs);
-
-                                                    // Reset form
-                                                    nameInput.value = '';
-                                                    extInput.value = '';
-                                                    imageInput.value = '';
-                                                    cmdInput.value = '';
-                                                }}
-                                                className="mt-2 w-full py-2 bg-primary text-primary-foreground rounded text-sm font-medium hover:bg-primary/90 transition-colors"
-                                            >
-                                                Add Environment
-                                            </button>
-                                        </div>
+                                            </Tabs.Content>
+                                        </Tabs.Root>
                                     </div>
 
                                     <div className="mt-4 p-4 rounded bg-primary/5 border border-primary/20">
                                         <h4 className="text-sm font-medium flex items-center gap-2 text-primary mb-2">
-                                            <Icon name="Info" size={14} />
                                             How it works
                                         </h4>
                                         <ul className="text-xs text-muted-foreground list-disc pl-4 space-y-1">
@@ -806,22 +856,31 @@ export const SettingsPage = () => {
                                                                     onClick={async () => {
                                                                         const model = settings.ai?.ollama?.model || 'llama3';
                                                                         setPullStatus(JSON.stringify({ status: 'starting', progress: 0 }));
-                                                                        ollamaClient.setBaseUrl(settings.ai?.ollama?.baseUrl || 'http://127.0.0.1:11434');
-                                                                        const success = await ollamaClient.pullModel(model, (data) => {
-                                                                            let progress = 0;
-                                                                            if (data.total && data.completed) {
-                                                                                progress = Math.round((data.completed / data.total) * 100);
+
+                                                                        // Standardize progress from IPC
+                                                                        const cleanup = window.api.ai.onPullProgress((data) => {
+                                                                            if (data.model === model) {
+                                                                                let progress = 0;
+                                                                                if (data.total && data.completed) {
+                                                                                    progress = Math.round((data.completed / data.total) * 100);
+                                                                                }
+                                                                                setPullStatus(JSON.stringify({ status: data.status, progress }));
                                                                             }
-                                                                            setPullStatus(JSON.stringify({ status: data.status, progress }));
                                                                         });
-                                                                        if (success) {
-                                                                            setPullStatus(JSON.stringify({ status: 'Completed!', progress: 100 }));
-                                                                            const models = await ollamaClient.getModels();
-                                                                            setAvailableModels(models);
-                                                                            setTimeout(() => setPullStatus('idle'), 3000);
-                                                                        } else {
-                                                                            setPullStatus(JSON.stringify({ status: 'Failed', progress: 0 }));
-                                                                            setTimeout(() => setPullStatus('idle'), 3000);
+
+                                                                        try {
+                                                                            const success = await window.api.ai.pullModel(model);
+                                                                            if (success) {
+                                                                                setPullStatus(JSON.stringify({ status: 'Completed!', progress: 100 }));
+                                                                                const models = await window.api.ai.getModels();
+                                                                                setAvailableModels(models);
+                                                                                setTimeout(() => setPullStatus('idle'), 3000);
+                                                                            } else {
+                                                                                setPullStatus(JSON.stringify({ status: 'Failed', progress: 0 }));
+                                                                                setTimeout(() => setPullStatus('idle'), 3000);
+                                                                            }
+                                                                        } finally {
+                                                                            cleanup();
                                                                         }
                                                                     }}
                                                                     disabled={pullStatus !== 'idle'}
@@ -934,12 +993,19 @@ export const SettingsPage = () => {
                                                     <button
                                                         onClick={async () => {
                                                             setConnectionStatus('checking');
-                                                            const llm = providerRegistry.getLLMProvider();
-                                                            const success = await llm.checkConnection();
-                                                            setConnectionStatus(success ? 'success' : 'error');
-                                                            if (success) {
-                                                                try { const models = await llm.getModels(); setAvailableModels(models); } catch { }
+                                                            const res = await window.api.ai.isAvailable();
+                                                            setConnectionStatus(res.available ? 'success' : 'error');
+
+                                                            if (res.available) {
+                                                                toast("Successfully connected to AI provider.", { type: 'success' });
+                                                                try {
+                                                                    const models = await window.api.ai.getModels();
+                                                                    setAvailableModels(models);
+                                                                } catch { }
+                                                            } else {
+                                                                toast(`Failed to connect to AI provider: ${res.reason || 'Unknown error'}. Please check your settings.`, { type: 'error' });
                                                             }
+
                                                             setTimeout(() => setConnectionStatus('idle'), 3000);
                                                         }}
                                                         className="px-3 py-1.5 bg-secondary hover:bg-secondary/80 text-secondary-foreground text-xs rounded-md transition-colors flex items-center gap-2"
@@ -1002,21 +1068,29 @@ export const SettingsPage = () => {
                                                                     onClick={async () => {
                                                                         const model = settings.ai?.embeddingModel || 'nomic-embed-text';
                                                                         setEmbeddingPullStatus(JSON.stringify({ status: 'starting', progress: 0 }));
-                                                                        ollamaClient.setBaseUrl(settings.ai?.ollama.baseUrl || 'http://127.0.0.1:11434');
-                                                                        const success = await ollamaClient.pullModel(model, (data) => {
-                                                                            let progress = 0;
-                                                                            if (data.total && data.completed) {
-                                                                                progress = Math.round((data.completed / data.total) * 100);
+
+                                                                        const cleanup = window.api.ai.onPullProgress((data) => {
+                                                                            if (data.model === model) {
+                                                                                let progress = 0;
+                                                                                if (data.total && data.completed) {
+                                                                                    progress = Math.round((data.completed / data.total) * 100);
+                                                                                }
+                                                                                setEmbeddingPullStatus(JSON.stringify({ status: data.status, progress }));
                                                                             }
-                                                                            setEmbeddingPullStatus(JSON.stringify({ status: data.status, progress }));
                                                                         });
-                                                                        if (success) {
-                                                                            setEmbeddingPullStatus(JSON.stringify({ status: 'Completed!', progress: 100 }));
-                                                                            setHasEmbeddingModel(true);
-                                                                            setTimeout(() => setEmbeddingPullStatus('idle'), 3000);
-                                                                        } else {
-                                                                            setEmbeddingPullStatus(JSON.stringify({ status: 'Failed', progress: 0 }));
-                                                                            setTimeout(() => setEmbeddingPullStatus('idle'), 3000);
+
+                                                                        try {
+                                                                            const success = await window.api.ai.pullModel(model);
+                                                                            if (success) {
+                                                                                setEmbeddingPullStatus(JSON.stringify({ status: 'Completed!', progress: 100 }));
+                                                                                setHasEmbeddingModel(true);
+                                                                                setTimeout(() => setEmbeddingPullStatus('idle'), 3000);
+                                                                            } else {
+                                                                                setEmbeddingPullStatus(JSON.stringify({ status: 'Failed', progress: 0 }));
+                                                                                setTimeout(() => setEmbeddingPullStatus('idle'), 3000);
+                                                                            }
+                                                                        } finally {
+                                                                            cleanup();
                                                                         }
                                                                     }}
                                                                     disabled={embeddingPullStatus !== 'idle'}
@@ -1088,8 +1162,9 @@ export const SettingsPage = () => {
                                                         <button
                                                             onClick={async () => {
                                                                 setQdrantConnectionStatus('checking');
-                                                                const success = await vectorService.checkConnection();
-                                                                setQdrantConnectionStatus(success ? 'success' : 'error');
+                                                                const res = await window.api.ai.isAvailable();
+                                                                // Rough check for Qdrant if we really want to isolate it
+                                                                setQdrantConnectionStatus(res.available ? 'success' : 'error');
                                                                 setTimeout(() => setQdrantConnectionStatus('idle'), 3000);
                                                             }}
                                                             className="px-3 py-1.5 bg-secondary hover:bg-secondary/80 text-secondary-foreground text-xs rounded-md transition-colors flex items-center gap-2"
@@ -1341,7 +1416,7 @@ export const SettingsPage = () => {
                             <section className="space-y-4 shrink-0">
                                 <h2 className="text-lg font-semibold border-b border-border pb-2">Vault</h2>
                                 <div className="grid gap-2">
-                                    <label className="text-sm font-medium">Location</label>
+                                    <label className="text-sm font-medium text-foreground">Location</label>
                                     <div className="flex gap-2">
                                         <input
                                             type="text"
@@ -1354,7 +1429,11 @@ export const SettingsPage = () => {
                                     <p className="text-xs text-muted-foreground">Current vault path.</p>
                                 </div>
                             </section>
-
+                            <section className="space-y-4 flex-1 flex flex-col min-h-[600px]">
+                                <div className="flex-1 min-h-0">
+                                    <ConfigEditor />
+                                </div>
+                            </section>
                             <section className="space-y-4 shrink-0">
                                 <h2 className="text-lg font-semibold border-b border-border pb-2 flex items-center gap-2">
                                     <Icon name="Tag" size={20} />
@@ -1364,12 +1443,6 @@ export const SettingsPage = () => {
                                     Organize your tags into categories with custom colors.
                                 </p>
                                 <TagCategorySettings />
-                            </section>
-
-                            <section className="space-y-4 flex-1 flex flex-col min-h-[600px]">
-                                <div className="flex-1 min-h-0">
-                                    <ConfigEditor />
-                                </div>
                             </section>
                         </div>
                     </Tabs.Content>

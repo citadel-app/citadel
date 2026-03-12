@@ -6,7 +6,7 @@ import { SplitPaneLayout } from '../components/layout';
 import { SectionsPanel } from '../components/sections';
 import { PdfViewer } from '../components/PdfViewer';
 import { useEntryContent, useHighlights } from '../hooks';
-import { resolveResourceUrl } from '../lib/utils';
+import { resolveResourceUrl } from '@shared';
 import { Icon } from '../components/IconRegistry';
 
 export const RfcView = () => {

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ModuleRequirement } from '../../../config/entry-types';
+import { type ModuleRequirement } from '@shared';
 import { Plus, Trash2, ChevronDown } from 'lucide-react';
 import { cn } from '../../../lib/utils';
 

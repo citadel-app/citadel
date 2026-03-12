@@ -8,6 +8,7 @@ import { ModuleRegistry } from '../registries/modules';
 import { useAppSettings } from '../context/AppSettingsContext';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import { dataManager } from '../lib/data-manager';
+import { LoadingPlaceholder } from '../components/LoadingPlaceholder';
 
 interface EntryDetailViewProps {
     id: string;
@@ -159,7 +160,7 @@ export const EntryDetailView = ({ id, isZen: forcedZen, isNotebook }: EntryDetai
         return (
             <div className="h-full w-full bg-background no-split flex flex-col items-center">
                 <div className="flex-1 w-full max-w-4xl min-h-0 overflow-auto relative shadow-inner">
-                    <Suspense fallback={<div className="p-8 text-center text-muted-foreground animate-pulse">Loading module...</div>}>
+                    <Suspense fallback={<LoadingPlaceholder message="Loading module..." />}>
                         {PrimaryModule}
                     </Suspense>
                 </div>
@@ -178,12 +179,12 @@ export const EntryDetailView = ({ id, isZen: forcedZen, isNotebook }: EntryDetai
             <div className="flex-1 flex flex-col min-h-0">
                 <SplitPaneLayout
                     leftPanel={
-                        <Suspense fallback={<div className="p-8 text-center text-muted-foreground animate-pulse">Loading module...</div>}>
+                        <Suspense fallback={<LoadingPlaceholder message="Loading module..." />}>
                             {PrimaryModule}
                         </Suspense>
                     }
                     rightPanel={
-                        <Suspense fallback={<div className="p-8 text-center text-muted-foreground animate-pulse">Loading module...</div>}>
+                        <Suspense fallback={<LoadingPlaceholder message="Loading module..." />}>
                             {SecondaryModule}
                         </Suspense>
                     }
@@ -202,7 +203,7 @@ export const EntryDetailView = ({ id, isZen: forcedZen, isNotebook }: EntryDetai
     return (
         <div className="h-full w-full bg-background no-split flex flex-col">
             <div className="flex-1 overflow-auto min-h-0 relative">
-                <Suspense fallback={<div className="p-8 text-center text-muted-foreground animate-pulse">Loading module...</div>}>
+                <Suspense fallback={<LoadingPlaceholder message="Loading module..." />}>
                     {SecondaryModule || PrimaryModule}
                 </Suspense>
             </div>

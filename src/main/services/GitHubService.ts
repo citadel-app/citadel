@@ -1,4 +1,5 @@
 import { ipcMain, net } from 'electron';
+import { IPC_CHANNELS } from '@shared';
 
 export class GitHubService {
   constructor() {
@@ -7,13 +8,13 @@ export class GitHubService {
   }
 
   private registerIpcHandlers() {
-    ipcMain.handle('github:create-repository', async (_, token: string, name: string, description: string, isPrivate: boolean) => {
+    ipcMain.handle(IPC_CHANNELS.GITHUB_CREATE_REPOSITORY, async (_, token: string, name: string, description: string, isPrivate: boolean) => {
       return this.createRepository(token, name, description, isPrivate);
     });
-    ipcMain.handle('github:list-repos', async (_, token: string) => {
+    ipcMain.handle(IPC_CHANNELS.GITHUB_LIST_REPOS, async (_, token: string) => {
       return this.listRepos(token);
     });
-    ipcMain.handle('github:fork-repository', async (_, token: string, owner: string, repo: string) => {
+    ipcMain.handle(IPC_CHANNELS.GITHUB_FORK_REPOSITORY, async (_, token: string, owner: string, repo: string) => {
       return this.forkRepository(token, owner, repo);
     });
   }
@@ -103,7 +104,7 @@ export class GitHubService {
           'User-Agent': 'Citadel-App'
         },
         body: JSON.stringify({
-          names: ['citadel-workspace', 'codex-workspace']
+          names: ['citadel-workspace', 'citadel']
         })
       });
     } catch (err) {

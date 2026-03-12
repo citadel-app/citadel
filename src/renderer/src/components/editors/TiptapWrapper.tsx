@@ -1,4 +1,6 @@
 import { useEditor, EditorContent } from '@tiptap/react';
+import { BubbleMenu } from '@tiptap/react/menus';
+import BubbleMenuExtension from '@tiptap/extension-bubble-menu';
 import { useEffect } from 'react';
 import StarterKit from '@tiptap/starter-kit';
 import { Markdown } from 'tiptap-markdown';
@@ -218,6 +220,7 @@ export const TiptapWrapper = ({ content, onChange, className, editable = true, e
             TableHeader,
             TableCell,
             MermaidExtension,
+            BubbleMenuExtension,
         ],
         content: content || '',
         onUpdate: ({ editor }) => {
@@ -444,6 +447,72 @@ export const TiptapWrapper = ({ content, onChange, className, editable = true, e
                     />
                 </div>
             )}
+
+            <BubbleMenu editor={editor} updateDelay={100} className="flex bg-background border border-border shadow-xl rounded-lg p-1 gap-1 overflow-hidden z-[100]">
+                <MenuButton
+                    onClick={() => editor.chain().focus().toggleBold().run()}
+                    isActive={editor.isActive('bold')}
+                    icon="Bold"
+                    title="Bold"
+                />
+                <MenuButton
+                    onClick={() => editor.chain().focus().toggleItalic().run()}
+                    isActive={editor.isActive('italic')}
+                    icon="Italic"
+                    title="Italic"
+                />
+                <MenuButton
+                    onClick={() => editor.chain().focus().toggleStrike().run()}
+                    isActive={editor.isActive('strike')}
+                    icon="Strikethrough"
+                    title="Strikethrough"
+                />
+                <MenuButton
+                    onClick={() => editor.chain().focus().toggleCode().run()}
+                    isActive={editor.isActive('code')}
+                    icon="Code"
+                    title="Inline Code"
+                />
+                <div className="w-[1px] h-4 bg-border mx-1" />
+                <MenuButton
+                    onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
+                    isActive={editor.isActive('heading', { level: 1 })}
+                    icon="Heading1"
+                    title="H1"
+                />
+                <MenuButton
+                    onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+                    isActive={editor.isActive('heading', { level: 2 })}
+                    icon="Heading2"
+                    title="H2"
+                />
+                <MenuButton
+                    onClick={() => editor.chain().focus().toggleBlockquote().run()}
+                    isActive={editor.isActive('blockquote')}
+                    icon="Quote"
+                    title="Blockquote"
+                />
+                <div className="w-[1px] h-4 bg-border mx-1" />
+                <MenuButton
+                    onClick={() => editor.chain().focus().toggleCodeBlock().run()}
+                    isActive={editor.isActive('codeBlock')}
+                    icon="TerminalSquare"
+                    title="Code Block"
+                />
+                <MenuButton
+                    onClick={() => {
+                        const { from, to } = editor.state.selection;
+                        const text = editor.state.doc.textBetween(from, to, ' ');
+                        if (!text) {
+                            editor.chain().focus().insertContent('$x^2$').run();
+                        } else {
+                            editor.chain().focus().insertContent(`$${text}$`).run();
+                        }
+                    }}
+                    icon="Sigma"
+                    title="Math (LaTeX)"
+                />
+            </BubbleMenu>
 
             <EditorContent editor={editor} className="flex-1 overflow-auto bg-background" />
         </div>

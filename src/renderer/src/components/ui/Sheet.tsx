@@ -17,7 +17,7 @@ const SheetOverlay = React.forwardRef<
 >(({ className, ...props }, ref) => (
     <DialogPrimitive.Overlay
         className={cn(
-            "fixed inset-0 z-50 bg-background/80 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+            "fixed inset-0 top-[var(--titlebar-height,0px)] bottom-[var(--statusbar-height,0px)] z-50 bg-background/80 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
             className
         )}
         {...props}
@@ -29,7 +29,7 @@ SheetOverlay.displayName = DialogPrimitive.Overlay.displayName
 interface SheetContentProps
     extends React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> {
     side?: "top" | "bottom" | "left" | "right";
-    size?: "default" | "sm" | "md" | "lg" | "xl" | "full";
+    size?: "default" | "sm" | "md" | "lg" | "xl" | "full" | "content";
 }
 
 const SheetContent = React.forwardRef<
@@ -42,14 +42,34 @@ const SheetContent = React.forwardRef<
             ref={ref}
             className={cn(
                 "fixed z-50 flex flex-col bg-background shadow-lg transition ease-in-out data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:duration-300 data-[state=open]:duration-500",
-                side === "right" && "inset-y-0 right-0 h-full border-l data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right",
-                // Size variants
-                size === "default" && "w-3/4 sm:max-w-md",
-                size === "sm" && "w-3/4 sm:max-w-sm",
-                size === "md" && "w-3/4 sm:max-w-md",
-                size === "lg" && "w-3/4 sm:max-w-2xl",
-                size === "xl" && "w-3/4 sm:max-w-5xl",
-                size === "full" && "w-screen",
+                // Side orientations
+                side === "right" && "top-[var(--titlebar-height,0px)] bottom-[var(--statusbar-height,0px)] right-0 h-[calc(100%-var(--titlebar-height,0px)-var(--statusbar-height,0px))] border-l data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right",
+                side === "left" && "top-[var(--titlebar-height,0px)] bottom-[var(--statusbar-height,0px)] left-0 h-[calc(100%-var(--titlebar-height,0px)-var(--statusbar-height,0px))] border-r data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left",
+                side === "top" && "top-[var(--titlebar-height,0px)] left-0 right-0 border-b data-[state=closed]:slide-out-to-top data-[state=open]:slide-in-from-top",
+                side === "bottom" && "bottom-[var(--statusbar-height,0px)] left-0 right-0 border-t data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom",
+
+                // Size variants for horizontal sheets (left/right)
+                (side === "left" || side === "right") && [
+                    size === "default" && "w-3/4 sm:max-w-md",
+                    size === "sm" && "w-3/4 sm:max-w-sm",
+                    size === "md" && "w-3/4 sm:max-w-md",
+                    size === "lg" && "w-3/4 sm:max-w-2xl",
+                    size === "xl" && "w-3/4 sm:max-w-5xl",
+                    size === "full" && "w-screen",
+                    size === "content" && "w-auto min-w-[200px]"
+                ],
+
+                // Size variants for vertical sheets (top/bottom)
+                (side === "top" || side === "bottom") && [
+                    size === "default" && "h-1/3",
+                    size === "sm" && "h-1/4",
+                    size === "md" && "h-1/3",
+                    size === "lg" && "h-1/2",
+                    size === "xl" && "h-2/3",
+                    size === "full" && "h-full",
+                    size === "content" && "h-auto"
+                ],
+
                 className
             )}
             {...props}

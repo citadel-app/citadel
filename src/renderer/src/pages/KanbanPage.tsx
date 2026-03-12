@@ -60,7 +60,17 @@ export const KanbanPage = () => {
         loadBoards();
     }, []);
 
-    const allEntries = useLiveQuery(() => db.entries.toArray(), []) || [];
+    // Fetch all entries (projected to save memory)
+    const allEntries = useLiveQuery(async () => {
+        const entries = await db.entries.toArray();
+        return entries.map(e => ({
+            ...e,
+            content: undefined,
+            highlights: undefined,
+            whiteboard: undefined,
+            code: undefined
+        }));
+    }, []) || [];
 
     const handleDragStart = (event: DragStartEvent) => {
         const { active } = event;
@@ -188,7 +198,7 @@ export const KanbanPage = () => {
                         <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
                             <Icon name="Columns3" size={18} className="text-primary" />
                         </div>
-                        <h1 className="text-lg font-bold tracking-tight">Boards</h1>
+                        <h1 className="text-lg font-bold tracking-tight font-medieval">The War Room</h1>
                     </div>
 
                     {boards.length > 0 && (
@@ -249,10 +259,10 @@ export const KanbanPage = () => {
                     )}
                     <button
                         onClick={() => setIsCreateDialogOpen(true)}
-                        className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-bold hover:shadow-lg hover:shadow-primary/20 transition-all shadow-md active:scale-95 border border-primary"
+                        className="flex items-center gap-2 px-6 py-2 bg-primary text-primary-foreground text-sm font-bold active:scale-95 btn-forged"
                     >
                         <Icon name="Plus" size={16} />
-                        New Board
+                        Initiate Strategy
                     </button>
                 </div>
             </header>

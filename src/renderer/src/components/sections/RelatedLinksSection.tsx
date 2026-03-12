@@ -79,7 +79,7 @@ export const RelatedLinksSection = ({
                         className="flex items-center justify-between group p-2 rounded hover:bg-muted/50 transition-colors"
                     >
                         <a
-                            href={link.isInternal ? `#/entry/${link.url}` : link.url}
+                            href={link.isInternal ? `#/${link.url}` : link.url}
                             target={link.isInternal ? undefined : '_blank'}
                             rel={link.isInternal ? undefined : 'noopener noreferrer'}
                             className="flex items-center gap-2 text-sm hover:underline"

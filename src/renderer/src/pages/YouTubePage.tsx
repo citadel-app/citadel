@@ -1,5 +1,6 @@
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useYouTube, FeedItem } from '@renderer/context/YouTubeContext';
+import { useYouTube } from '@renderer/context/YouTubeContext';
+import { FeedItem } from '@shared';
 import { SplitPaneLayout } from '../components/layout/SplitPaneLayout';
 import { Panel, Group, Separator } from 'react-resizable-panels';
 import { YouTubeVideoGrid } from '../components/youtube/YouTubeVideoGrid';
@@ -216,8 +217,8 @@ export const YouTubePage = () => {
                     <div className="p-12 rounded-[4rem] bg-muted/10 shadow-inner">
                         <Icon name="Youtube" size={80} className="opacity-10" />
                     </div>
-                    <div className="text-center">
-                        <p className="font-black uppercase tracking-[0.2em] text-xs">Select a video to play</p>
+                    <div className="text-center font-medieval">
+                        <p className="font-bold uppercase tracking-[0.2em] text-xs">Select a video to play</p>
                         <p className="text-[10px] font-bold opacity-40 mt-2 uppercase tracking-widest">Click any thumbnail on the left</p>
                     </div>
                 </div>
@@ -312,8 +313,8 @@ export const YouTubePage = () => {
                             <div ref={containerRef} className="h-full overflow-y-auto custom-scrollbar bg-background">
                                 <header className="p-8 pb-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-xl z-20">
                                     <div>
-                                        <h1 className="text-3xl font-black uppercase tracking-tighter italic">
-                                            {activeFeed ? activeFeed.title : 'YouTube Feed'}
+                                        <h1 className="text-3xl font-bold uppercase tracking-tighter font-medieval">
+                                            {activeFeed ? activeFeed.title : 'The Sight'}
                                         </h1>
                                         <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-1 opacity-60">
                                             {activeFeed ? 'Single Channel View' : 'All Updates from Channels & Playlists'}
@@ -397,7 +398,7 @@ const YouTubeChannelList = ({ channels, selectedId, onSelect, onAdd, onEdit, onR
                     <div className="p-2 rounded-xl bg-red-500 text-white">
                         <Icon name="Youtube" size={16} />
                     </div>
-                    <span className="text-[10px] font-black uppercase tracking-widest italic">YouTube</span>
+                    <span className="text-[10px] font-bold uppercase tracking-widest font-medieval">YouTube</span>
                 </div>
                 <div className="flex items-center gap-1">
                     <button
@@ -441,7 +442,7 @@ const YouTubeChannelList = ({ channels, selectedId, onSelect, onAdd, onEdit, onR
                     )}
                 >
                     <Icon name="LayoutGrid" size={16} className={cn(!selectedId ? "opacity-100" : "opacity-40 group-hover:opacity-100")} />
-                    <span className="text-xs font-bold truncate">All Channels & Playlists</span>
+                    <span className="text-xs font-bold truncate">The Collective Sight</span>
                 </button>
 
                 <div className="my-2 h-px bg-border/40 mx-2" />
@@ -490,7 +491,7 @@ const YouTubeChannelList = ({ channels, selectedId, onSelect, onAdd, onEdit, onR
             <div className="p-4">
                 <button
                     onClick={onAdd}
-                    className="w-full py-4 rounded-2xl bg-foreground text-background font-black uppercase tracking-widest text-[9px] hover:scale-[1.02] active:scale-95 transition-all shadow-xl shadow-foreground/10 flex items-center justify-center gap-2"
+                    className="w-full py-4 bg-foreground text-background font-bold uppercase tracking-widest text-[9px] active:scale-95 btn-forged"
                 >
                     <Icon name="Plus" size={14} strokeWidth={3} />
                     Add Channel / Playlist

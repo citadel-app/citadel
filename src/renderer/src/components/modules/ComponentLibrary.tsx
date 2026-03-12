@@ -327,7 +327,7 @@ export const ComponentLibrary = ({
     editor?: any | null;
 }) => {
     const [filter, setFilter] = useState('');
-    const [isCollapsed, setIsCollapsed] = useState(false);
+    const [isCollapsed, setIsCollapsed] = useState(true);
     // Initialize with first category open
     const [openCategories, setOpenCategories] = useState<Set<string>>(new Set(['Standard - Compute']));
 
@@ -412,7 +412,7 @@ export const ComponentLibrary = ({
                 <div className="h-px w-4 bg-border" />
                 <button
                     onClick={() => setIsCollapsed(false)}
-                    className="writing-mode-vertical rotate-180 text-[10px] uppercase font-bold tracking-widest text-muted-foreground hover:text-foreground opacity-70 hover:opacity-100 transition-all mb-4"
+                    className="writing-mode-vertical rotate-90 text-[10px] uppercase font-bold tracking-widest text-muted-foreground hover:text-foreground opacity-70 hover:opacity-100 transition-all mb-4"
                 >
                     Library
                 </button>

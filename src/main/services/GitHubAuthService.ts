@@ -1,4 +1,5 @@
 import { ipcMain, net } from 'electron';
+import { IPC_CHANNELS } from '@shared';
 
 /**
  * GitHub App Device Flow Authentication Service
@@ -48,15 +49,15 @@ export class GitHubAuthService {
   }
 
   private registerIpcHandlers() {
-    ipcMain.handle('github:start-device-flow', async () => {
+    ipcMain.handle(IPC_CHANNELS.GITHUB_START_DEVICE_FLOW, async () => {
       return this.startDeviceFlow();
     });
 
-    ipcMain.handle('github:poll-device-token', async (_, deviceCode: string) => {
+    ipcMain.handle(IPC_CHANNELS.GITHUB_POLL_DEVICE_TOKEN, async (_, deviceCode: string) => {
       return this.pollForToken(deviceCode);
     });
 
-    ipcMain.handle('github:get-user', async (_, token: string) => {
+    ipcMain.handle(IPC_CHANNELS.GITHUB_GET_USER, async (_, token: string) => {
       return this.getUser(token);
     });
   }

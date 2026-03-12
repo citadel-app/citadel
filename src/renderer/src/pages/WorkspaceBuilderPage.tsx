@@ -2,13 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, FolderOpen, ChevronRight, Plus, Settings2, Code2, Github, Lock, Globe, Loader2 } from 'lucide-react';
 import { useConfig } from '../context/ConfigContext';
-import { PRESETS, WorkspacePreset } from '../config/presets';
-import { DEFAULT_WORKSPACE_CONFIG, WorkspaceConfig, EntryTypeConfig, ModuleDefinition } from '../config/entry-types';
+import { PRESETS, type WorkspacePreset } from '@shared';
+import { DEFAULT_WORKSPACE_CONFIG, type WorkspaceConfig, type EntryTypeConfig, type ModuleDefinition } from '@shared';
 import { DynamicIcon } from '../components/IconRegistry';
 import { EntryTypeList } from '../components/settings/EntryTypeList';
 import { ModuleList } from '../components/settings/ModuleList';
 import { dataManager } from '../lib/data-manager';
-import { APP_CONSTANTS } from '../config/constants';
+import { APP_CONSTANTS } from '@shared';
 import Editor from '@monaco-editor/react';
 import logoMain from '../assets/branding/banner-inverted.png';
 
@@ -138,14 +138,13 @@ export const WorkspaceBuilderPage: React.FC = () => {
                 await window.api.git.init(localPath);
                 await window.api.git.setConfig(localPath, 'user.name', githubAccount.name || githubAccount.login);
                 await window.api.git.setConfig(localPath, 'user.email', `${githubAccount.login}@users.noreply.github.com`);
-                await window.api.git.addRemote(localPath, 'origin', repoData.clone_url);
+                const authUrl = repoData.clone_url.replace('https://', `https://${githubAccount.token}@`);
+                await window.api.git.addRemote(localPath, 'origin', authUrl);
 
                 setCreationStatus('Committing and pushing...');
                 await window.api.git.add(localPath, ['.']);
                 await window.api.git.commit(localPath, 'Initial commit from Citadel');
-                const authUrl = repoData.clone_url.replace('https://', `https://${githubAccount.token}@`);
-                await window.api.git.addRemote(localPath, 'origin_auth', authUrl);
-                await window.api.git.push(localPath, 'origin_auth', 'main');
+                await window.api.git.push(localPath, 'origin', 'main');
             } else {
                 // --- Local-only flow ---
                 setCreationStatus('Creating workspace...');
@@ -157,7 +156,7 @@ export const WorkspaceBuilderPage: React.FC = () => {
             await setVaultPath(localPath);
         } catch (e: any) {
             console.error('[WorkspaceBuilder] Creation failed:', e);
-            setCreateError(e.message || 'Failed to create workspace.');
+            setCreateError(e.message || 'Failed to establish Keep.');
             setCreationStatus('');
         } finally {
             setIsCreating(false);
@@ -224,7 +223,7 @@ export const WorkspaceBuilderPage: React.FC = () => {
                 {step === 'choose-template' && (
                     <div className="max-w-3xl mx-auto space-y-8 animate-in fade-in duration-500">
                         <div className="text-center space-y-2">
-                            <h2 className="text-2xl font-bold">Choose a Starting Template</h2>
+                            <h2 className="text-2xl font-bold">Choose a Starting Layout</h2>
                             <p className="text-sm text-muted-foreground font-medium">
                                 Pick a blueprint to start with, or build from scratch. You can customize everything in the next step.
                             </p>
@@ -287,7 +286,7 @@ export const WorkspaceBuilderPage: React.FC = () => {
                         <div className="flex items-center justify-between">
                             <div className="space-y-1">
                                 <h2 className="text-2xl font-bold">
-                                    Configure Workspace
+                                    Configure Keep
                                     {selectedPreset && (
                                         <span className="text-sm font-medium text-muted-foreground ml-3">
                                             Based on "{selectedPreset.name}"
@@ -358,7 +357,7 @@ export const WorkspaceBuilderPage: React.FC = () => {
                 {step === 'finalize' && (
                     <div className="max-w-lg mx-auto space-y-6 animate-in fade-in duration-500">
                         <div className="text-center space-y-2">
-                            <h2 className="text-2xl font-bold">Create Workspace</h2>
+                            <h2 className="text-2xl font-bold">Establish Keep</h2>
                             <p className="text-sm text-muted-foreground font-medium">
                                 Choose a folder and optionally push to GitHub.
                             </p>
@@ -366,10 +365,10 @@ export const WorkspaceBuilderPage: React.FC = () => {
 
                         {/* Summary Card */}
                         <div className="p-5 rounded-2xl bg-card/60 border border-muted space-y-3">
-                            <h3 className="text-xs font-black text-muted-foreground/60 uppercase tracking-[0.2em]">Configuration Summary</h3>
+                            <h3 className="text-xs font-black text-muted-foreground/60 uppercase tracking-[0.2em]">Keep Manifest</h3>
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-1">
-                                    <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Entry Types</p>
+                                    <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Scroll Types</p>
                                     <p className="text-sm font-bold">{entryCount}</p>
                                     <div className="flex flex-wrap gap-1.5 pt-1">
                                         {Object.values(draftConfig.entries).slice(0, 5).map(e => (
@@ -401,7 +400,7 @@ export const WorkspaceBuilderPage: React.FC = () => {
                         {/* Folder Picker */}
                         <div className="space-y-3">
                             <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider block">
-                                Workspace Location
+                                Keep Location
                             </label>
                             <button
                                 onClick={handleBrowsePath}
@@ -495,7 +494,7 @@ export const WorkspaceBuilderPage: React.FC = () => {
                             disabled={!localPath || isCreating || (pushToGithub && !repoName)}
                             className="w-full py-4 rounded-2xl bg-primary text-primary-foreground font-black text-sm hover:bg-primary/90 transition-all active:scale-[0.98] shadow-lg shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            {isCreating ? 'Creating...' : pushToGithub ? 'Create & Push to GitHub' : 'Create Workspace'}
+                            {isCreating ? 'Establishing...' : pushToGithub ? 'Establish & Push to GitHub' : 'Establish Keep'}
                         </button>
                     </div>
                 )}

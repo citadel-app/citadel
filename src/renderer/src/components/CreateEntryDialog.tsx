@@ -2,7 +2,7 @@ import { useState, useCallback, useMemo } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Icon } from './IconRegistry';
-import { EntryTypeConfig, EntryFieldConfig } from '../config/entry-types';
+import { type EntryTypeConfig, type EntryFieldConfig } from '@shared';
 import { useConfig } from '../context/ConfigContext';
 import { db, CodexEntry } from '../lib/db';
 import { dataManager } from '../lib/data-manager';
@@ -27,7 +27,16 @@ export const CreateEntryDialog = ({ open, onOpenChange, onCreated }: CreateEntry
     const [suggestionIndex, setSuggestionIndex] = useState(-1);
 
     // Fetch all unique tags/categories for suggestions
-    const allEntries = useLiveQuery(() => db.entries.toArray()) || [];
+    const allEntries = useLiveQuery(async () => {
+        const entries = await db.entries.toArray();
+        return entries.map(e => ({
+            ...e,
+            content: undefined,
+            highlights: undefined,
+            whiteboard: undefined,
+            code: undefined
+        }));
+    }) || [];
     const existingTags = useMemo(() => {
         const tagSet = new Set<string>();
         allEntries.forEach(e => {
@@ -393,12 +402,12 @@ export const CreateEntryDialog = ({ open, onOpenChange, onCreated }: CreateEntry
     return (
         <Dialog.Root open={open} onOpenChange={handleOpenChange}>
             <Dialog.Portal>
-                <Dialog.Overlay className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 transition-all duration-200" />
+                <Dialog.Overlay className="fixed inset-0 top-[var(--titlebar-height,0px)] bg-background/80 backdrop-blur-sm z-50 transition-all duration-200" />
                 <Dialog.Content className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl bg-card border border-border shadow-2xl rounded-xl z-50 flex flex-col max-h-[85vh] overflow-hidden">
                     {/* Header */}
                     <div className="flex items-center justify-between px-6 py-4 border-b border-border">
                         <Dialog.Title className="text-lg font-semibold flex items-center gap-2">
-                            {step === 'select-type' ? 'Create New Entry' : `New ${selectedType?.label}`}
+                            {step === 'select-type' ? 'Compose New Scroll' : `New ${selectedType?.label}`}
                         </Dialog.Title>
                         <Dialog.Close className="p-1 rounded-md text-muted-foreground hover:bg-muted transition-colors">
                             <Icon name="X" size={20} />
@@ -414,7 +423,7 @@ export const CreateEntryDialog = ({ open, onOpenChange, onCreated }: CreateEntry
                                     <Icon name="Search" size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                                     <input
                                         type="text"
-                                        placeholder="Search entry types..."
+                                        placeholder="Search scroll types..."
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
                                         className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-border bg-muted/30 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all placeholder:text-muted-foreground/60"
@@ -485,7 +494,7 @@ export const CreateEntryDialog = ({ open, onOpenChange, onCreated }: CreateEntry
                                         ) : (
                                             <div className="h-full flex flex-col items-center justify-center text-muted-foreground text-sm py-12 border-2 border-dashed border-border rounded-xl">
                                                 <Icon name="SearchX" size={32} className="mb-2 opacity-20" />
-                                                No type matches your filter
+                                                No scroll types found
                                             </div>
                                         )}
                                     </div>
@@ -496,7 +505,7 @@ export const CreateEntryDialog = ({ open, onOpenChange, onCreated }: CreateEntry
                                 {selectedType?.fields.map((field) => (
                                     <div key={String(field.key)} className="space-y-1.5">
                                         <label className="text-sm font-medium text-foreground/90">
-                                            {field.label} {field.required && <span className="text-red-500">*</span>}
+                                            {field.label} {(field as any).required && <span className="text-red-500">*</span>}
                                         </label>
                                         {field.description && <p className="text-xs text-muted-foreground mb-1">{field.description}</p>}
                                         {renderField(field)}
@@ -519,10 +528,10 @@ export const CreateEntryDialog = ({ open, onOpenChange, onCreated }: CreateEntry
                                         {isSubmitting ? (
                                             <>
                                                 <Icon name="Loader2" size={16} className="animate-spin" />
-                                                Creating...
+                                                Composing...
                                             </>
                                         ) : (
-                                            'Create Entry'
+                                            'Compose Scroll'
                                         )}
                                     </button>
                                 </div>

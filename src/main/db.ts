@@ -2,6 +2,7 @@ import Database from 'better-sqlite3';
 import path from 'path';
 import fs from 'fs-extra';
 import { ipcMain } from 'electron';
+import { IPC_CHANNELS } from '../shared';
 
 export class FeedDatabase {
     private db: Database.Database | null = null;
@@ -9,6 +10,10 @@ export class FeedDatabase {
 
     constructor() {}
 
+    public setGuardrail() {
+        // Guardrail no longer needed for workspace-level validation in FeedDB
+    }
+    
     public init(workspacePath: string) {
         if (!workspacePath) {
             console.warn('[FeedDB] Initializing in non-workspace mode => In-memory SQLite');
@@ -63,6 +68,14 @@ export class FeedDatabase {
                 read INTEGER DEFAULT 0,
                 relatedEntriesJSON TEXT DEFAULT '[]'
             );
+
+            CREATE TABLE IF NOT EXISTS ai_index_status (
+                entryId TEXT PRIMARY KEY,
+                lastIndexed TEXT NOT NULL,
+                chunkCount INTEGER NOT NULL,
+                contentHash TEXT NOT NULL,
+                lastError TEXT
+            );
         `);
     }
 
@@ -76,13 +89,22 @@ export class FeedDatabase {
 
     private registerIpcHandlers() {
         // Unregister first if re-initializing on workspace change
-        ipcMain.removeHandler('db:getFeedItems');
-        ipcMain.removeHandler('db:saveFeedItems');
-        ipcMain.removeHandler('db:getFeedStatus');
-        ipcMain.removeHandler('db:updateFeedStatus');
-        ipcMain.removeHandler('db:init-workspace');
+        ipcMain.removeHandler(IPC_CHANNELS.DB_GET_FEED_ITEMS);
+        ipcMain.removeHandler(IPC_CHANNELS.DB_SAVE_FEED_ITEMS);
+        ipcMain.removeHandler(IPC_CHANNELS.DB_GET_FEED_STATUS);
+        ipcMain.removeHandler(IPC_CHANNELS.DB_UPDATE_FEED_STATUS);
+        ipcMain.removeHandler(IPC_CHANNELS.DB_INIT_WORKSPACE);
+        ipcMain.removeHandler(IPC_CHANNELS.DB_GET_AI_INDEX_STATUS);
+        ipcMain.removeHandler(IPC_CHANNELS.DB_UPDATE_AI_INDEX_STATUS);
+        ipcMain.removeHandler(IPC_CHANNELS.DB_DELETE_AI_INDEX_STATUS);
 
-        ipcMain.handle('db:getFeedItems', (_, feedId: string, limit: number = 200) => {
+        ipcMain.handle(IPC_CHANNELS.DB_GET_AI_INDEX_STATUS, (_, entryId: string) => this.getAIIndexStatus(entryId));
+
+        ipcMain.handle(IPC_CHANNELS.DB_UPDATE_AI_INDEX_STATUS, (_, status: any) => this.updateAIIndexStatus(status));
+
+        ipcMain.handle(IPC_CHANNELS.DB_DELETE_AI_INDEX_STATUS, (_, entryId: string) => this.deleteAIIndexStatus(entryId));
+
+        ipcMain.handle(IPC_CHANNELS.DB_GET_FEED_ITEMS, (_, feedId: string, limit: number = 200) => {
             if (!this.db) return [];
             try {
                 const stmt = this.db.prepare(`
@@ -98,7 +120,7 @@ export class FeedDatabase {
             }
         });
 
-        ipcMain.handle('db:saveFeedItems', (_, feedId: string, items: any[]) => {
+        ipcMain.handle(IPC_CHANNELS.DB_SAVE_FEED_ITEMS, (_, feedId: string, items: any[]) => {
             if (!this.db) return;
             try {
                 const insert = this.db.prepare(`
@@ -141,7 +163,7 @@ export class FeedDatabase {
             }
         });
 
-        ipcMain.handle('db:getFeedStatus', () => {
+        ipcMain.handle(IPC_CHANNELS.DB_GET_FEED_STATUS, () => {
             if (!this.db) return {};
             try {
                 const stmt = this.db.prepare('SELECT * FROM feed_status');
@@ -161,7 +183,7 @@ export class FeedDatabase {
             }
         });
 
-        ipcMain.handle('db:updateFeedStatus', (_, itemId: string, status: { read?: boolean, relatedEntries?: any[] }) => {
+        ipcMain.handle(IPC_CHANNELS.DB_UPDATE_FEED_STATUS, (_, itemId: string, status: { read?: boolean, relatedEntries?: any[] }) => {
             if (!this.db) return;
             try {
                 // First get existing status
@@ -188,12 +210,63 @@ export class FeedDatabase {
             }
         });
 
-        ipcMain.handle('db:init-workspace', (_, newWorkspacePath: string) => {
+        ipcMain.handle(IPC_CHANNELS.DB_INIT_WORKSPACE, (_, newWorkspacePath: string) => {
             console.log(`[FeedDB] Re-initializing for workspace: ${newWorkspacePath}`);
             this.close();
             this.init(newWorkspacePath);
             return true;
         });
+    }
+
+    public getAIIndexStatus(entryId: string) {
+        if (!this.db) return null;
+        try {
+            const stmt = this.db.prepare('SELECT * FROM ai_index_status WHERE entryId = ?');
+            const row = stmt.get(entryId) as any;
+            if (!row) return null;
+            return {
+                ...row,
+                lastIndexed: new Date(row.lastIndexed)
+            };
+        } catch (error) {
+            console.error(`[FeedDB] Failed to get AI index status for ${entryId}:`, error);
+            return null;
+        }
+    }
+
+    public updateAIIndexStatus(status: any) {
+        if (!this.db) return;
+        try {
+            const insert = this.db.prepare(`
+                INSERT INTO ai_index_status (entryId, lastIndexed, chunkCount, contentHash, lastError)
+                VALUES (@entryId, @lastIndexed, @chunkCount, @contentHash, @lastError)
+                ON CONFLICT(entryId) DO UPDATE SET
+                    lastIndexed = excluded.lastIndexed,
+                    chunkCount = excluded.chunkCount,
+                    contentHash = excluded.contentHash,
+                    lastError = excluded.lastError
+            `);
+            insert.run({
+                entryId: status.entryId,
+                lastIndexed: status.lastIndexed instanceof Date ? status.lastIndexed.toISOString() : status.lastIndexed,
+                chunkCount: status.chunkCount,
+                contentHash: status.contentHash,
+                lastError: status.lastError || null
+            });
+        } catch (error) {
+            console.error(`[FeedDB] Failed to update AI index status:`, error);
+            throw error;
+        }
+    }
+
+    public deleteAIIndexStatus(entryId: string) {
+        if (!this.db) return;
+        try {
+            const stmt = this.db.prepare('DELETE FROM ai_index_status WHERE entryId = ?');
+            stmt.run(entryId);
+        } catch (error) {
+            console.error(`[FeedDB] Failed to delete AI index status for ${entryId}:`, error);
+        }
     }
 }
 

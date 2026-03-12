@@ -159,7 +159,16 @@ interface MetadataFieldSelectProps {
 const MetadataFieldSelect = ({ value, onChange, query = '' }: MetadataFieldSelectProps) => {
     const { entryTypes } = useConfig();
     const [open, setOpen] = useState(false);
-    const allEntries = useLiveQuery(() => db.entries.toArray()) || [];
+    const allEntries = useLiveQuery(async () => {
+        const entries = await db.entries.toArray();
+        return entries.map(e => ({
+            ...e,
+            content: undefined,
+            highlights: undefined,
+            whiteboard: undefined,
+            code: undefined
+        }));
+    }) || [];
 
     const availableFields = useMemo(() => {
         // Evaluate query to get matching entries

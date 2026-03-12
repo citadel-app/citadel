@@ -2,34 +2,10 @@ import React, { createContext, useContext, useState, useEffect, useCallback, use
 import { v4 as uuidv4 } from 'uuid';
 import { useConfig } from '@renderer/context/ConfigContext';
 import { useAppSettings } from '@renderer/context/AppSettingsContext';
+import { useToast } from '@renderer/context/ToastContext';
 import { dataManager } from '../lib/data-manager';
 
-export interface FeedItemStatus {
-    read: boolean;
-    relatedEntries: { id: string; type: string; title: string }[];
-}
-
-export interface FeedItem {
-    id: string; // GUID or link
-    title: string;
-    link: string;
-    pubDate?: string;
-    content?: string;
-    contentSnippet?: string;
-    author?: string;
-}
-
-export interface Feed {
-    id: string;
-    title: string;
-    url: string; // The RSS URL
-    description?: string;
-    link?: string; // The website URL
-    items: FeedItem[];
-    lastFetched?: string;
-    error?: string;
-    folder?: string; // For grouping
-}
+import { FeedItemStatus, Feed, FeedItem, pMap, mergeFeedItems } from '@shared';
 
 interface RSSContextType {
     feeds: Feed[];
@@ -61,33 +37,11 @@ export const useRSS = () => {
 };
 
 
-// Concurrency helper
-async function pMap<T, R>(
-    items: T[],
-    mapper: (item: T) => Promise<R>,
-    concurrency: number
-): Promise<R[]> {
-    const results: R[] = new Array(items.length);
-    const iterator = items.entries();
-
-    const workers = Array(Math.min(items.length, concurrency)).fill(null).map(async () => {
-        for (const [index, item] of iterator) {
-            try {
-                results[index] = await mapper(item);
-            } catch (e) {
-                console.error(`Error processing item ${index}`, e);
-                throw e; // Or handle gracefully
-            }
-        }
-    });
-
-    await Promise.all(workers);
-    return results;
-}
 
 export const RSSProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const { vaultPath } = useConfig();
     const { settings } = useAppSettings();
+    const { toast } = useToast();
     const [feeds, setFeeds] = useState<Feed[]>([]);
     const [itemStatus, setItemStatus] = useState<Record<string, FeedItemStatus>>({});
     const [isLoading, setIsLoading] = useState(false);
@@ -285,8 +239,10 @@ export const RSSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             }
 
             setFeeds(prev => [...prev, newFeed]);
+            toast(`Added scroll: ${newFeed.title}`, { type: 'success' });
         } catch (e: any) {
             console.error('Error adding feed', e);
+            toast(`Failed to add scroll: ${e.message || 'Unknown error'}`, { type: 'error' });
             const newFeed: Feed = {
                 id: uuidv4(),
                 url,
@@ -344,32 +300,6 @@ export const RSSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setFeeds(prev => prev.filter(f => f.id !== id));
     }, []);
 
-    const mergeItems = (existingItems: FeedItem[], newItems: FeedItem[]): FeedItem[] => {
-        const getItemKey = (i: FeedItem) => {
-            const key = i.id || i.link || `${i.pubDate}-${i.title}`;
-            return key.trim();
-        };
-        const itemMap = new Map<string, FeedItem>();
-
-        // Load existing items into map
-        existingItems.forEach(i => {
-            itemMap.set(getItemKey(i), i);
-        });
-
-        // Merge new items, overwriting or adding
-        for (const newItem of newItems) {
-            itemMap.set(getItemKey(newItem), newItem);
-        }
-
-        const MAX_ITEMS = 100;
-        return Array.from(itemMap.values())
-            .sort((a, b) => {
-                const dateA = a.pubDate ? new Date(a.pubDate).getTime() : 0;
-                const dateB = b.pubDate ? new Date(b.pubDate).getTime() : 0;
-                return dateB - dateA;
-            })
-            .slice(0, MAX_ITEMS);
-    };
 
     const applyUpdates = useCallback((updates: any[]) => {
         setFeeds(currentFeeds => {
@@ -382,7 +312,7 @@ export const RSSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                 }
 
                 if (update.data) {
-                    const mergedItems = mergeItems(feed.items, update.data.items);
+                    const mergedItems = mergeFeedItems(feed.items, update.data.items);
                     // Optimization: Only update if items actually changed or other metadata changed
                     const itemsChanged = mergedItems.length !== feed.items.length ||
                         (mergedItems.length > 0 && mergedItems[0].id !== (feed.items[0]?.id));
@@ -391,7 +321,7 @@ export const RSSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                         return { ...feed, lastFetched: new Date().toISOString() };
                     }
 
-                    // Save entirely new/updated items to SQLite DB (mergeItems handles this, but DB acts as truth)
+                    // Save entirely new/updated items to SQLite DB
                     if (update.data.items && update.data.items.length > 0) {
                         (window as any).api.db.saveFeedItems(feed.id, update.data.items).catch((e: any) => console.error(e));
                     }
@@ -437,10 +367,13 @@ export const RSSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             if (pendingUpdates.length > 0) {
                 applyUpdates(pendingUpdates);
             }
+            if (!isBackground) toast('Library scrolls refreshed', { type: 'success' });
+        } catch (err: any) {
+            if (!isBackground) toast('Failed to refresh library scrolls', { type: 'error' });
         } finally {
             if (!isBackground) setIsLoading(false);
         }
-    }, [fetchFeed, applyUpdates, settings.feedRefreshBatchSize]);
+    }, [fetchFeed, applyUpdates, settings.feedRefreshBatchSize, toast]);
 
     // Background Refresh Effect
     useEffect(() => {
@@ -471,7 +404,7 @@ export const RSSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                 return {
                     ...f,
                     ...data,
-                    items: mergeItems(f.items, data.items),
+                    items: mergeFeedItems(f.items, data.items),
                     lastFetched: new Date().toISOString(),
                     error: undefined
                 };
@@ -505,7 +438,7 @@ export const RSSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                             ...updates,
                             ...data,
                             title: updates.title || data.title || f.title,
-                            items: mergeItems(f.items, data.items),
+                            items: mergeFeedItems(f.items, data.items || []),
                             lastFetched: new Date().toISOString(),
                             error: undefined
                         };

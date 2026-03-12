@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { Icon } from '../IconRegistry';
 import { cn } from '../../lib/utils';
 import { NotebookConfig, NotebookNode, NotebookCompletion } from '../../pages/NotebookPage';
@@ -7,6 +7,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { SearchService } from '../../search';
 import { useConfig } from '../../context/ConfigContext';
 import { formatDistanceToNow } from 'date-fns';
+import { FixedSizeList as List } from 'react-window';
 
 interface NotebookSidebarProps {
     notebooks: NotebookConfig[];
@@ -20,7 +21,6 @@ interface NotebookSidebarProps {
 }
 
 const getPathTree = (entries: CodexEntry[], rootPath: string): NotebookNode[] => {
-    // ... same getPathTree ...
     const root: NotebookNode[] = [];
     const folderMap: Record<string, NotebookNode> = {};
 
@@ -60,6 +60,11 @@ const getPathTree = (entries: CodexEntry[], rootPath: string): NotebookNode[] =>
     return root;
 };
 
+interface FlatNode extends NotebookNode {
+    depth: number;
+    parentId: string | null;
+}
+
 export const NotebookSidebar = ({
     notebooks,
     activeId,
@@ -72,9 +77,45 @@ export const NotebookSidebar = ({
 }: NotebookSidebarProps) => {
     const { getEntryTypeConfig, vaultPath } = useConfig();
     const activeNotebook = notebooks.find(n => n.id === activeId);
+    const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
+    const containerRef = useRef<HTMLDivElement>(null);
+    const [dimensions, setDimensions] = useState({ width: 0, height: 300 });
+
+    useEffect(() => {
+        if (!containerRef.current) return;
+        const observer = new ResizeObserver(entries => {
+            for (const entry of entries) {
+                const { width, height } = entry.contentRect;
+                if (height > 0) {
+                    setDimensions({ width, height });
+                    console.log('[NotebookSidebar] ResizeObserver dimensions:', height, width);
+                }
+            }
+        });
+        observer.observe(containerRef.current);
+        return () => observer.disconnect();
+    }, [activeId]);
+
+    const toggleFolder = useCallback((folderId: string) => {
+        setExpandedFolders(prev => {
+            const next = new Set(prev);
+            if (next.has(folderId)) next.delete(folderId);
+            else next.add(folderId);
+            return next;
+        });
+    }, []);
 
     // Fetch entries based on the active notebook's query
-    const allEntries = useLiveQuery(() => db.entries.toArray(), [activeNotebook?.query]);
+    const allEntries = useLiveQuery(async () => {
+        const entries = await db.entries.toArray();
+        return entries.map(e => ({
+            ...e,
+            content: undefined,
+            highlights: undefined,
+            whiteboard: undefined,
+            code: undefined
+        }));
+    }, [activeNotebook?.query]) || [];
 
     const filteredEntries = useMemo(() => {
         if (!allEntries || !activeNotebook) return [];
@@ -137,7 +178,6 @@ export const NotebookSidebar = ({
             }));
         }
 
-        // Manual or Default: Flat list if no tree defined
         if (activeNotebook.manualTree && activeNotebook.manualTree.length > 0) {
             return activeNotebook.manualTree;
         }
@@ -149,6 +189,20 @@ export const NotebookSidebar = ({
             entryType: e.type
         }));
     }, [activeNotebook, filteredEntries, vaultPath]);
+
+    const flattenedList = useMemo(() => {
+        const list: FlatNode[] = [];
+        const process = (nodes: NotebookNode[], depth: number, parentId: string | null) => {
+            nodes.forEach(node => {
+                list.push({ ...node, depth, parentId });
+                if (node.type === 'folder' && expandedFolders.has(node.id) && node.children) {
+                    process(node.children, depth + 1, node.id);
+                }
+            });
+        };
+        process(treeData, 0, null);
+        return list;
+    }, [treeData, expandedFolders]);
 
     return (
         <div className="flex flex-col h-full bg-muted/5">
@@ -211,7 +265,7 @@ export const NotebookSidebar = ({
                             </div>
 
                             {isActive && (
-                                <div className="mt-1 ml-4 border-l border-primary/10 pl-1 space-y-0.5 animate-in fade-in slide-in-from-top-1 duration-300">
+                                <div className="mt-1 ml-4 border-l border-primary/10 pl-1 space-y-0.5 min-h-[300px] flex flex-col">
                                     {/* Inline Filter for Active Notebook */}
                                     <div className="flex items-center gap-2 px-3 py-1.5 mb-1 group/query bg-muted/20 rounded-lg mx-2">
                                         <Icon name="Search" size={10} className="text-muted-foreground/40 group-focus-within/query:text-primary transition-colors" />
@@ -228,22 +282,35 @@ export const NotebookSidebar = ({
                                         />
                                     </div>
 
-                                    {treeData.length > 0 ? (
-                                        treeData.map(node => (
-                                            <TreeNode
-                                                key={node.id}
-                                                node={node}
-                                                depth={0}
-                                                selectedId={selectedEntryId}
-                                                onSelect={onSelectEntry}
-                                                completions={activeNotebook.completions}
-                                            />
-                                        ))
-                                    ) : (
-                                        <div className="p-4 text-[9px] text-muted-foreground/40 font-bold uppercase tracking-widest text-center italic">
-                                            No matches found
-                                        </div>
-                                    )}
+                                    <div ref={containerRef} className="flex-1 relative w-full border border-primary/5 min-h-[300px]">
+                                        {filteredEntries.length > 0 ? (
+                                            <List
+                                                height={dimensions.height}
+                                                itemCount={flattenedList.length}
+                                                itemSize={34}
+                                                width={dimensions.width || '100%'}
+                                                className="custom-scrollbar"
+                                            >
+                                                {({ index, style }: any) => (
+                                                    <div style={style} className="w-full">
+                                                        <Row
+                                                            node={flattenedList[index]}
+                                                            selectedId={selectedEntryId}
+                                                            onSelect={onSelectEntry}
+                                                            isExpanded={expandedFolders.has(flattenedList[index].id)}
+                                                            onToggle={() => toggleFolder(flattenedList[index].id)}
+                                                            getEntryTypeConfig={getEntryTypeConfig}
+                                                            completions={activeNotebook?.completions}
+                                                        />
+                                                    </div>
+                                                )}
+                                            </List>
+                                        ) : (
+                                            <div className="w-full h-full flex items-center justify-center text-[10px] text-muted-foreground uppercase tracking-widest italic animate-pulse">
+                                                Initializing View...
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                             )}
                         </div>
@@ -262,57 +329,50 @@ export const NotebookSidebar = ({
     );
 };
 
-const TreeNode = ({ node, depth, selectedId, onSelect, completions }: { node: NotebookNode, depth: number, selectedId: string | null, onSelect: (id: string) => void, completions?: Record<string, NotebookCompletion[]> }) => {
-    const { getEntryTypeConfig } = useConfig();
-    const [isExpanded, setIsExpanded] = useState(true);
+const Row = ({
+    node,
+    selectedId,
+    onSelect,
+    isExpanded,
+    onToggle,
+    getEntryTypeConfig,
+    completions
+}: {
+    node: FlatNode,
+    selectedId: string | null,
+    onSelect: (id: string) => void,
+    isExpanded: boolean,
+    onToggle: () => void,
+    getEntryTypeConfig: (type: string) => any,
+    completions?: Record<string, NotebookCompletion[]>
+}) => {
     const isSelected = selectedId === node.id;
 
     if (node.type === 'folder') {
         return (
-            <div className="space-y-0.5">
-                <button
-                    onClick={() => setIsExpanded(!isExpanded)}
-                    className="w-full h-8 flex items-center gap-2 px-2 rounded-lg hover:bg-muted/50 transition-all group"
-                    style={{ paddingLeft: `${depth * 12 + 8}px` }}
-                >
-                    <Icon
-                        name={isExpanded ? "ChevronDown" : "ChevronRight"}
-                        size={12}
-                        className="text-muted-foreground/40 group-hover:text-foreground transition-colors"
-                    />
-                    <Icon name="Folder" size={14} className="text-primary/40 group-hover:text-primary transition-colors" />
-                    <span className="text-[11px] font-bold truncate opacity-70 group-hover:opacity-100 transition-opacity uppercase tracking-tight">
-                        {node.title}
-                    </span>
-                    <span className="ml-auto text-[9px] text-muted-foreground/30 font-mono font-medium">
-                        {node.children?.length || 0}
-                    </span>
-                </button>
-                <div className={cn(
-                    "overflow-hidden transition-all duration-300 ease-in-out",
-                    isExpanded ? "max-h-[2000px] opacity-100" : "max-h-0 opacity-0"
-                )}>
-                    <div className="space-y-0.5">
-                        {node.children?.map(child => (
-                            <TreeNode
-                                key={child.id}
-                                node={child}
-                                depth={depth + 1}
-                                selectedId={selectedId}
-                                onSelect={onSelect}
-                                completions={completions}
-                            />
-                        ))}
-                    </div>
-                </div>
-            </div>
+            <button
+                onClick={onToggle}
+                className="w-full h-8 flex items-center gap-2 px-2 rounded-lg hover:bg-muted/50 transition-all group"
+                style={{ marginLeft: `${node.depth * 12}px`, width: `calc(100% - ${node.depth * 12}px)` }}
+            >
+                <Icon
+                    name={isExpanded ? "ChevronDown" : "ChevronRight"}
+                    size={12}
+                    className="text-muted-foreground/40 group-hover:text-foreground transition-colors"
+                />
+                <Icon name="Folder" size={14} className="text-primary/40 group-hover:text-primary transition-colors" />
+                <span className="text-[11px] font-bold truncate opacity-70 group-hover:opacity-100 transition-opacity uppercase tracking-tight">
+                    {node.title}
+                </span>
+                <span className="ml-auto text-[9px] text-muted-foreground/30 font-mono font-medium">
+                    {node.children?.length || 0}
+                </span>
+            </button>
         );
     }
 
     const typeConfig = node.entryType ? getEntryTypeConfig(node.entryType) : null;
     const entryIcon = typeConfig?.icon || "FileText";
-
-    // Completion Status Logic
     const entryCompletions = completions?.[node.id] || [];
     const lastCompletion = entryCompletions.length > 0 ? entryCompletions[entryCompletions.length - 1] : null;
 
@@ -333,7 +393,7 @@ const TreeNode = ({ node, depth, selectedId, onSelect, completions }: { node: No
                     ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20 scale-100"
                     : "hover:bg-muted/50 scale-[0.98] hover:scale-100"
             )}
-            style={{ paddingLeft: `${depth * 12 + 8}px` }}
+            style={{ marginLeft: `${node.depth * 12 + 20}px`, width: `calc(100% - ${node.depth * 12 + 20}px)` }}
         >
             {isSelected && <div className="absolute left-0 top-0 w-1 h-full bg-primary-foreground/40 shadow-[0_0_10px_rgba(255,255,255,0.5)]" />}
             <Icon

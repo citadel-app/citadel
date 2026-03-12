@@ -1,7 +1,7 @@
 
 import { PdfViewer } from '../PdfViewer';
 import { Icon } from '../IconRegistry';
-import { resolveResourceUrl } from '../../lib/utils';
+import { resolveResourceUrl } from '@shared';
 import { CodexEntry } from '../../lib/db';
 
 export interface PdfModuleProps {

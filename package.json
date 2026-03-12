@@ -23,14 +23,18 @@
     "start:server": "python src/python/tts_server.py",
     "dev:all": "concurrently --kill-others \"npm run dev\" \"npm run start:server\"",
     "clean": "npm run clean:build",
-    "clean:build": "node scripts/clean.js"
+    "clean:build": "node scripts/clean.js",
+    "changelog:generate": "node scripts/generate-changelog-entries.js"
   },
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.2",
     "@electron-toolkit/utils": "^4.0.0",
+    "@tiptap/extension-bubble-menu": "^3.19.0",
     "better-sqlite3": "^12.6.2",
+    "chokidar": "^3.6.0",
     "buffer": "^6.0.3",
     "fs-extra": "^11.3.3",
+    "react-virtualized-auto-sizer": "^2.0.3",
     "simple-git": "^3.30.0",
     "systeminformation": "^5.30.7",
     "uuid": "^13.0.0",
@@ -101,7 +105,7 @@
     "monaco-editor": "^0.55.1",
     "monaco-languageclient": "^10.7.0",
     "next-themes": "^0.4.6",
-    "pdfjs-dist": "^3.11.174",
+    "pdfjs-dist": "4.10.38",
     "peerjs": "^1.5.5",
     "postcss": "^8.5.6",
     "prettier": "^3.7.4",
@@ -127,5 +131,8 @@
     "vscode-ws-jsonrpc": "^3.5.0",
     "xterm": "^5.3.0",
     "xterm-addon-fit": "^0.8.0"
+  },
+  "overrides": {
+    "pdfjs-dist": "4.10.38"
   }
 }

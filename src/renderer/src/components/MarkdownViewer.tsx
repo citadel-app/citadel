@@ -4,9 +4,10 @@ import remarkMath from 'remark-math';
 import remarkGfm from 'remark-gfm';
 import rehypeKatex from 'rehype-katex';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { vscDarkPlus, prism as prismLight } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { MermaidRenderer } from './MermaidRenderer';
 import { cn } from '../lib/utils';
+import { useTheme } from 'next-themes';
 
 export const MarkdownViewer = memo(({ content, filePath }: { content: string; filePath?: string }) => {
     const transformUrl = (uri: string) => {
@@ -68,24 +69,16 @@ export const MarkdownViewer = memo(({ content, filePath }: { content: string; fi
                         }
 
                         if (language) {
+                            const { theme } = (window as any).nextThemes || { theme: 'dark' };
+                            const isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+
                             const SyntaxHighlighterAny = SyntaxHighlighter as any;
+                            // We don't have easy access to next-themes in this memoized component without a hook, 
+                            // but we can check the document element class or use a hook if we refactor.
+                            // Actually, let's just use the hook for proper React reactivity.
+
                             return (
-                                <div className="rounded-lg overflow-hidden my-4 border border-border shadow-sm">
-                                    <SyntaxHighlighterAny
-                                        style={vscDarkPlus as any}
-                                        language={language}
-                                        PreTag="div"
-                                        customStyle={{
-                                            margin: 0,
-                                            padding: '1rem',
-                                            fontSize: '0.875rem',
-                                            backgroundColor: 'transparent'
-                                        }}
-                                        {...rest}
-                                    >
-                                        {String(children).replace(/\n$/, '')}
-                                    </SyntaxHighlighterAny>
-                                </div>
+                                <CodeBlock language={language} {...rest}>{String(children).replace(/\n$/, '')}</CodeBlock>
                             );
                         }
 
@@ -102,3 +95,33 @@ export const MarkdownViewer = memo(({ content, filePath }: { content: string; fi
         </div>
     );
 });
+
+const CodeBlock = ({ language, children, ...rest }: { language: string; children: string;[key: string]: any }) => {
+    const { theme, resolvedTheme } = useTheme();
+    const isDark = resolvedTheme === 'dark';
+
+    return (
+        <div className={cn(
+            "rounded-lg overflow-hidden my-4 border shadow-sm transition-colors duration-300",
+            isDark ? "border-border bg-[#1e1e1e]" : "border-border/50 bg-[#f6f8fa]"
+        )}>
+            <div className="flex items-center justify-between px-4 py-2 bg-muted/30 border-b border-border/50">
+                <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">{language}</span>
+            </div>
+            <SyntaxHighlighter
+                style={(isDark ? vscDarkPlus : prismLight) as any}
+                language={language}
+                PreTag="div"
+                customStyle={{
+                    margin: 0,
+                    padding: '1rem',
+                    fontSize: '0.875rem',
+                    backgroundColor: 'transparent'
+                }}
+                {...rest}
+            >
+                {children}
+            </SyntaxHighlighter>
+        </div>
+    );
+};

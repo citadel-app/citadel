@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { EntryTypeConfig } from '../../config/entry-types';
+import { type EntryTypeConfig } from '@shared';
 import { EntryTypeEditor } from './EntryTypeEditor';
 import { Icon } from '../IconRegistry';
 import { Plus, Trash2, Edit2 } from 'lucide-react';

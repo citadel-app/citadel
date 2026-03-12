@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import { Icon } from '../../components/IconRegistry';
-import { metadataService, ragService } from '..';
 import type { CodexEntry } from '../../lib/db';
 
 interface GrammarDialogProps {
@@ -36,7 +35,7 @@ export const GrammarDialog = ({
     const generateProofread = async () => {
         setStatus('loading');
         try {
-            const result = await metadataService.proofread(content);
+            const result = await window.api.ai.proofread({ content });
             if (result) {
                 setCorrectedContent(result);
                 setStatus('review');
@@ -52,7 +51,7 @@ export const GrammarDialog = ({
     const handleApply = async () => {
         onApply(correctedContent);
         // Proactively re-index in background so RAG is fresh
-        ragService.indexEntry(entry).catch(e => console.error('[GrammarDialog] Proactive index failed', e));
+        window.api.ai.indexEntry(entry).catch(e => console.error('[GrammarDialog] Proactive index failed', e));
         onOpenChange(false);
     };
 

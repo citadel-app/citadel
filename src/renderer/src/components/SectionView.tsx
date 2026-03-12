@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { MarkdownViewer } from './MarkdownViewer';
 import { useConfig } from '../context/ConfigContext';
-import { EntrySection } from '../lib/serializers/types';
+import { type EntrySection } from '@shared';
 import { TiptapWrapper } from './editors/TiptapWrapper';
 import { CodeSectionEditor, ListSectionEditor, WhiteboardSectionEditor } from './sections/MultiFormatEditors';
 import { Icon } from './IconRegistry';

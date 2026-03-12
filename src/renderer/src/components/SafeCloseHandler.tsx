@@ -4,6 +4,7 @@ import { Button } from './ui/button';
 import { useGit } from '../context/GitContext';
 import { Icon } from './IconRegistry';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
+import { IPC_CHANNELS } from '@shared';
 
 export const SafeCloseHandler = () => {
     const [open, setOpen] = useState(false);
@@ -42,14 +43,14 @@ export const SafeCloseHandler = () => {
             }
         };
 
-        const removeListener = window.electron.ipcRenderer.on('app:close-request', handleCloseRequest);
+        const removeListener = window.electron.ipcRenderer.on(IPC_CHANNELS.APP_CLOSE_REQUEST, handleCloseRequest);
         return () => {
             removeListener();
         };
     }, [status, refreshStatus]);
 
     const confirmClose = () => {
-        window.electron.ipcRenderer.send('app:close-confirmed');
+        window.electron.ipcRenderer.send(IPC_CHANNELS.APP_CLOSE_CONFIRMED);
     };
 
     const handleCloseAnyway = () => {

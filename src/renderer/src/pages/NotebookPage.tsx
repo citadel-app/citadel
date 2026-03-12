@@ -143,7 +143,7 @@ export const NotebookPage = () => {
                                     <div className="p-1.5 rounded-lg bg-primary/10 text-primary">
                                         <Icon name="Book" size={16} />
                                     </div>
-                                    <h2 className="font-black text-sm uppercase tracking-wider italic">Notebooks</h2>
+                                    <h2 className="font-bold text-sm uppercase tracking-wider font-medieval">The Scriptorium</h2>
                                 </div>
                                 <div className="flex items-center gap-1">
                                     <button
@@ -219,7 +219,7 @@ export const NotebookPage = () => {
                                 <div className="absolute bottom-10 right-10 w-64 h-64 bg-primary rounded-full blur-[120px]" />
                             </div>
 
-                            <div className="relative flex flex-col items-center animate-in fade-in zoom-in-95 duration-700">
+                            <div className="relative flex flex-col items-center animate-in fade-in zoom-in-95 duration-700 citadel-border p-12 bg-background/40 backdrop-blur-md rounded-[3rem]">
                                 <div className="mb-8 relative">
                                     <div className="absolute inset-0 bg-primary/20 rounded-full blur-2xl animate-pulse scale-150" />
                                     <div className="relative p-8 rounded-[2.5rem] bg-card border border-border/50 shadow-2xl text-primary">
@@ -227,11 +227,11 @@ export const NotebookPage = () => {
                                     </div>
                                 </div>
 
-                                <h2 className="text-2xl font-black uppercase tracking-tighter italic mb-2">
-                                    Your Library Awaits
+                                <h2 className="text-2xl font-bold uppercase tracking-tighter mb-2 font-medieval">
+                                    The Archives Await
                                 </h2>
                                 <p className="max-w-[280px] text-center text-sm font-medium text-muted-foreground/60 leading-relaxed mb-8">
-                                    Organize your research, notes, and ideas into hierarchical, trackable and searchable notebooks.
+                                    Organize your research, notes, and ideas into hierarchical, trackable and searchable scriptoria.
                                 </p>
 
                                 <button
@@ -239,10 +239,10 @@ export const NotebookPage = () => {
                                         setEditingNotebook(null);
                                         setIsCreateOpen(true);
                                     }}
-                                    className="flex items-center gap-3 px-8 py-3.5 rounded-2xl bg-primary text-primary-foreground font-black uppercase tracking-widest text-[10px] shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all"
+                                    className="flex items-center gap-3 px-8 py-3.5 bg-primary text-primary-foreground font-bold uppercase tracking-widest text-[10px] active:scale-95 btn-forged"
                                 >
                                     <Icon name="Plus" size={14} strokeWidth={3} />
-                                    Create Notebook
+                                    Initiate Scriptorium
                                 </button>
                             </div>
                         </div>

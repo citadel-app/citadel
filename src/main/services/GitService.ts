@@ -1,89 +1,129 @@
 import simpleGit, { SimpleGit } from 'simple-git';
 import { ipcMain } from 'electron';
+import { IPC_CHANNELS } from '@shared';
+
+import { GuardrailService } from './GuardrailService';
 
 export class GitService {
-  private git: SimpleGit | null = null;
-  private currentRepoPath: string | null = null;
+  private git: SimpleGit;
+  private currentRepoPath: string = '';
+  private guardrail: GuardrailService;
 
-  constructor() {
-    console.log('[GitService] Initializing...');
-    this.registerIpcHandlers();
+  constructor(guardrail: GuardrailService) {
+    this.guardrail = guardrail;
+    this.git = simpleGit();
+    this.registerHandlers();
   }
 
-  private registerIpcHandlers() {
+  private registerHandlers() {
     console.log('[GitService] Registering IPC handlers...');
-    ipcMain.handle('git:status', async (_, repoPath: string) => {
+    ipcMain.handle(IPC_CHANNELS.GIT_STATUS, async (_, repoPath: string) => {
+      this.guardrail.validate(repoPath);
       return this.getStatus(repoPath);
     });
 
-    ipcMain.handle('git:init', async (_, repoPath: string) => {
+    ipcMain.handle(IPC_CHANNELS.GIT_INIT, async (_, repoPath: string) => {
+      this.guardrail.validate(repoPath);
       return this.init(repoPath);
     });
 
-    ipcMain.handle('git:add', async (_, repoPath: string, files: string[]) => {
+    ipcMain.handle(IPC_CHANNELS.GIT_ADD, async (_, repoPath: string, files: string[]) => {
+      this.guardrail.validate(repoPath);
       return this.add(repoPath, files);
     });
 
-    ipcMain.handle('git:commit', async (_, repoPath: string, message: string) => {
+    ipcMain.handle(IPC_CHANNELS.GIT_COMMIT, async (_, repoPath: string, message: string) => {
+      this.guardrail.validate(repoPath);
       return this.commit(repoPath, message);
     });
 
-    ipcMain.handle('git:push', async (_, repoPath: string, remote?: string, branch?: string) => {
+    ipcMain.handle(IPC_CHANNELS.GIT_PUSH, async (_, repoPath: string, remote?: string, branch?: string) => {
+        this.guardrail.validate(repoPath);
         return this.push(repoPath, remote, branch);
     });
 
-    ipcMain.handle('git:pull', async (_, repoPath: string, remote?: string, branch?: string) => {
+    ipcMain.handle(IPC_CHANNELS.GIT_PULL, async (_, repoPath: string, remote?: string, branch?: string) => {
+        this.guardrail.validate(repoPath);
         return this.pull(repoPath, remote, branch);
     });
     
-    ipcMain.handle('git:add-remote', async (_, repoPath: string, name: string, url: string) => {
+    ipcMain.handle(IPC_CHANNELS.GIT_ADD_REMOTE, async (_, repoPath: string, name: string, url: string) => {
+        this.guardrail.validate(repoPath);
         return this.addRemote(repoPath, name, url);
     });
 
-    ipcMain.handle('git:history', async (_, repoPath: string) => {
+    ipcMain.handle(IPC_CHANNELS.GIT_HISTORY, async (_, repoPath: string) => {
+        this.guardrail.validate(repoPath);
         return this.getHistory(repoPath);
     });
     
-    ipcMain.handle('git:get-remotes', async (_, repoPath: string) => {
+    ipcMain.handle(IPC_CHANNELS.GIT_GET_REMOTES, async (_, repoPath: string) => {
+        this.guardrail.validate(repoPath);
         return this.getRemotes(repoPath);
     });
 
 
-    ipcMain.handle('git:show', async (_, repoPath: string, args: string) => {
-        return this.show(repoPath, args);
+    ipcMain.handle(IPC_CHANNELS.GIT_SHOW, async (_, repoPath: string, args: string) => {
+        this.guardrail.validate(repoPath);
+        // Harden: Only allow specific safe args for 'show' to prevent arbitrary execution
+        const safeArgs = args.split(' ').filter(a => !a.startsWith('-') || a === '--pretty=format:%B');
+        return this.show(repoPath, safeArgs.join(' '));
     });
 
-    ipcMain.handle('git:check-is-repo', async (_, repoPath: string) => {
+    ipcMain.handle(IPC_CHANNELS.GIT_CHECK_IS_REPO, async (_, repoPath: string) => {
+        this.guardrail.validate(repoPath);
         return this.isRepo(repoPath);
     });
 
-    ipcMain.handle('git:get-branches', async (_, repoPath: string) => {
+    ipcMain.handle(IPC_CHANNELS.GIT_GET_BRANCHES, async (_, repoPath: string) => {
+        this.guardrail.validate(repoPath);
         return this.getBranches(repoPath);
     });
 
-    ipcMain.handle('git:checkout', async (_, repoPath: string, branch: string) => {
+    ipcMain.handle(IPC_CHANNELS.GIT_CHECKOUT, async (_, repoPath: string, branch: string) => {
+        this.guardrail.validate(repoPath);
         return this.checkout(repoPath, branch);
     });
 
-    ipcMain.handle('git:clone', async (_, url: string, targetPath: string) => {
+    ipcMain.handle(IPC_CHANNELS.GIT_CLONE, async (_, url: string, targetPath: string) => {
+        this.guardrail.validate(targetPath);
         return this.clone(url, targetPath);
     });
 
-    ipcMain.handle('git:discard', async (_, repoPath: string, filePath: string) => {
+    ipcMain.handle(IPC_CHANNELS.GIT_DISCARD, async (_, repoPath: string, filePath: string) => {
+        this.guardrail.validate(repoPath);
         return this.discard(repoPath, filePath);
     });
 
-    ipcMain.handle('git:create-branch', async (_, repoPath: string, branchName: string) => {
+    ipcMain.handle(IPC_CHANNELS.GIT_CREATE_BRANCH, async (_, repoPath: string, branchName: string) => {
+        this.guardrail.validate(repoPath);
         return this.createBranch(repoPath, branchName);
     });
 
-    ipcMain.handle('git:delete-branch', async (_, repoPath: string, branchName: string) => {
+    ipcMain.handle(IPC_CHANNELS.GIT_DELETE_BRANCH, async (_, repoPath: string, branchName: string) => {
+        this.guardrail.validate(repoPath);
         return this.deleteBranch(repoPath, branchName);
     });
 
-    ipcMain.handle('git:setConfig', async (_, repoPath: string, key: string, value: string) => {
+    ipcMain.handle(IPC_CHANNELS.GIT_SET_CONFIG, async (_, repoPath: string, key: string, value: string) => {
+        this.guardrail.validate(repoPath);
         const git = this.getGit(repoPath);
         await git.addConfig(key, value, false, 'local');
+    });
+
+    ipcMain.handle(IPC_CHANNELS.GIT_UNSTAGE, async (_, repoPath: string, files: string[]) => {
+        this.guardrail.validate(repoPath);
+        return this.unstage(repoPath, files);
+    });
+
+    ipcMain.handle(IPC_CHANNELS.GIT_DISCARD_BULK, async (_, repoPath: string, files: string[]) => {
+        this.guardrail.validate(repoPath);
+        return this.discardBulk(repoPath, files);
+    });
+
+    ipcMain.handle(IPC_CHANNELS.GIT_REMOVE_REMOTE, async (_, repoPath: string, name: string) => {
+        this.guardrail.validate(repoPath);
+        return this.removeRemote(repoPath, name);
     });
   }
 

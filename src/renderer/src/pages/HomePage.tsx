@@ -1,15 +1,8 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { Icon } from '../components/IconRegistry';
-import { db, CodexEntry, ChatMessage, ChatSession } from '../lib/db';
+import { db, CodexEntry, ChatMessage } from '../lib/db';
 import { dataManager } from '../lib/data-manager';
-import { useNavigate } from 'react-router-dom';
-import {
-    intentService,
-    chatService,
-    ragService,
-    providerRegistry,
-    vectorService
-} from '../ai';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useAppSettings } from '../context/AppSettingsContext';
 import { cn } from '../lib/utils';
@@ -18,6 +11,8 @@ import { ChatMessageItem } from '../components/ChatMessageItem';
 import { ChatInput } from '../components/ChatInput';
 import { useConfig } from '../context/ConfigContext';
 import { useLayout } from '../context/LayoutContext';
+import { useChat } from '../hooks/useChat';
+import { commandRegistry } from '../commands/CommandRegistry';
 import logoMain from '../assets/branding/logo-main.png';
 import logoOffline from '../assets/branding/logo-offline.png';
 
@@ -27,16 +22,25 @@ export const HomePage = () => {
     const { entryTypes } = useConfig();
     const { openCreateDialog } = useLayout();
     const isZen = settings?.zenMode;
+
     const [isSyncing, setIsSyncing] = useState(false);
-    const [isSearching, setIsSearching] = useState(false);
-    const [isGenerating, setIsGenerating] = useState(false);
-    const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
     const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
-    const [isHistoryCollapsed, setIsHistoryCollapsed] = useState(false);
+    const [isHistoryCollapsed, setIsHistoryCollapsed] = useState(true);
     const [selectedContextIds, setSelectedContextIds] = useState<Set<string>>(new Set());
     const [isSelectorOpen, setIsSelectorOpen] = useState(false);
-    const [serviceStatus, setServiceStatus] = useState<{ ollama: boolean; qdrant: boolean }>({ ollama: true, qdrant: true });
-    const abortRef = useRef(false);
+    const [serviceStatus, setServiceStatus] = useState<{ available: boolean; ragAvailable?: boolean; reason?: string }>({ available: true });
+
+    const {
+        messages,
+        setMessages,
+        sendMessage,
+        isLoading: isGenerating,
+        error: chatError,
+        clearHistory,
+        abortChat
+    } = useChat({
+        useRAG: true // Default to RAG for home page search
+    });
 
     // Fetch all sessions for the sidebar
     const sessions = useLiveQuery(
@@ -44,48 +48,30 @@ export const HomePage = () => {
         []
     );
 
-    // Derived state: unique sources across the whole conversation
-    const allSources = useMemo(() => {
-        const entryMap = new Map<string, { id: string; type: string; title: string }>();
-        chatMessages.forEach(msg => {
-            msg.sources?.forEach(s => entryMap.set(s.id, s));
-        });
-        return Array.from(entryMap.values());
-    }, [chatMessages]);
+    // Filter out messages that might be in useChat but not yet in DB if needed
+    // Actually HomePage traditionally managed its own chatMessages state which we now sync with useChat
 
     // Service Health Check
     useEffect(() => {
         const checkHealth = async () => {
-            if (settings?.ai?.enabled === false) {
-                setServiceStatus({ ollama: false, qdrant: false });
-                return;
-            }
-            // Use the active LLM provider for connection check
-            const llm = providerRegistry.getLLMProvider();
-            const llmConnected = await llm.checkConnection();
-            let qdrantConnected = false;
-            try {
-                qdrantConnected = await vectorService.checkConnection();
-            } catch (e) {
-                console.warn('[HomePage] Vector service not available');
-            }
-            setServiceStatus({ ollama: llmConnected, qdrant: qdrantConnected });
+            const status = await window.api.ai.isAvailable();
+            setServiceStatus(status);
         };
         checkHealth();
         const interval = setInterval(checkHealth, 15000);
         return () => clearInterval(interval);
-    }, [settings?.ai?.enabled, settings?.ai?.provider, settings?.ai?.llmProvider, settings?.ai?.ollama?.baseUrl]);
+    }, []);
 
     // Initial Sync
     useEffect(() => {
         const init = async () => {
             setIsSyncing(true);
             await dataManager.init();
-            if (!currentSessionId && chatMessages.length === 0) {
+            if (!currentSessionId && messages.length === 0) {
                 try {
                     const latestSession = await db.chatSessions.orderBy('updatedAt').reverse().first();
                     if (latestSession) {
-                        setChatMessages(latestSession.messages);
+                        setMessages(latestSession.messages);
                         setCurrentSessionId(latestSession.id);
                     } else {
                         setIsHistoryCollapsed(true);
@@ -99,22 +85,36 @@ export const HomePage = () => {
         init();
     }, []);
 
+    const [searchParams, setSearchParams] = useSearchParams();
+    const hasInitialQuery = useRef(false);
+
+    // Handle deep search from URL
+    useEffect(() => {
+        const query = searchParams.get('q');
+        if (query && !isSyncing && !hasInitialQuery.current && messages.length === 0) {
+            hasInitialQuery.current = true;
+            handleSearch(query);
+            // Clear the param after starting search to avoid re-triggering on navigation
+            setSearchParams({}, { replace: true });
+        }
+    }, [searchParams, isSyncing, messages.length]);
+
     // Session Persistence
     useEffect(() => {
-        if (chatMessages.length === 0 && !currentSessionId) return;
+        if (messages.length === 0 && !currentSessionId) return;
         const saveSession = async () => {
-            if (chatMessages.length === 0) return;
+            if (messages.length === 0) return;
             const sessionId = currentSessionId || crypto.randomUUID();
             if (!currentSessionId) setCurrentSessionId(sessionId);
-            const firstUserMsg = chatMessages.find(m => m.role === 'user');
+            const firstUserMsg = messages.find(m => m.role === 'user');
             const title = firstUserMsg
                 ? (firstUserMsg.content.slice(0, 40) + (firstUserMsg.content.length > 40 ? '...' : ''))
-                : 'New Conversation';
+                : 'New Communion';
             try {
                 await db.chatSessions.put({
                     id: sessionId,
                     title,
-                    messages: chatMessages,
+                    messages: messages,
                     createdAt: new Date().toISOString(),
                     updatedAt: new Date().toISOString()
                 });
@@ -124,107 +124,83 @@ export const HomePage = () => {
         };
         const timer = setTimeout(saveSession, 1000);
         return () => clearTimeout(timer);
-    }, [chatMessages, currentSessionId]);
+    }, [messages, currentSessionId]);
 
     const handleSearch = async (query: string) => {
         if (!query.trim()) return;
-        setIsGenerating(true);
-        abortRef.current = false;
-        setChatMessages(prev => [...prev, { role: 'user', content: query }]);
-        setIsSearching(true);
 
-        // Fetch manual context content
-        let manualContext = "";
-        if (selectedContextIds.size > 0) {
-            const contextEntries = await Promise.all(Array.from(selectedContextIds).map(id => db.entries.get(id)));
-            manualContext = contextEntries
-                .filter(Boolean)
-                .map(e => `[MANUAL CONTEXT: ${e!.title}]\n${e!.content || e!.frontmatter?.summary || ""}`)
-                .join("\n\n---\n\n");
+        // 0. Offline Redirection
+        if (!serviceStatus.available) {
+            navigate(`/?q=${encodeURIComponent(query)}`);
+            return;
         }
 
+        // 1. Intent Analysis for Navigation & Commands
         try {
-            const intent = await intentService.analyze(query, entryTypes);
+            const intent = await window.api.ai.analyzeIntent(query, entryTypes);
 
-            // 1. Direct Navigation Intent (Strong match)
-            if (intent.navigationIntent && intent.navigationIntent.confidence > 0.8) {
-                const resolved = await intentService.resolveNavigation(intent.navigationIntent);
-                if (resolved) {
-                    navigate(resolved.url);
-                    setIsGenerating(false);
-                    setIsSearching(false);
+            // Handle Commands (highest priority if high confidence)
+            if (intent.commandIntent && intent.commandIntent.confidence > 0.8) {
+                const commandId = intent.commandIntent.commandId;
+                const command = commandRegistry.getCommand(commandId);
+
+                if (command) {
+                    console.log(`[HomePage] AI proposed command: ${commandId}`);
+                    const proposalMessage: ChatMessage = {
+                        role: 'assistant',
+                        content: `I've identified an action: **${command.name}**. Would you like me to proceed?`,
+                        commandProposal: {
+                            commandId,
+                            args: intent.commandIntent.args,
+                            status: 'pending'
+                        }
+                    };
+
+                    // Add user message and proposal
+                    setMessages(prev => [...prev, { role: 'user', content: query }, proposalMessage]);
                     return;
                 }
             }
 
-            const requiresContext = intent.requiresContext;
-            let semanticContext = "";
-            let sourceEntries: CodexEntry[] = [];
-
-            if (requiresContext) {
-                const results = await ragService.search(intent.searchQuery || query, 5);
-                const uniqueEntryIds = [...new Set(results.map(r => r.entryId))];
-                const entries = await Promise.all(uniqueEntryIds.map(id => db.entries.get(id)));
-                sourceEntries = entries.filter(Boolean) as CodexEntry[];
-                semanticContext = sourceEntries
-                    .map(e => `[ENTRY ID: ${e.id} | TITLE: ${e.title}]\n${e.content || ""}`)
-                    .join("\n\n---\n\n");
+            if (intent.navigationIntent && intent.navigationIntent.confidence > 0.8) {
+                // We still need a way to resolve navigation in renderer because it knows the DB/URLs
+                if (intent.navigationIntent.intent === 'navigate_app') {
+                    navigate(intent.navigationIntent.target);
+                    return;
+                }
+                if (intent.navigationIntent.intent === 'navigate_entry') {
+                    const entry = await db.entries.where('title').equalsIgnoreCase(intent.navigationIntent.target).first();
+                    if (entry) {
+                        navigate(`/${entry.type}/${entry.id}`);
+                        return;
+                    }
+                }
             }
-
-            const fullContext = [manualContext, semanticContext].filter(Boolean).join("\n\n---\n\n");
-            const history = chatMessages.map(m => ({ role: m.role, content: m.content }));
-
-            const initialAssistantMsg: ChatMessage = {
-                role: 'assistant',
-                content: '',
-                sources: sourceEntries.map(e => ({ id: e.id, title: e.title, type: e.type }))
-            };
-            setChatMessages(prev => [...prev, initialAssistantMsg]);
-
-            await chatService.chatStream(
-                intent.searchQuery || query,
-                fullContext,
-                history,
-                (chunk) => {
-                    setIsSearching(false);
-                    setChatMessages(prev => {
-                        const last = prev[prev.length - 1];
-                        if (last && last.role === 'assistant') {
-                            return [...prev.slice(0, -1), { ...last, content: (last.content as string) + chunk }];
-                        }
-                        return prev;
-                    });
-                },
-                requiresContext
-            );
         } catch (e) {
-            console.error('[HomePage] Chat turn failed:', e);
-        } finally {
-            setIsGenerating(false);
-            setIsSearching(false);
+            console.error('[HomePage] Intent analysis failed:', e);
         }
+
+        // 2. Regular Chat
+        await sendMessage(query);
     };
 
     const handleAbortChat = () => {
-        abortRef.current = true;
-        providerRegistry.getLLMProvider().abortChat();
-        setIsGenerating(false);
-        setIsSearching(false);
+        abortChat();
     };
 
     const handleClearChat = async () => {
         if (currentSessionId) await db.chatSessions.delete(currentSessionId);
-        setChatMessages([]);
+        clearHistory();
         setCurrentSessionId(null);
     };
 
     const handleNewChat = () => {
-        setChatMessages([]);
+        clearHistory();
         setCurrentSessionId(null);
     };
 
-    const loadSession = (session: ChatSession) => {
-        setChatMessages(session.messages);
+    const loadSession = (session: any) => {
+        setMessages(session.messages);
         setCurrentSessionId(session.id);
     };
 
@@ -232,10 +208,26 @@ export const HomePage = () => {
         e.stopPropagation();
         await db.chatSessions.delete(id);
         if (currentSessionId === id) {
-            setChatMessages([]);
+            setMessages([]);
             setCurrentSessionId(null);
         }
     };
+
+    const updateMessageStatus = useCallback((msgIndex: number, status: 'approved' | 'rejected') => {
+        setMessages(prev => {
+            const next = [...prev];
+            if (next[msgIndex]?.commandProposal) {
+                next[msgIndex] = {
+                    ...next[msgIndex],
+                    commandProposal: {
+                        ...next[msgIndex].commandProposal!,
+                        status
+                    }
+                };
+            }
+            return next;
+        });
+    }, []);
 
     const handleSelectMention = (entry: CodexEntry) => {
         setSelectedContextIds(prev => {
@@ -244,6 +236,15 @@ export const HomePage = () => {
             return next;
         });
     };
+
+    // Derived state: unique sources across the whole conversation
+    const allSources = useMemo(() => {
+        const entryMap = new Map<string, { id: string; type: string; title: string }>();
+        messages.forEach(msg => {
+            msg.sources?.forEach(s => entryMap.set(s.id, s));
+        });
+        return Array.from(entryMap.values());
+    }, [messages]);
 
     return (
         <div className="flex h-full bg-background overflow-hidden relative">
@@ -255,7 +256,7 @@ export const HomePage = () => {
                 <div className="p-4 border-b border-border flex items-center justify-between">
                     <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
                         <Icon name="MessageSquare" size={14} />
-                        Recent Chats
+                        Past Communions
                     </h2>
                     <button onClick={handleNewChat} className="p-1 hover:bg-muted rounded transition-colors text-muted-foreground">
                         <Icon name="Plus" size={14} />
@@ -300,20 +301,20 @@ export const HomePage = () => {
                 <div className="absolute top-4 right-6 flex items-center gap-4 pointer-events-none z-50">
                     <div className={cn(
                         "flex items-center gap-2 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider transition-all",
-                        serviceStatus.ollama ? "bg-green-500/5 text-green-500/70" : "bg-red-500/10 text-red-500 animate-pulse border border-red-500/20"
+                        serviceStatus.available ? "bg-green-500/5 text-green-500/70" : "bg-red-500/10 text-red-500 animate-pulse border border-red-500/20"
                     )}>
-                        <div className={cn("w-1.5 h-1.5 rounded-full", serviceStatus.ollama ? "bg-green-500" : "bg-red-500")} />
-                        AI: {serviceStatus.ollama ? 'Online' : 'Offline'}
+                        <div className={cn("w-1.5 h-1.5 rounded-full", serviceStatus.available ? "bg-green-500" : "bg-red-500")} />
+                        AI: {serviceStatus.available ? 'Online' : 'Offline'}
                     </div>
                 </div>
 
                 {/* History Container */}
                 <div className="flex-1 overflow-y-auto py-4 md:py-8">
                     <div className="max-w-4xl mx-auto px-6 space-y-6">
-                        {chatMessages.length === 0 ? (
+                        {messages.length === 0 ? (
                             <div className="flex flex-col items-center justify-center h-full min-h-[400px] text-center space-y-4 md:space-y-8 pt-4 pb-12">
-                                <img src={serviceStatus.ollama ? logoMain : logoOffline} alt="Citadel" className="w-16 h-16 md:w-20 md:h-20 object-contain transition-all duration-500" />
-                                {!serviceStatus.ollama && (
+                                <img src={serviceStatus.available ? logoMain : logoOffline} alt="Citadel" className="w-16 h-16 md:w-20 md:h-20 object-contain transition-all duration-500" />
+                                {!serviceStatus.available && (
                                     <button
                                         onClick={() => navigate('/settings/intelligence')}
                                         className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-red-500/10 border border-red-500/20 text-red-500 text-[10px] font-bold uppercase tracking-wider hover:bg-red-500/20 transition-all cursor-pointer"
@@ -324,34 +325,36 @@ export const HomePage = () => {
                                 )}
                                 <div>
                                     <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight mb-2 md:mb-4" style={{ fontFamily: "'Cinzel Decorative', serif" }}>Citadel</h1>
-                                    <p className="text-muted-foreground max-w-lg text-sm md:text-lg mx-auto" style={{ fontFamily: "'Cinzel', serif" }}>Your technical knowledge base. Ask anything.</p>
+                                    <p className="text-muted-foreground max-w-lg text-sm md:text-lg mx-auto" style={{ fontFamily: "'Cinzel', serif" }}>Your digital sanctum. Consult the Oracle.</p>
                                 </div>
                                 <div className="w-full max-w-2xl mx-auto">
                                     <ChatInput
                                         variant="empty"
-                                        isSearching={isSearching}
+                                        isSearching={isGenerating}
                                         onSearch={handleSearch}
                                         onAttachContext={() => setIsSelectorOpen(true)}
                                         hasContext={selectedContextIds.size > 0}
+                                        isOffline={!serviceStatus.available}
                                         onSelectMention={handleSelectMention}
                                     />
                                 </div>
                             </div>
                         ) : (
-                            chatMessages.map((msg, idx) => (
+                            messages.map((msg, idx) => (
                                 <ChatMessageItem
                                     key={idx}
                                     msg={msg}
                                     isZen={isZen}
-                                    isLast={idx === chatMessages.length - 1}
+                                    isLast={idx === messages.length - 1}
                                     isGenerating={isGenerating}
+                                    onStatusChange={(status) => updateMessageStatus(idx, status)}
                                 />
                             ))
                         )}
                         {isGenerating && (
                             <div className="flex items-center gap-3 ml-2 text-muted-foreground animate-pulse">
                                 <Icon name="Loader2" size={16} className="animate-spin" />
-                                <span className="text-sm">Thinking...</span>
+                                <span className="text-sm">The Oracle is listening...</span>
                                 <button
                                     onClick={handleAbortChat}
                                     className="ml-2 px-2 py-1 bg-red-500/10 text-red-500 rounded text-[10px] font-bold uppercase border border-red-500/20 pointer-events-auto"
@@ -360,12 +363,17 @@ export const HomePage = () => {
                                 </button>
                             </div>
                         )}
+                        {chatError && (
+                            <div className="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400" role="alert">
+                                <span className="font-medium">Error:</span> {chatError}
+                            </div>
+                        )}
                         <div ref={(el) => el?.scrollIntoView({ behavior: 'smooth' })} />
                     </div>
                 </div>
 
                 {/* Fixed Bottom Input */}
-                {chatMessages.length > 0 && (
+                {messages.length > 0 && (
                     <>
                         <div className="max-w-4xl mx-auto w-full px-6 pb-2">
                             {selectedContextIds.size > 0 && (
@@ -388,10 +396,11 @@ export const HomePage = () => {
                             <div className="max-w-4xl mx-auto px-6">
                                 <ChatInput
                                     variant="chat"
-                                    isSearching={isSearching}
+                                    isSearching={isGenerating}
                                     onSearch={handleSearch}
                                     onAttachContext={() => setIsSelectorOpen(true)}
                                     hasContext={selectedContextIds.size > 0}
+                                    isOffline={!serviceStatus.available}
                                     onSelectMention={handleSelectMention}
                                     className={cn(isZen && "max-w-none")}
                                 />
@@ -400,10 +409,10 @@ export const HomePage = () => {
                         {!isZen && (
                             <div className="flex justify-center gap-4 md:gap-6 py-2 md:py-4 border-t border-border/10">
                                 <button onClick={handleNewChat} className="flex items-center gap-2 text-[10px] font-bold uppercase text-muted-foreground hover:text-primary transition-all">
-                                    <Icon name="Plus" size={12} /> New Chat
+                                    <Icon name="Plus" size={12} /> New Communion
                                 </button>
                                 <button onClick={handleClearChat} className="flex items-center gap-2 text-[10px] font-bold uppercase text-red-500/70 hover:text-red-500 transition-all border-l border-border/20 pl-4 md:pl-6">
-                                    <Icon name="Trash2" size={12} /> Delete Session
+                                    <Icon name="Trash2" size={12} /> Sever Communion
                                 </button>
                             </div>
                         )}

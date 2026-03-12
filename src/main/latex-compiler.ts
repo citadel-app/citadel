@@ -1,4 +1,5 @@
 import { ipcMain } from 'electron';
+import { IPC_CHANNELS } from '../shared';
 import { exec } from 'child_process';
 import * as fs from 'fs-extra';
 import * as path from 'path';
@@ -9,7 +10,7 @@ const execAsync = promisify(exec);
 
 export const registerLatexHandlers = () => {
     // Check if pdflatex is available
-    ipcMain.handle('latex:check', async () => {
+    ipcMain.handle(IPC_CHANNELS.LATEX_CHECK, async () => {
         try {
             console.log('[LatexCompiler] Checking pdflatex availability...');
             console.log('[LatexCompiler] PATH:', process.env.PATH);
@@ -62,7 +63,8 @@ export const registerLatexHandlers = () => {
             ] : isMac ? [
                 '/Library/TeX/texbin/pdflatex',
                 '/usr/local/bin/pdflatex',
-                '/opt/homebrew/bin/pdflatex'
+                '/opt/homebrew/bin/pdflatex',
+                '/usr/bin/pdflatex'
             ] : [
                 '/usr/bin/pdflatex',
                 '/usr/local/bin/pdflatex'
@@ -82,7 +84,7 @@ export const registerLatexHandlers = () => {
     })
 
     // Compile LaTeX
-    ipcMain.handle('latex:compile', async (_, { files }: { files: { name: string, content: string, isBinary?: boolean }[] }) => {
+    ipcMain.handle(IPC_CHANNELS.LATEX_COMPILE, async (_, { files }: { files: { name: string, content: string, isBinary?: boolean }[] }) => {
         console.log('[LatexCompiler] Received files for compilation:', files.map(f => `${f.name} (bin: ${f.isBinary})`));
         const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codex-latex-'));
         
@@ -182,7 +184,8 @@ export const registerLatexHandlers = () => {
                     ] : isMac ? [
                         '/Library/TeX/texbin/pdflatex',
                         '/usr/local/bin/pdflatex',
-                        '/opt/homebrew/bin/pdflatex'
+                        '/opt/homebrew/bin/pdflatex',
+                        '/usr/bin/pdflatex'
                     ] : [
                         '/usr/bin/pdflatex',
                         '/usr/local/bin/pdflatex'

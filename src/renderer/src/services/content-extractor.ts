@@ -4,7 +4,7 @@
  */
 
 import type { CodexEntry } from '../lib/db';
-import type { EntryTypeConfig } from '../config/entry-types';
+import type { EntryTypeConfig } from '@shared';
 
 export interface TextChunk {
     id: string;
@@ -90,7 +90,7 @@ export async function extractFromPdf(filePath: string): Promise<string> {
         
         // Set worker source
         pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
-            'pdfjs-dist/build/pdf.worker.min.mjs',
+            'pdfjs-dist/build/pdf.worker.mjs',
             import.meta.url
         ).toString();
 
@@ -148,11 +148,9 @@ export async function extractFromRemotePdf(url: string): Promise<string> {
 
         // Dynamic import of pdf.js
         const pdfjsLib = await import('pdfjs-dist');
+        const pdfWorkerUrl = (await import('pdfjs-dist/build/pdf.worker.mjs?url')).default;
         
-        pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
-            'pdfjs-dist/build/pdf.worker.min.mjs',
-            import.meta.url
-        ).toString();
+        pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
 
         const pdf = await pdfjsLib.getDocument({ data: pdfData }).promise;
         console.log('[ContentExtractor] Remote PDF pages:', pdf.numPages);

@@ -1,12 +1,4 @@
-import { 
-    smartTagsPrompt, 
-    summaryPrompt, 
-    proofreadPrompt,
-    sectionBatteryPrompt,
-    EntryMetadataPatch
-} from '../registry/MetadataPrompts';
-
-export type { EntryMetadataPatch };
+import { EntryMetadataPatch } from '../../../../shared';
 
 export class MetadataService {
     /**
@@ -19,7 +11,7 @@ export class MetadataService {
         schema: string = '', 
         context: string = ''
     ): Promise<EntryMetadataPatch | null> {
-        return smartTagsPrompt.execute({
+        return window.api.ai.generateMetadata({
             content,
             title,
             existingTags,
@@ -32,14 +24,14 @@ export class MetadataService {
      * Generates a 2-3 sentence summary of the content.
      */
     async generateSummary(content: string, context?: string): Promise<string | null> {
-        return summaryPrompt.execute({ content, context });
+        return window.api.ai.generateSummary({ content, context });
     }
 
     /**
      * Proofreads the content for grammar, spelling, and style.
      */
     async proofread(content: string): Promise<string | null> {
-        return proofreadPrompt.execute({ content });
+        return window.api.ai.proofread({ content });
     }
 
     /**
@@ -51,7 +43,7 @@ export class MetadataService {
         context: string,
         currentContent: string = ''
     ): Promise<string | null> {
-        return sectionBatteryPrompt.execute({
+        return window.api.ai.generateSection({
             sectionTitle,
             instructions,
             context,

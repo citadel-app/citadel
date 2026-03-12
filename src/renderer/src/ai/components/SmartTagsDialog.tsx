@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import { Icon } from '../../components/IconRegistry';
-import { metadataService, ragService, type EntryMetadataPatch } from '..';
+import { type EntryMetadataPatch } from '..';
 import { useAppSettings } from '../../context/AppSettingsContext';
 import { cn } from '../../lib/utils';
 import { useConfig } from '../../context/ConfigContext';
@@ -81,32 +81,32 @@ export const SmartTagsDialog = ({
         setIndexInfo('');
 
         try {
-            const autoIndexEnabled = settings.ragAutoIndexOnAction ?? true;
-            const reindexIntervalHours = settings.ragReindexInterval ?? 24;
+            const autoIndexEnabled = settings.ai?.rag?.autoIndexOnAction ?? true;
+            const reindexIntervalHours = settings.ai?.rag?.reindexInterval ?? 24;
             let ragContext = '';
 
             // 1. Check if RAG is available and index entry on-demand
-            const { available } = await ragService.isAvailable();
+            const { available } = await window.api.ai.isAvailable();
             if (available && autoIndexEnabled) {
                 setStatus('indexing');
                 setIndexInfo('Checking index status...');
 
-                const needsIndex = await ragService.needsIndexing(entry, reindexIntervalHours);
+                const needsIndex = await window.api.ai.needsIndexing(entry.id, reindexIntervalHours);
                 if (needsIndex) {
                     setIndexInfo('Indexing entry for better context...');
-                    const result = await ragService.indexEntry(entry, {
-                        chunkSize: settings.ragChunkSize ?? 1000,
-                        chunkOverlap: settings.ragChunkOverlap ?? 100,
-                        indexPdf: settings.ragIndexPdf ?? true,
-                        indexUrl: settings.ragIndexUrl ?? true,
-                        indexMarkdown: settings.ragIndexMarkdown ?? true
+                    const result = await window.api.ai.indexEntry(entry, {
+                        chunkSize: settings.ai?.rag?.chunkSize ?? 1000,
+                        chunkOverlap: settings.ai?.rag?.chunkOverlap ?? 100,
+                        indexPdf: settings.ai?.rag?.indexPdf ?? true,
+                        indexUrl: settings.ai?.rag?.indexUrl ?? true,
+                        indexMarkdown: settings.ai?.rag?.indexMarkdown ?? true
                     });
                     setIndexInfo(`Indexed ${result.chunkCount} chunks`);
                 }
 
                 // 2. Get Dual-Context using RAG
-                const structuralContext = await ragService.getStructuralContext(entry.id, 3);
-                const semanticContext = await ragService.getContextForPrompt(
+                const structuralContext = await window.api.ai.getStructuralContext(entry.id, 3);
+                const semanticContext = await window.api.ai.getContext(
                     entry.id,
                     `Document: ${entry.title}. Identify core themes, research topics, and descriptive metadata for this doc.`,
                     5
@@ -117,20 +117,19 @@ ${structuralContext}
 
 --- RELEVANT SEGMENTS ---
 ${semanticContext}`;
-
-                console.log('[SmartTags] Generated Dual-Context for AI:', {
-                    entryId: entry.id,
-                    structuralChars: structuralContext.length,
-                    semanticChars: semanticContext.length,
-                    fullContext: ragContext
-                });
             }
 
             setStatus('loading');
             const schema = generateSchemaDescription();
-            console.log('[SmartTags] Using Schema:', schema);
 
-            const result = await metadataService.generateMetadata(content, entry.title, entry.tags || [], schema, ragContext);
+            const result = await window.api.ai.generateMetadata({
+                content,
+                title: entry.title,
+                existingTags: entry.tags || [],
+                schema,
+                context: ragContext
+            });
+
             if (result) {
                 setPatch(result);
                 setReviewTitle(result.title || entry.title);
@@ -166,7 +165,7 @@ ${semanticContext}`;
         onApply(finalPatch);
 
         // Proactively re-index in background so RAG is fresh (tags/metadata changed)
-        ragService.indexEntry(entry).catch(e => console.error('[SmartTagsDialog] Proactive index failed', e));
+        window.api.ai.indexEntry(entry).catch(e => console.error('[SmartTagsDialog] Proactive index failed', e));
 
         onOpenChange(false);
     };

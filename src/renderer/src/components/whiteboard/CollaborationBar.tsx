@@ -31,31 +31,7 @@ export const CollaborationBar = () => {
     };
 
     return (
-        <div className="absolute top-4 right-4 z-[10] flex flex-col items-end gap-2">
-            <div className="flex items-center gap-2 bg-background/80 backdrop-blur-md border border-border p-1.5 rounded-full shadow-lg">
-                <div className={cn(
-                    "w-2.5 h-2.5 rounded-full ml-2",
-                    status === 'connected' ? "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]" :
-                        status === 'loading' ? "bg-yellow-500 animate-pulse" :
-                            "bg-red-500"
-                )} title={`Status: ${status}`} />
-
-                <span className="text-xs font-medium px-1 text-muted-foreground select-none">
-                    {status === 'connected' ? 'Collab Active' : 'Offline'}
-                </span>
-
-                <button
-                    onClick={() => setShowConnect(!showConnect)}
-                    className={cn(
-                        "p-1.5 rounded-full hover:bg-muted transition-colors",
-                        showConnect && "bg-muted"
-                    )}
-                    title="Collaboration Settings"
-                >
-                    <Icon name="Users" size={16} />
-                </button>
-            </div>
-
+        <div className="absolute bottom-20 right-4 z-[10] flex flex-col items-end gap-1">
             {showConnect && (
                 <div className="w-64 bg-background/95 backdrop-blur-md border border-border p-4 rounded-xl shadow-2xl animate-in fade-in slide-in-from-top-2 duration-200">
                     <div className="space-y-4">
@@ -110,6 +86,27 @@ export const CollaborationBar = () => {
                     </div>
                 </div>
             )}
+
+            <div
+                onClick={() => setShowConnect(!showConnect)}
+                className={cn(
+                    "flex items-center gap-2 bg-background/80 backdrop-blur-md border border-border p-0.3 px-1 rounded-md shadow-lg",
+                    "p-1.5 rounded-full hover:bg-muted transition-colors",
+                    showConnect && "bg-muted"
+                )}
+                title="Collaboration Settings"
+            >
+                <div className={cn(
+                    "w-2.5 h-2.5 rounded-full ml-2",
+                    status === 'connected' ? "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]" :
+                        status === 'loading' ? "bg-yellow-500 animate-pulse" :
+                            "bg-red-500"
+                )} title={`Status: ${status}`} />
+
+                <span className="text-xs font-medium px-1 text-muted-foreground select-none">
+                    {status === 'connected' ? 'Collab Active' : 'Offline'}
+                </span>
+            </div>
         </div>
     );
 };

@@ -1,5 +1,5 @@
 import React from 'react';
-import { ModuleConfig, ModuleDefinition, EntryFieldConfig, EntryMetadataConfig } from '../../../config/entry-types';
+import { type ModuleConfig, type ModuleDefinition, type EntryFieldConfig, type EntryMetadataConfig } from '@shared';
 import { cn } from '../../../lib/utils';
 import { ArrowRight, AlertTriangle } from 'lucide-react';
 
@@ -105,13 +105,13 @@ export const ModuleMappingEditor = ({
                                     {status === 'auto' ? `(Default: ${effectiveFieldKey})` : '(Select a field...)'}
                                 </option>
                                 <optgroup label="Fields">
-                                    {availableFields.filter(f => 'required' in f).map(f => (
-                                        <option key={f.key} value={f.key}>{f.label} ({f.key})</option>
+                                    {availableFields.filter((f): f is EntryFieldConfig => 'required' in f).map(f => (
+                                        <option key={String(f.key)} value={String(f.key)}>{f.label} ({String(f.key)})</option>
                                     ))}
                                 </optgroup>
                                 <optgroup label="Metadata">
-                                    {availableFields.filter(f => !('required' in f)).map(f => (
-                                        <option key={f.key} value={f.key}>{f.label} ({f.key})</option>
+                                    {availableFields.filter((f): f is EntryMetadataConfig => !('required' in f)).map(f => (
+                                        <option key={String(f.key)} value={String(f.key)}>{f.label} ({String(f.key)})</option>
                                     ))}
                                 </optgroup>
                             </select>
