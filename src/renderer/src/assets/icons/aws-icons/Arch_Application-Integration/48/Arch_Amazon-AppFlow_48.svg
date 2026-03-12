@@ -1,12 +1,1 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg width="64px" height="64px" viewBox="0 0 64 64" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-    <title>Icon-Architecture/48/Arch_Amazon-AppFlow_48</title>
-    <g id="Icon-Architecture/48/Arch_Amazon-AppFlow_48" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-        <g id="Icon-Architecture-BG/48/Application-Integration" fill="#E7157B">
-            <rect id="Rectangle" x="0" y="0" width="64" height="64"></rect>
-        </g>
-        <g id="Icon-Service/48/Amazon-AppFlow_48" transform="translate(10.000000, 15.000000)" fill="#FFFFFF">
-            <path d="M37.219,0 L23.376,0 L11.249,20.387 L10.644,18.128 L8.712,18.646 L10.297,24.559 L16.21,22.975 L15.693,21.043 L12.711,21.842 L24.513,2 L36.065,2 L41.839,12 L36.065,22 L30.144,22 L30.144,24 L37.219,24 L44.148,12 L37.219,0 Z M32.254,13.671 L20.787,34 L6.928,34 L0,22 L6.928,10 L13.144,10 L13.144,12 L8.082,12 L2.309,22 L8.082,32 L19.619,32 L30.818,12.147 L27.795,12.957 L27.278,11.025 L33.192,9.441 L34.776,15.354 L32.844,15.872 L32.254,13.671 Z" id="Amazon-AppFlow_48"></path>
-        </g>
-    </g>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64"><title>Icon-Architecture/48/Arch_Amazon-AppFlow_48</title><g fill="none" fill-rule="evenodd"><path fill="#e7157b" d="M0 0h64v64H0z"/><path fill="#fff" d="M47.219 15H33.376L21.249 35.387l-.605-2.259-1.932.518 1.585 5.913 5.913-1.584-.517-1.932-2.982.799L34.513 17h11.552l5.774 10-5.774 10h-5.921v2h7.075l6.929-12zm-4.965 13.671L30.787 49H16.928L10 37l6.928-12h6.216v2h-5.062l-5.773 10 5.773 10h11.537l11.199-19.853-3.023.81-.517-1.932 5.914-1.584 1.584 5.913-1.932.518z"/></g></svg>
