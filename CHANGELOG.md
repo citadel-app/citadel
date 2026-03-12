@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.1 (2026-03-13)
+
+### Bug Fixes
+
+* fix: Remove GitHub App client id, add related environment variable template, and update gitignore. ([1098ff4](https://github.com/iwannabebot/citadel/commit/1098ff408f9adba950ba5f005cd4c57ea5d8a1a3))
+
 ## 1.1.0 (2026-03-12)
 
 ### Features

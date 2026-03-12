@@ -19,7 +19,7 @@ import { IPC_CHANNELS } from '@shared';
 // ⚠️  REPLACE THIS with your GitHub App's Client ID
 //     Found at: github.com/settings/apps/<your-app> → Client ID
 // ============================================================
-const GITHUB_APP_CLIENT_ID = 'Ov23lieuVtPiNTMTYJ4v';
+const GITHUB_APP_CLIENT_ID = process.env.MAIN_VITE_GITHUB_CLIENT_ID || 'Ov23lieuVtPiNTMTYJ4v';
 
 interface DeviceFlowResponse {
   device_code: string;
