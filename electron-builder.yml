@@ -19,6 +19,7 @@ files:
   - "!data-sources/*"
 asarUnpack:
   - resources/**
+  - node_modules/better-sqlite3/**
 extraResources:
   - from: src/python
     to: tts-service/src/python
@@ -41,6 +42,7 @@ nsis:
   uninstallDisplayName: ${productName}
   createDesktopShortcut: always
 mac:
+  identity: null
   icon: resources/icon.icns
   category: public.app-category.developer-tools
   hardenedRuntime: false
