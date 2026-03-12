@@ -13,9 +13,13 @@ export interface TagCategory {
 interface TagCategoryContextType {
     categories: TagCategory[];
     isLoading: boolean;
-    addCategory: (category: Omit<TagCategory, 'id'>) => void;
+    addCategory: (name: string, color: string) => void;
     updateCategory: (id: string, updates: Partial<Omit<TagCategory, 'id'>>) => void;
     deleteCategory: (id: string) => void;
+    removeCategory: (id: string) => void; // Alias for deleteCategory
+    addTagToCategory: (categoryId: string, tag: string) => void;
+    removeTagFromCategory: (categoryId: string, tag: string) => void;
+    getCategoryForTag: (tag: string) => TagCategory | undefined;
     moveTag: (tag: string, fromCategoryId: string | null, toCategoryId: string) => void;
     reorderCategories: (newCategories: TagCategory[]) => void;
     refresh: () => Promise<void>;
@@ -66,10 +70,10 @@ export const TagCategoryProvider: React.FC<{ children: React.ReactNode }> = ({ c
         }
     }, [vaultPath, isLoading]);
 
-    const addCategory = useCallback((category: Omit<TagCategory, 'id'>) => {
+    const addCategory = useCallback((name: string, color: string) => {
         const id = crypto.randomUUID();
         setCategories(prev => {
-            const updated = [...prev, { ...category, id }];
+            const updated = [...prev, { id, name, color, tags: [] }];
             saveCategories(updated);
             return updated;
         });
@@ -90,6 +94,39 @@ export const TagCategoryProvider: React.FC<{ children: React.ReactNode }> = ({ c
             return updated;
         });
     }, [saveCategories]);
+
+    const addTagToCategory = useCallback((categoryId: string, tag: string) => {
+        setCategories(prev => {
+            const updated = prev.map(c => {
+                if (c.id === categoryId) {
+                    return { ...c, tags: [...new Set([...c.tags, tag])] };
+                }
+                if (c.tags.includes(tag)) {
+                    return { ...c, tags: c.tags.filter(t => t !== tag) };
+                }
+                return c;
+            })
+            saveCategories(updated);
+            return updated;
+        })
+    }, [saveCategories])
+
+    const removeTagFromCategory = useCallback((categoryId: string, tag: string) => {
+        setCategories(prev => {
+            const updated = prev.map(c => {
+                if (c.id === categoryId) {
+                    return { ...c, tags: c.tags.filter(t => t !== tag) };
+                }
+                return c;
+            })
+            saveCategories(updated);
+            return updated;
+        })
+    }, [saveCategories])
+
+    const getCategoryForTag = useCallback((tag: string) => {
+        return categories.find(c => c.tags.includes(tag));
+    }, [categories]);
 
     const moveTag = useCallback((tag: string, fromCategoryId: string | null, toCategoryId: string) => {
         setCategories(prev => {
@@ -125,6 +162,10 @@ export const TagCategoryProvider: React.FC<{ children: React.ReactNode }> = ({ c
             addCategory,
             updateCategory,
             deleteCategory,
+            removeCategory: deleteCategory,
+            addTagToCategory,
+            removeTagFromCategory,
+            getCategoryForTag,
             moveTag,
             reorderCategories,
             refresh: loadCategories
