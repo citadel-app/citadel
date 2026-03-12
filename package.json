@@ -23,7 +23,8 @@
     "start:server": "python src/python/tts_server.py",
     "dev:all": "concurrently --kill-others \"npm run dev\" \"npm run start:server\"",
     "clean": "npm run clean:build",
-    "clean:build": "node scripts/clean.js"
+    "clean:build": "node scripts/clean.js",
+    "changelog:generate": "node scripts/generate-changelog-entries.js"
   },
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.2",
