@@ -41,6 +41,10 @@ nsis:
   uninstallDisplayName: ${productName}
   createDesktopShortcut: always
 mac:
+  icon: resources/icon.icns
+  category: public.app-category.developer-tools
+  hardenedRuntime: false
+  gatekeeperAssess: false
   entitlementsInherit: resources/entitlements.mac.plist
   extendInfo:
     - NSCameraUsageDescription: Application requests access to the device's camera.
@@ -51,6 +55,7 @@ mac:
 dmg:
   artifactName: ${name}-${version}-${arch}.${ext}
 linux:
+  icon: resources/icon.png
   target:
     - AppImage
     - deb
