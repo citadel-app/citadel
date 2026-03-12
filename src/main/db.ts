@@ -10,6 +10,10 @@ export class FeedDatabase {
 
     constructor() {}
 
+    public setGuardrail() {
+        // Guardrail no longer needed for workspace-level validation in FeedDB
+    }
+    
     public init(workspacePath: string) {
         if (!workspacePath) {
             console.warn('[FeedDB] Initializing in non-workspace mode => In-memory SQLite');

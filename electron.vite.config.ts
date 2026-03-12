@@ -11,7 +11,7 @@ export default defineConfig({
     },
     build: {
       rollupOptions: {
-        external: ['canvas']
+        external: ['canvas', 'chokidar', 'fsevents']
       }
     }
   },
@@ -23,7 +23,7 @@ export default defineConfig({
     },
     build: {
       rollupOptions: {
-        external: ['canvas']
+        external: ['canvas', 'chokidar', 'fsevents']
       }
     }
   },
@@ -39,6 +39,9 @@ export default defineConfig({
       'process.env.IS_PREACT': JSON.stringify('false')
     },
     plugins: [react()],
+    optimizeDeps: {
+      include: ['es6-promise-pool']
+    },
     build: {
       rollupOptions: {
         external: ['canvas'],

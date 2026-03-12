@@ -1,30 +1,47 @@
 import { app } from 'electron';
 import path from 'path';
 import os from 'os';
+import fs from 'fs-extra';
 
 export class GuardrailService {
   private activeWorkspacePath: string | null = null;
   private readonly allowedSystemPaths: string[];
   private allowedTemporaryPaths: Set<string> = new Set();
+  private readonly isCaseInsensitive: boolean;
 
   constructor(initialWorkspace?: string | null) {
-    this.activeWorkspacePath = initialWorkspace ? path.resolve(initialWorkspace) : null;
+    this.isCaseInsensitive = process.platform === 'win32' || process.platform === 'darwin';
     
     // Whitelist core app and system temp directories
+    // We use realpathSync to resolve symlinks like /var -> /private/var on macOS
     this.allowedSystemPaths = [
-      path.resolve(app.getPath('userData')),
-      path.resolve(app.getPath('downloads')),
-      path.resolve(os.tmpdir()),
+      this.canonicalize(app.getPath('userData')),
+      this.canonicalize(app.getPath('downloads')),
+      this.canonicalize(os.tmpdir()),
       // Resources path for templates/assets
-      path.resolve(process.resourcesPath)
+      this.canonicalize(process.resourcesPath)
     ];
+
+    if (initialWorkspace) {
+      this.setActiveWorkspace(initialWorkspace);
+    }
 
     console.log('[GuardrailService] Initialized with allowed system paths:', this.allowedSystemPaths);
   }
 
+  private canonicalize(p: string): string {
+    try {
+      // Resolve symlinks and normalize
+      return path.normalize(fs.realpathSync(p));
+    } catch (e) {
+      // If path doesn't exist yet, just normalize it
+      return path.normalize(path.resolve(p));
+    }
+  }
+
   public setActiveWorkspace(workspacePath: string | null) {
     if (workspacePath) {
-      this.activeWorkspacePath = path.resolve(workspacePath);
+      this.activeWorkspacePath = this.canonicalize(workspacePath);
       // When a workspace is set as active, we can clear temporary probes
       this.allowedTemporaryPaths.clear();
       console.log(`[GuardrailService] Active workspace updated and temp paths cleared: ${this.activeWorkspacePath}`);
@@ -38,7 +55,7 @@ export class GuardrailService {
    * This permits probing the directory before it is formally set as the active workspace.
    */
   public allowPathTemporarily(targetPath: string) {
-    const resolved = path.resolve(targetPath);
+    const resolved = this.canonicalize(targetPath);
     this.allowedTemporaryPaths.add(resolved);
     console.log(`[GuardrailService] Path temporarily allowed for probing: ${resolved}`);
   }
@@ -51,7 +68,7 @@ export class GuardrailService {
     if (!targetPath) return false;
 
     try {
-      const resolvedTarget = path.resolve(targetPath);
+      const resolvedTarget = this.canonicalize(targetPath);
 
       // 1. Check Workspace
       if (this.activeWorkspacePath && this.isPathInside(this.activeWorkspacePath, resolvedTarget)) {
@@ -83,8 +100,16 @@ export class GuardrailService {
    * Robust check if a path is inside (or equal to) another path.
    */
   private isPathInside(parent: string, child: string): boolean {
-    if (parent === child) return true;
-    const relative = path.relative(parent, child);
+    let p = parent;
+    let c = child;
+
+    if (this.isCaseInsensitive) {
+      p = p.toLowerCase();
+      c = c.toLowerCase();
+    }
+
+    if (p === c) return true;
+    const relative = path.relative(p, c);
     return !relative.startsWith('..') && !path.isAbsolute(relative);
   }
 

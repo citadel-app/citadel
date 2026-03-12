@@ -8,6 +8,7 @@ import { SplitPaneLayout } from '../components/layout/SplitPaneLayout';
 import { BranchManagerModal } from '../components/git/BranchManagerModal';
 import { VirtualizedFileList, GitItem } from '@renderer/components/git/VirtualizedFileList';
 import { ConfirmDialog } from '../components/ConfirmDialog';
+import { isModKey } from '../lib/utils';
 
 export const SourceControlPage = () => {
     const { vaultPath, setVaultPath, config } = useConfig();
@@ -476,11 +477,11 @@ export const SourceControlPage = () => {
             <div className="p-4 border-b border-border shrink-0 bg-muted/5 citadel-border m-2 rounded-lg">
                 <textarea
                     className="w-full bg-input/50 border border-input rounded p-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary min-h-[80px] resize-none font-medieval"
-                    placeholder="Commit Message (Ctrl+Enter to commit)"
+                    placeholder={`Commit Message (${navigator.userAgent.includes('Mac') ? 'Cmd' : 'Ctrl'}+Enter to commit)`}
                     value={commitMessage}
                     onChange={(e) => setCommitMessage(e.target.value)}
                     onKeyDown={(e) => {
-                        if (e.ctrlKey && e.key === 'Enter') handleCommit();
+                        if (isModKey(e) && e.key === 'Enter') handleCommit();
                     }}
                 />
                 <button

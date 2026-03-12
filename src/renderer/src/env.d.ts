@@ -45,11 +45,15 @@ declare global {
     api: {
         fs: any;
         app: {
-        openExternal: (url: string) => Promise<void>;
-        getInitContext: () => Promise<any>;
-        getDownloadsPath: () => Promise<string>;
-        openWorkspace: (path: string) => Promise<void>;
-    };
+            openExternal: (url: string) => Promise<void>;
+            onLog: (callback: (data: { severity: 'warning' | 'error', message: string }) => void) => () => void;
+            onDeepLink: (callback: (url: string) => void) => () => void;
+            getInitContext: () => Promise<any>;
+            getDownloadsPath: () => Promise<string>;
+            openWorkspace: (path: string) => Promise<void>;
+            setActiveWorkspace: (path: string) => Promise<boolean>;
+            isMac: boolean;
+        };
         lsp: any;
         net: any;
         window: any;

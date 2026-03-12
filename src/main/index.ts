@@ -21,6 +21,7 @@ import { IPC_CHANNELS } from '@shared';
 import { GuardrailService } from './services/GuardrailService';
 import { feedDb } from './db';
 import { AIOrchestrator } from './ai/AIOrchestrator';
+import { setupMacOSMenu } from './menu-utils';
 
 // Determine initial workspace from CLI
 let initialWorkspacePath: string | null = null
@@ -40,6 +41,17 @@ if (potentialPath) {
   console.log(`[Main] Initial workspace detected from CLI: ${initialWorkspacePath}`);
 }
 
+// --- macOS specific environment fixes ---
+if (process.platform === 'darwin') {
+  // Ensure common paths are in the PATH when launched from the Dock
+  const commonPaths = ['/usr/local/bin', '/opt/homebrew/bin', '/usr/bin', '/bin', '/usr/sbin', '/sbin'];
+  const currentPath = process.env.PATH || '';
+  const newPath = Array.from(new Set([...currentPath.split(':'), ...commonPaths]))
+    .filter(Boolean)
+    .join(':');
+  process.env.PATH = newPath;
+}
+
 const guardrail = new GuardrailService(initialWorkspacePath);
 const aiOrchestrator = new AIOrchestrator(appSettings, feedDb);
 const backendManager = new BackendServiceManager(appSettings);
@@ -55,6 +67,7 @@ process.on('uncaughtException', (error) => {
     // Re-throw unknown errors so they still crash as expected
     throw error;
 });
+
 
 const isNoLock = args.includes('--no-lock');
 const gotTheLock = isNoLock ? true : app.requestSingleInstanceLock()
@@ -230,6 +243,11 @@ function createWindow(): void {
     }
   })
 
+  // Hide native macOS traffic lights as per user request (preferring custom buttons)
+  if (process.platform === 'darwin') {
+    mainWindow.setWindowButtonVisibility(false);
+  }
+
   let isForceClose = false;
 
   mainWindow.on('close', (e) => {
@@ -296,11 +314,12 @@ app.whenReady().then(() => {
   new GitHubAuthService()
   new SecretStorageService()
   // appSettings already initialized
-  new FileWatcherService(guardrail)
+  const fileWatcher = new FileWatcherService()
   registerLatexHandlers()
   aiOrchestrator.registerHandlers()
 
   // Initialize SQLite feed database for this workspace
+  feedDb.setGuardrail();
   if (initialWorkspacePath) {
     feedDb.init(initialWorkspacePath);
   } else {
@@ -353,10 +372,35 @@ app.whenReady().then(() => {
   });
   
   // Clean up on exit
-  app.on('before-quit', async () => {
-      await dockerReplService.cleanupAll();
-      backendManager.stopAll();
-      feedDb.close();
+  let isQuitting = false;
+  app.on('before-quit', async (event) => {
+      if (isQuitting) return;
+      event.preventDefault();
+
+      console.log('[Main] Graceful shutdown initiated...');
+
+      try {
+          // Add a timeout to the overall cleanup to prevent hanging the system
+          await Promise.race([
+              (async () => {
+                  await dockerReplService.cleanupAll();
+                  await backendManager.stopAll();
+                  feedDb.close();
+                  fileWatcher.close();
+                  if (lspServer) {
+                      console.log('[Main] Closing LSP server...');
+                      lspServer.close();
+                  }
+              })(),
+              new Promise((_, reject) => setTimeout(() => reject(new Error('Shutdown timed out')), 15000))
+          ]);
+          console.log('[Main] Graceful shutdown completed.');
+      } catch (e) {
+          console.error('[Main] Error during shutdown cleanup:', e);
+      } finally {
+          isQuitting = true;
+          app.quit();
+      }
   });
 
   // Start LSP Server
@@ -398,6 +442,7 @@ app.whenReady().then(() => {
 
   ipcMain.handle(IPC_CHANNELS.APP_SET_ACTIVE_WORKSPACE, async (_, path: string) => {
        console.log(`[Main] Setting active workspace to: ${path}`);
+       // Rebuild trigger: ${new Date().toISOString()}
        if (fs.existsSync(path)) {
            initialWorkspacePath = path; // Update the global variable
            guardrail.setActiveWorkspace(path); // Update the guardrail service state
@@ -507,6 +552,9 @@ app.whenReady().then(() => {
     }
 
     try {
+        // SECURITY: Validate path before reading
+        guardrail.validate(finalPath);
+        
         const data = fs.readFileSync(finalPath)
         const ext = finalPath.split('.').pop()?.toLowerCase()
         let mimeType = 'application/octet-stream'
@@ -640,6 +688,11 @@ app.whenReady().then(() => {
     // dock icon is clicked and there are no other windows open.
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
   })
+
+  // Set native macOS menu
+  if (process.platform === 'darwin') {
+    setupMacOSMenu();
+  }
 })
 
 // Quit when all windows are closed, except on macOS. There, it's common
@@ -762,10 +815,13 @@ ipcMain.handle(IPC_CHANNELS.FS_DELETE_FILE, async (_, path) => {
 ipcMain.handle(IPC_CHANNELS.NET_FETCH, async (_, url, options = {}) => {
   try {
     console.log(`[Main] Fetching with net.fetch: ${url}`)
+    const ua = process.platform === 'darwin' 
+      ? 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+      : 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
     const response = await net.fetch(url, {
       ...options,
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'User-Agent': ua,
         ...options.headers
       }
     })
@@ -903,7 +959,22 @@ ipcMain.handle(IPC_CHANNELS.NET_FETCH, async (_, url, options = {}) => {
     
     try {
       if (name === 'ollama') {
-        const child = spawn('ollama', ['serve'], {
+        let ollamaPath = 'ollama';
+        if (process.platform === 'darwin') {
+          const fallbacks = [
+            '/usr/local/bin/ollama',
+            '/opt/homebrew/bin/ollama',
+            '/Applications/Ollama.app/Contents/Resources/ollama'
+          ];
+          for (const f of fallbacks) {
+            if (fs.existsSync(f)) {
+              ollamaPath = f;
+              break;
+            }
+          }
+        }
+        
+        const child = spawn(ollamaPath, ['serve'], {
           detached: true,
           stdio: 'ignore'
         });
@@ -941,6 +1012,14 @@ ipcMain.handle(IPC_CHANNELS.NET_FETCH, async (_, url, options = {}) => {
       if (process.platform === 'win32') {
         const exeName = name === 'ollama' ? 'ollama.exe' : 'qdrant.exe';
         await execPromise(`taskkill /IM ${exeName} /F`);
+      } else if (process.platform === 'darwin') {
+        // More graceful than pkill -f for macOS
+        try {
+          await execPromise(`killall ${name}`);
+        } catch (e) {
+          // Fallback to pkill if killall fails
+          await execPromise(`pkill -i -f ${name}`);
+        }
       } else {
         await execPromise(`pkill -f ${name}`);
       }

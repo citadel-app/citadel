@@ -63,7 +63,8 @@ export const registerLatexHandlers = () => {
             ] : isMac ? [
                 '/Library/TeX/texbin/pdflatex',
                 '/usr/local/bin/pdflatex',
-                '/opt/homebrew/bin/pdflatex'
+                '/opt/homebrew/bin/pdflatex',
+                '/usr/bin/pdflatex'
             ] : [
                 '/usr/bin/pdflatex',
                 '/usr/local/bin/pdflatex'
@@ -183,7 +184,8 @@ export const registerLatexHandlers = () => {
                     ] : isMac ? [
                         '/Library/TeX/texbin/pdflatex',
                         '/usr/local/bin/pdflatex',
-                        '/opt/homebrew/bin/pdflatex'
+                        '/opt/homebrew/bin/pdflatex',
+                        '/usr/bin/pdflatex'
                     ] : [
                         '/usr/bin/pdflatex',
                         '/usr/local/bin/pdflatex'

@@ -41,7 +41,8 @@ const api = {
     getInitContext: () => ipcRenderer.invoke(IPC_CHANNELS.APP_GET_INIT_CONTEXT),
     getDownloadsPath: () => ipcRenderer.invoke(IPC_CHANNELS.APP_GET_DOWNLOADS_PATH),
     openWorkspace: (path: string) => ipcRenderer.invoke(IPC_CHANNELS.APP_OPEN_WORKSPACE, path),
-    setActiveWorkspace: (path: string) => ipcRenderer.invoke(IPC_CHANNELS.APP_SET_ACTIVE_WORKSPACE, path)
+    setActiveWorkspace: (path: string) => ipcRenderer.invoke(IPC_CHANNELS.APP_SET_ACTIVE_WORKSPACE, path),
+    isMac: process.platform === 'darwin'
   },
   lsp: {
     start: (language: string) => ipcRenderer.invoke(IPC_CHANNELS.LSP_START, language),

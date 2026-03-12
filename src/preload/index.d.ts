@@ -22,8 +22,10 @@ export interface CustomAPI {
     onLog: (callback: (data: { severity: 'warning' | 'error', message: string }) => void) => () => void;
     onDeepLink: (callback: (url: string) => void) => () => void;
     getInitContext: () => Promise<{ workspacePath: string | null, appVersion: string, platform: string, deepLinkUrl?: string | null }>;
+    getDownloadsPath: () => Promise<string>;
     openWorkspace: (path: string) => Promise<void>;
     setActiveWorkspace: (path: string) => Promise<boolean>;
+    isMac: boolean;
   }
   lsp: {
     start: (language: string) => Promise<any>

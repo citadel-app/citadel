@@ -4,7 +4,15 @@ import path from 'path';
 import { is } from '@electron-toolkit/utils';
 import { AppSettingsService } from './AppSettingsService';
 
-const execAsync = promisify(exec);
+const execAsyncRaw = promisify(exec);
+const execAsync = (cmd: string, options: any = {}) => {
+    return Promise.race([
+        execAsyncRaw(cmd, options),
+        new Promise((_, reject) => 
+            setTimeout(() => reject(new Error(`Command timed out: ${cmd}`)), 10000)
+        )
+    ]) as Promise<{ stdout: string, stderr: string }>;
+};
 
 type ServiceType = 'execution' | 'tts';
 
@@ -106,8 +114,9 @@ export class BackendServiceManager {
         const ttsDataPath = this.settings.getSetting('ttsDataPath');
         const ttsVolume = ttsDataPath ? `-v "${ttsDataPath}":/app/.tts_cache` : '';
 
+        const dockerSocket = process.platform === 'win32' ? '//var/run/docker.sock' : '/var/run/docker.sock';
         const runCmd = service === 'execution' 
-            ? `${this.dockerPath} run -p 5051:5051 --name ${containerName} --label managed-by=codex --label role=backend-service --label service-name=${service} -v //var/run/docker.sock:/var/run/docker.sock ${imageName}`
+            ? `${this.dockerPath} run -p 5051:5051 --name ${containerName} --label managed-by=codex --label role=backend-service --label service-name=${service} -v ${dockerSocket}:/var/run/docker.sock ${imageName}`
             : `${this.dockerPath} run -p 5050:5050 ${ttsVolume} --name ${containerName} --label managed-by=codex --label role=backend-service --label service-name=${service} ${imageName}`;
 
         const fullCmd = `${buildCmd} && ${runCmd}`;
@@ -140,15 +149,22 @@ export class BackendServiceManager {
         try {
             await execAsync(`${this.dockerPath} stop ${containerName}`);
             return true;
-        } catch (e) {
+        } catch (e: any) {
+            // If the container doesn't exist, we don't need to bark.
+            if (e.stderr?.includes('No such container') || e.message?.includes('No such container')) {
+                console.log(`[BackendServiceManager] Container ${containerName} not found or already removed.`);
+                return true;
+            }
             console.error(`[BackendServiceManager] Error stopping ${service}:`, e);
             return false;
         }
     }
 
-    stopAll() {
-        this.stop('execution');
-        this.stop('tts');
+    async stopAll() {
+        await Promise.allSettled([
+            this.stop('execution'),
+            this.stop('tts')
+        ]);
     }
 
     getStatus(service: ServiceType): ServiceStatus {

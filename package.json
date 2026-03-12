@@ -30,6 +30,7 @@
     "@electron-toolkit/utils": "^4.0.0",
     "@tiptap/extension-bubble-menu": "^3.19.0",
     "better-sqlite3": "^12.6.2",
+    "chokidar": "^3.6.0",
     "buffer": "^6.0.3",
     "fs-extra": "^11.3.3",
     "react-virtualized-auto-sizer": "^2.0.3",
