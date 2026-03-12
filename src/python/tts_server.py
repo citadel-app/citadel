@@ -21,9 +21,31 @@ app.add_middleware(
 
 # Initialize Kokoro
 # We expect model.onnx and voices.json to be in the same directory as this script
+# OR in a mounted /app/models directory
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-MODEL_PATH = os.path.join(SCRIPT_DIR, "kokoro-v0_19.onnx")
-VOICES_PATH = os.path.join(SCRIPT_DIR, "voices.npz")
+MOUNTED_MODELS_DIR = "/app/models"
+
+def get_model_path():
+    # Priority: 1. Mounted volume, 2. Script directory
+    mounted_path = os.path.join(MOUNTED_MODELS_DIR, "kokoro-v0_19.onnx")
+    if os.path.exists(mounted_path):
+        return mounted_path
+    return os.path.join(SCRIPT_DIR, "kokoro-v0_19.onnx")
+
+def get_voices_path():
+    # Priority: 1. voices.npz in mounted, 2. voices.json in mounted, 3. local voices.npz
+    npz_mounted = os.path.join(MOUNTED_MODELS_DIR, "voices.npz")
+    if os.path.exists(npz_mounted):
+        return npz_mounted
+    
+    json_mounted = os.path.join(MOUNTED_MODELS_DIR, "voices.json")
+    if os.path.exists(json_mounted):
+        return json_mounted
+        
+    return os.path.join(SCRIPT_DIR, "voices.npz")
+
+MODEL_PATH = get_model_path()
+VOICES_PATH = get_voices_path()
 
 # Disk cache directory
 CACHE_DIR = os.getenv("TTS_CACHE_DIR", os.path.join(SCRIPT_DIR, ".tts_cache"))

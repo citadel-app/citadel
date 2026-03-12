@@ -56,13 +56,25 @@ export class BackendServiceManager {
         }
     }
 
-    async start(service: ServiceType): Promise<boolean> {
+    async start(service: ServiceType): Promise<boolean | { needsDownload: boolean }> {
         // Wait for checkDocker to complete if it hasn't yet
         if (this.isDockerAvailable === null) {
             await this.checkDocker();
         }
 
         if (this.isDockerAvailable === false) return false;
+
+        // For TTS, check if models are present
+        if (service === 'tts') {
+            const { ModelDownloadService } = require('./ModelDownloadService');
+            const modelDownloader = new ModelDownloadService();
+            const status = modelDownloader.checkModelStatus();
+            
+            if (!status.modelExists || !status.voicesExists) {
+                console.log('[BackendServiceManager] TTS models or voices missing. Reporting needsDownload.');
+                return { needsDownload: true };
+            }
+        }
         
         if (this.processes.has(service)) {
             console.log(`[BackendServiceManager] Service ${service} is already running (tracked).`);
@@ -111,13 +123,19 @@ export class BackendServiceManager {
 
         const contextDir = this.scriptPaths[service];
         const buildCmd = `${this.dockerPath} build -t ${imageName} -f ${dockerfile} .`;
-        const ttsDataPath = this.settings.getSetting('ttsDataPath');
+        const ttsDataPath = (this.settings.getSetting('ttsDataPath') as string || '').replace(/\\/g, '/');
         const ttsVolume = ttsDataPath ? `-v "${ttsDataPath}":/app/.tts_cache` : '';
+
+        // Model directory mounting
+        const { ModelDownloadService } = require('./ModelDownloadService');
+        const modelDownloader = new ModelDownloadService();
+        const modelsDir = modelDownloader.getModelsDir().replace(/\\/g, '/');
+        const modelVolume = service === 'tts' ? `-v "${modelsDir}":/app/models` : '';
 
         const dockerSocket = process.platform === 'win32' ? '//var/run/docker.sock' : '/var/run/docker.sock';
         const runCmd = service === 'execution' 
             ? `${this.dockerPath} run -p 5051:5051 --name ${containerName} --label managed-by=codex --label role=backend-service --label service-name=${service} -v ${dockerSocket}:/var/run/docker.sock ${imageName}`
-            : `${this.dockerPath} run -p 5050:5050 ${ttsVolume} --name ${containerName} --label managed-by=codex --label role=backend-service --label service-name=${service} ${imageName}`;
+            : `${this.dockerPath} run -p 5050:5050 ${ttsVolume} ${modelVolume} --name ${containerName} --label managed-by=codex --label role=backend-service --label service-name=${service} ${imageName}`;
 
         const fullCmd = `${buildCmd} && ${runCmd}`;
         

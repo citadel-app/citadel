@@ -1,6 +1,6 @@
 {
   "name": "citadel",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "a hackable second brain for software developers",
   "main": "./out/main/index.js",
   "author": "Citadel",

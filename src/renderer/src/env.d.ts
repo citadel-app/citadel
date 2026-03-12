@@ -68,6 +68,16 @@ declare global {
         service: any;
         repl: any;
         db: any;
+        models: {
+            checkStatus: () => Promise<{
+                modelExists: boolean;
+                voicesExists: boolean;
+                voicesJsonExists: boolean;
+                modelsDir: string;
+            }>;
+            download: () => Promise<{ success: boolean; error?: string }>;
+            onDownloadProgress: (callback: (progress: any) => void) => () => void;
+        };
     };
   }
 }

@@ -1,5 +1,6 @@
 appId: com.citadel.app
 productName: Citadel
+# Application version is automatically pulled from package.json
 directories:
   buildResources: build
 protocols:
@@ -23,6 +24,7 @@ extraResources:
     to: tts-service/src/python
     filter:
       - "**/*"
+      - "!**/*.onnx"
   - from: docker-compose.yml
     to: tts-service/docker-compose.yml
 win:

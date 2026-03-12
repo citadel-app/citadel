@@ -8,6 +8,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { useNavigate } from 'react-router-dom';
 import { useConfig } from '../context/ConfigContext';
 import { cn } from '../lib/utils';
+import { useModels } from '../hooks/useModels';
 
 interface HardwareSpecs {
     totalMemory: number;
@@ -97,6 +98,7 @@ export const SystemStatusPage = () => {
     const [indexProgress, setIndexProgress] = useState({ current: 0, total: 0 });
     const [dockerContainers, setDockerContainers] = useState<any[]>([]);
     const [isRefreshingDocker, setIsRefreshingDocker] = useState(false);
+    const { status: modelStatus, isDownloading, downloadProgress, downloadModel } = useModels();
 
     // ... (rest of state stays same)
 
@@ -288,7 +290,12 @@ export const SystemStatusPage = () => {
         setTransitioningServices(prev => new Set(prev).add(name));
         try {
             if (name === 'execution' || name === 'tts') {
-                await window.api.service.start(name);
+                const result = await window.api.service.start(name);
+                if (typeof result === 'object' && result?.needsDownload) {
+                    console.log(`[SystemStatusPage] Service ${name} needs model download first.`);
+                    // We don't throw error here, just let the transition clear
+                    // The UI already shows the "Download" button if missing
+                }
             } else {
                 await window.api.system.startService(name);
             }
@@ -711,6 +718,46 @@ export const SystemStatusPage = () => {
                                 <div className="flex justify-between items-center px-2 py-1">
                                     <span className="text-muted-foreground text-xs">Cache</span>
                                     <span className="font-mono text-xs font-medium">{ttsStatus?.cache_entries ?? 0} items</span>
+                                </div>
+
+                                {/* Model Status & Download */}
+                                <div className="mt-4 pt-4 border-t border-border/40 space-y-3">
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-xs font-medium text-muted-foreground uppercase flex items-center gap-1.5">
+                                            <Icon name="Database" size={12} />
+                                            Kokoro Model v0.19
+                                        </span>
+                                        <span className={cn(
+                                            "text-[10px] font-bold px-1.5 py-0.5 rounded border",
+                                            (modelStatus?.modelExists && modelStatus?.voicesExists) ? "bg-green-500/10 text-green-500 border-green-500/20" : "bg-orange-500/10 text-orange-500 border-orange-500/20"
+                                        )}>
+                                            {(modelStatus?.modelExists && modelStatus?.voicesExists) ? 'Downloaded' : 'Missing'}
+                                        </span>
+                                    </div>
+
+                                    {!(modelStatus?.modelExists && modelStatus?.voicesExists) && !isDownloading && (
+                                        <button
+                                            onClick={() => downloadModel()}
+                                            className="w-full py-2 bg-primary text-primary-foreground rounded-lg text-xs font-bold hover:bg-primary/90 transition-colors"
+                                        >
+                                            Download Model (310MB)
+                                        </button>
+                                    )}
+
+                                    {isDownloading && downloadProgress && (
+                                        <div className="space-y-2">
+                                            <div className="flex justify-between text-[10px] font-mono">
+                                                <span className="truncate max-w-[150px]">{downloadProgress.filename}</span>
+                                                <span>{downloadProgress.percent}%</span>
+                                            </div>
+                                            <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
+                                                <div
+                                                    className="h-full bg-primary transition-all duration-300"
+                                                    style={{ width: `${downloadProgress.percent}%` }}
+                                                />
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>
