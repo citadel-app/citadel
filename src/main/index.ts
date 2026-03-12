@@ -22,6 +22,7 @@ import { GuardrailService } from './services/GuardrailService';
 import { feedDb } from './db';
 import { AIOrchestrator } from './ai/AIOrchestrator';
 import { setupMacOSMenu } from './menu-utils';
+import { ModelDownloadService } from './services/ModelDownloadService';
 
 // Determine initial workspace from CLI
 let initialWorkspacePath: string | null = null
@@ -313,6 +314,7 @@ app.whenReady().then(() => {
   new GitHubService()
   new GitHubAuthService()
   new SecretStorageService()
+  new ModelDownloadService()
   // appSettings already initialized
   const fileWatcher = new FileWatcherService()
   registerLatexHandlers()

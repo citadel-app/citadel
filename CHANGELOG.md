@@ -1,9 +1,10 @@
 # Changelog
 
-## 1.0.1 (2026-03-12)
+## 1.1.0 (2026-03-12)
 
 ### Features
 
+* feat: Implement Docker-managed Text-to-Speech (TTS) service with model download and system status monitoring, and update application version. ([c7dee71](https://github.com/iwannabebot/citadel/commit/c7dee716a68f3ab9f37a9a00d5733c317d0b3fb1))
 * feat: add script to generate changelog entries and corresponding npm command. ([c594754](https://github.com/iwannabebot/citadel/commit/c5947544f99e0d67d54a99b2f2ea31e642346422))
 * feat: Cross platform support for Mac ([3e91060](https://github.com/iwannabebot/citadel/commit/3e9106058c1ecfe64245033e7f15da3e6ac02e83))
 * feat: Major upgrades: Design System, Perf Improvements, Shared Module, Omni Search, Quick Chat, Theming ([e55fcdc](https://github.com/iwannabebot/citadel/commit/e55fcdc9998bc56707af60c62d0595b2c48ca9d7))
@@ -17,6 +18,11 @@
 
 * fix: Better cleanup and timeout for repl containers ([9a39eb3](https://github.com/iwannabebot/citadel/commit/9a39eb3d0b143c67a9f3acc3aa1f6cd211bd6cb3))
 * fix: kbuild gate before release and all push ([b322cc0](https://github.com/iwannabebot/citadel/commit/b322cc05290a7c6852859ff34fcfc27f1a1ac806))
+
+### Documentation
+
+* docs: Add changelog entries for version 1.0.1, detailing new features and bug fixes. ([19a3860](https://github.com/iwannabebot/citadel/commit/19a3860c39c2c0ce1480f6b45c4671d653b66d01))
+
 
 ## 1.0.0 (2026-03-04)
 

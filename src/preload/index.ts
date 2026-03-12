@@ -180,6 +180,15 @@ const api = {
     saveFeedItems: (feedId: string, items: any[]) => ipcRenderer.invoke(IPC_CHANNELS.DB_SAVE_FEED_ITEMS, feedId, items),
     getFeedStatus: () => ipcRenderer.invoke(IPC_CHANNELS.DB_GET_FEED_STATUS),
     updateFeedStatus: (itemId: string, status: any) => ipcRenderer.invoke(IPC_CHANNELS.DB_UPDATE_FEED_STATUS, itemId, status)
+  },
+  models: {
+    checkStatus: () => ipcRenderer.invoke('models:check-status'),
+    download: () => ipcRenderer.invoke('models:download'),
+    onDownloadProgress: (callback: (progress: any) => void) => {
+      const listener = (_: any, progress: any) => callback(progress);
+      ipcRenderer.on('models:download-progress', listener);
+      return () => ipcRenderer.removeListener('models:download-progress', listener);
+    }
   }
 }
 
