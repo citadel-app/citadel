@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.2.0](https://github.com/iwannabebot/citadel/compare/v1.1.1...v1.2.0) (2026-03-13)
+
+
+### Features
+
+* Add macOS and Linux application icons, including an icon generation script and updated build configurations. ([83f0fc0](https://github.com/iwannabebot/citadel/commit/83f0fc06080ae0a4e451027102e241b7c536ee4e))
+* Implement dynamic port allocation for development, communicate service ports to the renderer, and enhance window state management. ([c735cf1](https://github.com/iwannabebot/citadel/commit/c735cf1dcb6a1455cc5c8d1810fec41fb17b5dcd))
+* improve zoom factor management to prevent redundant updates, implement optimistic app settings with rollback, and simplify TitleBar UI. ([c49fbd7](https://github.com/iwannabebot/citadel/commit/c49fbd7744d41be46e8ea67c04f3d1205b035860))
+* Introduce Monaco Editor wrapper component with automatic type acquisition (ATA) and Language Server Protocol (LSP) integration, and add main and offline branding logos. ([38bc033](https://github.com/iwannabebot/citadel/commit/38bc033886d7646d77ad7897523d93026e100d61))
+* introduce workspace presets and establish core application structure with new components and constants. ([ba3812a](https://github.com/iwannabebot/citadel/commit/ba3812a7af2d177be7cbcea47308a756a7c5c740))
+* Update a comprehensive collection of AWS and Azure service icons. ([ff24d1a](https://github.com/iwannabebot/citadel/commit/ff24d1aa7b7136cc773716757f7eb38a759a839b))
+
+
+### Bug Fixes
+
+* Updated `banner.png` resource. ([4a181c3](https://github.com/iwannabebot/citadel/commit/4a181c3288d8d67903de7d282eb71aa7897a0219))
+
 ## 1.2.0 (2026-03-13)
 
 ### Bug Fixes
