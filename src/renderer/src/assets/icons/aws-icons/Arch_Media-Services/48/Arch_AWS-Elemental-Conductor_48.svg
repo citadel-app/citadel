@@ -1,10 +1,1 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg width="64px" height="64px" viewBox="0 0 64 64" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-    <title>Icon-Architecture/48/Arch_AWS-Elemental-Conductor_48</title>
-    <g id="Icon-Architecture/48/Arch_AWS-Elemental-Conductor_48" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-        <g id="Icon-Architecture-BG/48/Media-Services" fill="#ED7100">
-            <rect id="Rectangle" x="0" y="0" width="64" height="64"></rect>
-        </g>
-        <path d="M37.968,42.005 L33,44.848 L28.032,42.005 L28.032,36.335 L33,33.492 L37.968,36.335 L37.968,42.005 Z M39.968,35.755 C39.968,35.397 39.776,35.065 39.465,34.887 L33.497,31.472 C33.189,31.296 32.812,31.296 32.503,31.472 L26.535,34.887 C26.225,35.065 26.032,35.397 26.032,35.755 L26.032,38 L12,38 L12,40 L26.032,40 L26.032,42.585 C26.032,42.943 26.225,43.275 26.535,43.453 L32,46.581 L32,52 L34,52 L34,46.581 L39.465,43.453 C39.776,43.275 39.968,42.943 39.968,42.585 L39.968,40 L52,40 L52,38 L39.968,38 L39.968,35.755 Z M15,21 L20,21 L20,19 L15,19 L15,21 Z M37,21 L49,21 L49,19 L37,19 L37,21 Z M12,26 L52,26 L52,14 L12,14 L12,26 Z M53,12 L11,12 C10.447,12 10,12.448 10,13 L10,27 C10,27.552 10.447,28 11,28 L53,28 C53.553,28 54,27.552 54,27 L54,13 C54,12.448 53.553,12 53,12 L53,12 Z" id="AWS-Elemental-Conductor_Icon_48_Squid" fill="#FFFFFF"></path>
-    </g>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64"><title>Icon-Architecture/48/Arch_AWS-Elemental-Conductor_48</title><g fill="none" fill-rule="evenodd"><path fill="#ed7100" d="M0 0h64v64H0z"/><path fill="#fff" d="M37.968 42.005 33 44.848l-4.968-2.843v-5.67L33 33.492l4.968 2.843zm2-6.25c0-.358-.192-.69-.503-.868l-5.968-3.415a1 1 0 0 0-.994 0l-5.968 3.415c-.31.178-.503.51-.503.868V38H12v2h14.032v2.585c0 .358.193.69.503.868L32 46.581V52h2v-5.419l5.465-3.128c.311-.178.503-.51.503-.868V40H52v-2H39.968zM15 21h5v-2h-5zm22 0h12v-2H37zm-25 5h40V14H12zm41-14H11a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h42a1 1 0 0 0 1-1V13a1 1 0 0 0-1-1"/></g></svg>

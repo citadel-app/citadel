@@ -115,7 +115,7 @@ export const WorkspaceBuilderPage: React.FC = () => {
 
     const handleCreateWorkspace = async () => {
         if (!localPath) {
-            setCreateError('Please choose a folder for your workspace.');
+            setCreateError('Please choose a folder for your Keep.');
             return;
         }
         setIsCreating(true);
@@ -130,7 +130,7 @@ export const WorkspaceBuilderPage: React.FC = () => {
                     githubAccount.token, repoName, repoDesc, isPrivate
                 );
 
-                setCreationStatus('Scaffolding workspace files...');
+                setCreationStatus('Scaffolding Keep files...');
                 await window.api.fs.scaffoldWorkspace(localPath, repoData.full_name, repoData.clone_url);
                 await dataManager.createWorkspace(localPath, draftConfig);
 
@@ -147,7 +147,7 @@ export const WorkspaceBuilderPage: React.FC = () => {
                 await window.api.git.push(localPath, 'origin', 'main');
             } else {
                 // --- Local-only flow ---
-                setCreationStatus('Creating workspace...');
+                setCreationStatus('Creating Keep...');
                 await dataManager.createWorkspace(localPath, draftConfig);
             }
 
@@ -449,7 +449,7 @@ export const WorkspaceBuilderPage: React.FC = () => {
                                                 type="text"
                                                 value={repoName}
                                                 onChange={e => setRepoName(e.target.value.replace(/\s+/g, '-'))}
-                                                placeholder="my-workspace"
+                                                placeholder="my-keep"
                                                 className="w-full h-9 px-3 text-sm bg-background border border-input rounded-lg focus:border-primary outline-none"
                                             />
                                         </div>
@@ -459,7 +459,7 @@ export const WorkspaceBuilderPage: React.FC = () => {
                                                 type="text"
                                                 value={repoDesc}
                                                 onChange={e => setRepoDesc(e.target.value)}
-                                                placeholder="A Citadel workspace for..."
+                                                placeholder="A Citadel Keep for..."
                                                 className="w-full h-9 px-3 text-sm bg-background border border-input rounded-lg focus:border-primary outline-none"
                                             />
                                         </div>

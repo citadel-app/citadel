@@ -1,6 +1,6 @@
 {
   "name": "citadel",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "description": "a hackable second brain for software developers",
   "main": "./out/main/index.js",
   "author": "Citadel",
@@ -12,19 +12,20 @@
     "typecheck:web": "tsc --noEmit -p tsconfig.web.json --composite false",
     "typecheck": "npm run typecheck:node && npm run typecheck:web",
     "start": "electron-vite preview",
-    "dev": "electron-vite dev",
+    "dev": "node scripts/dev-wrapper.js",
     "build": "npm run typecheck && cross-env NODE_OPTIONS=\"--max-old-space-size=8192\" electron-vite build",
     "postinstall": "electron-builder install-app-deps",
     "build:unpack": "npm run build && electron-builder --dir",
     "build:win": "npm run build && electron-builder --win --x64 && electron-builder --win --arm64",
-    "build:mac": "npm run build && electron-builder --mac --x64 --arm64",
+    "build:mac": "npm run build && electron-builder --mac --x64 && electron-builder --mac --arm64",
     "build:linux": "npm run build && electron-builder --linux --x64 && electron-builder --linux --arm64",
     "copy-assets": "node scripts/copy-excalidraw-assets.js",
     "start:server": "python src/python/tts_server.py",
     "dev:all": "concurrently --kill-others \"npm run dev\" \"npm run start:server\"",
     "clean": "npm run clean:build",
     "clean:build": "node scripts/clean.js",
-    "changelog:generate": "node scripts/generate-changelog-entries.js"
+    "changelog:generate": "node scripts/generate-changelog-entries.js",
+    "generate-icons": "scripts/generate-icons.sh"
   },
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.2",

@@ -1295,7 +1295,7 @@ export class DataManager {
         try {
             await fs.writeFile(path, JSON.stringify(items, null, 2));
         } catch (e) {
-            console.warn('[DataManager] Could not save youtube feed items. Not a native workspace?');
+            console.warn('[DataManager] Could not save youtube feed items. Not a native Keep?');
         }
     }
 
@@ -1607,7 +1607,7 @@ export class DataManager {
 
     async saveLatexFile(name: string, content: string, isBinary: boolean = false): Promise<void> {
         if (!this.rootPath) {
-            throw new Error("Cannot save file: No active workspace.");
+            throw new Error("Cannot save file: No active Keep.");
         }
 
         const latexDir = `${this.rootPath}/${APP_CONSTANTS.PATHS.CONFIG_DIR}/${APP_CONSTANTS.PATHS.LATEX_DIR}`;
@@ -1636,7 +1636,7 @@ export class DataManager {
     
     async renameLatexFile(oldName: string, newName: string): Promise<void> {
         if (!this.rootPath) {
-            throw new Error("Cannot rename file: No active workspace.");
+            throw new Error("Cannot rename file: No active Keep.");
         }
         const latexDir = `${this.rootPath}/${APP_CONSTANTS.PATHS.CONFIG_DIR}/${APP_CONSTANTS.PATHS.LATEX_DIR}`;
         const oldPath = `${latexDir}/${oldName}`;
@@ -1646,7 +1646,7 @@ export class DataManager {
     
     async deleteLatexFile(name: string): Promise<void> {
         if (!this.rootPath) {
-             throw new Error("Cannot delete file: No active workspace.");
+             throw new Error("Cannot delete file: No active Keep.");
         }
         const path = `${this.rootPath}/${APP_CONSTANTS.PATHS.CONFIG_DIR}/${APP_CONSTANTS.PATHS.LATEX_DIR}/${name}`;
         if (await fs.exists(path)) {
@@ -1699,7 +1699,7 @@ export class DataManager {
 
     async saveTagCategories(categories: any[]): Promise<void> {
         if (!this.rootPath) {
-            throw new Error("Cannot save tag categories: No active workspace.");
+            throw new Error("Cannot save tag categories: No active Keep.");
         }
         const tagsPath = `${this.rootPath}/${APP_CONSTANTS.PATHS.CONFIG_DIR}/${APP_CONSTANTS.PATHS.TAGS_FILE}`;
         try {

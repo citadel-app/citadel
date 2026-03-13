@@ -78,6 +78,7 @@ declare global {
             download: () => Promise<{ success: boolean; error?: string }>;
             onDownloadProgress: (callback: (progress: any) => void) => () => void;
         };
+        on: (channel: string, callback: (...args: any[]) => void) => () => void;
     };
   }
 }

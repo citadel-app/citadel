@@ -1,11 +1,1 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg width="90px" height="90px" viewBox="0 0 90 90" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-    <title>Icon-Architecture-Category/64/Customer-Enablement_64</title>
-    <g id="Icon-Architecture-Category/64/Customer-Enablement_64" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-        <rect id="Rectangle" fill="#C925D1" x="5" y="5" width="80" height="80"></rect>
-        <rect id="#879196-Border-Copy-7" stroke="#879196" stroke-width="2" x="1" y="1" width="88" height="88"></rect>
-        <g id="Icon-Category/64/Customer-Enablement_64" transform="translate(18.000000, 16.000000)" fill="#FFFFFF">
-            <path d="M52,43.232 L42.111,48.282 C41.45,39.78 36.919,32.843 30.965,30.74 C33.99,29.288 36.089,26.203 36.089,22.629 C36.089,17.667 32.052,13.629 27.089,13.629 C22.126,13.629 18.089,17.667 18.089,22.629 C18.089,26.229 20.218,29.333 23.278,30.771 C17.307,32.914 12.868,39.84 12.275,48.48 L2,43.232 L2,15.013 L27,2.246 L52,15.013 L52,43.232 Z M27.089,29.629 C23.229,29.629 20.089,26.489 20.089,22.629 C20.089,18.77 23.229,15.629 27.089,15.629 C30.948,15.629 34.089,18.77 34.089,22.629 C34.089,26.489 30.948,29.629 27.089,29.629 L27.089,29.629 Z M27,56 L14.227,49.476 C14.58,39.665 20.187,32.064 27.197,32.064 C34.09,32.064 39.73,39.689 40.156,49.281 L27,56 Z M27,3.55271368e-15 L0,13.789 L0,44.457 L27,58.246 L54,44.457 L54,13.789 L27,3.55271368e-15 Z" id="Fill-5"></path>
-        </g>
-    </g>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="90" height="90" viewBox="0 0 90 90"><title>Icon-Architecture-Category/64/Customer-Enablement_64</title><g fill="none" fill-rule="evenodd"><path fill="#c925d1" d="M5 5h80v80H5z"/><path stroke="#879196" stroke-width="2" d="M1 1h88v88H1z"/><path fill="#fff" d="m70 59.232-9.889 5.05c-.661-8.502-5.192-15.439-11.146-17.542 3.025-1.452 5.124-4.537 5.124-8.111 0-4.962-4.037-9-9-9s-9 4.038-9 9c0 3.6 2.129 6.704 5.189 8.142-5.971 2.143-10.41 9.069-11.003 17.709L20 59.232V31.013l25-12.767 25 12.767zM45.089 45.629c-3.86 0-7-3.14-7-7s3.14-7 7-7 7 3.141 7 7-3.141 7-7 7M45 72l-12.773-6.524c.353-9.811 5.96-17.412 12.97-17.412 6.893 0 12.533 7.625 12.959 17.217zm0-56L18 29.789v30.668l27 13.789 27-13.789V29.789z"/></g></svg>

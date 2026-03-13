@@ -60,12 +60,12 @@ export function useGlobalCommands() {
         const unreg9 = commandRegistry.register({
             id: 'nav.settings.workspace',
             name: 'Keep Settings',
-            description: 'Manage your vault and workspace settings',
+            description: 'Manage your Keep\'s settings',
             icon: 'Archive',
             category: 'Navigation',
             navigationTarget: '/settings/workspace',
             handler: () => navigate('/settings/workspace'),
-            synonyms: ['Vault', 'Workspace', 'Files', 'Path', 'Root']
+            synonyms: ['Vault', 'Keep', 'Workspace', 'Files', 'Path', 'Root']
         });
 
         const unreg10 = commandRegistry.register({

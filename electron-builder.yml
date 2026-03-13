@@ -17,14 +17,20 @@ files:
   - "!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}"
   - "!.venv/*"
   - "!data-sources/*"
+  - "!resources/Citadel Banners/*"
+  - "!resources/Citadel Logos/*"
+  - "!resources/logo-main.png"
 asarUnpack:
   - resources/**
+  - node_modules/better-sqlite3/**
 extraResources:
   - from: src/python
     to: tts-service/src/python
     filter:
       - "**/*"
       - "!**/*.onnx"
+      - "!**/*.json"
+      - "!**/*.npz"
   - from: docker-compose.yml
     to: tts-service/docker-compose.yml
 win:
@@ -41,6 +47,11 @@ nsis:
   uninstallDisplayName: ${productName}
   createDesktopShortcut: always
 mac:
+  identity: null
+  icon: resources/icon.icns
+  category: public.app-category.developer-tools
+  hardenedRuntime: false
+  gatekeeperAssess: false
   entitlementsInherit: resources/entitlements.mac.plist
   extendInfo:
     - NSCameraUsageDescription: Application requests access to the device's camera.
@@ -51,6 +62,7 @@ mac:
 dmg:
   artifactName: ${name}-${version}-${arch}.${ext}
 linux:
+  icon: resources/icon.png
   target:
     - AppImage
     - deb

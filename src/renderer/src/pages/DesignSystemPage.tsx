@@ -689,7 +689,7 @@ const LargeContentDialogPreview = () => {
                     <section className="space-y-2">
                         <h4 className="font-bold text-primary">Volume III: The Shadowed Depths</h4>
                         <p className="text-sm opacity-80 leading-relaxed">
-                            Beneath the polished marble of the upper tiers lies a network of tunnels and chambers known as the Bastion. Here, the guardians of the Citadel keep watch over the artifacts that are too dangerous to be seen by the public. It is a place of silence and shadow, where only the brave or the foolish dare to tread.
+                            Beneath the polished marble of the upper tiers lies a network of tunnels and chambers known as the Bastion. Here, the guardians of the Citadel Keep watch over the artifacts that are too dangerous to be seen by the public. It is a place of silence and shadow, where only the brave or the foolish dare to tread.
                         </p>
                     </section>
                     <section className="space-y-2">

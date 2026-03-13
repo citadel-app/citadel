@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, ReactNode, useRef, useCallback } from 'react';
 import { useTheme } from 'next-themes';
 import { THEMES, getThemeById, AppSettings, DEFAULT_APP_SETTINGS } from '@shared';
 
@@ -61,9 +61,38 @@ export const AppSettingsProvider = ({ children }: AppSettingsProviderProps) => {
     // Apply zoom factor
     useEffect(() => {
         if (window.api?.window?.setZoom) {
-            window.api.window.setZoom(settings.zoomFactor || 1.0);
+            // Only set if different from actual window zoom to avoid loops
+            window.api.window.getZoom().then((currentFactor: number) => {
+                const roundedNew = Math.round((settings.zoomFactor || 1.0) * 100) / 100;
+                const roundedCurrent = Math.round(currentFactor * 100) / 100;
+                if (roundedNew !== roundedCurrent) {
+                    window.api.window.setZoom(settings.zoomFactor || 1.0);
+                }
+            });
         }
     }, [settings.zoomFactor]);
+
+    const lastZoomRef = useRef(settings.zoomFactor || 1.0);
+    useEffect(() => {
+        lastZoomRef.current = settings.zoomFactor || 1.0;
+    }, [settings.zoomFactor]);
+
+    // Handle native zoom events from Main process
+    useEffect(() => {
+        if (!window.api?.window?.onZoomChange) return;
+
+        return window.api.window.onZoomChange((newFactor: number) => {
+            // Only update if it's different to prevent loops
+            // Round to 2 decimal places to ignore floating point noise
+            const roundedNew = Math.round(newFactor * 100) / 100;
+            const roundedCurrent = Math.round(lastZoomRef.current * 100) / 100;
+
+            if (roundedNew !== roundedCurrent) {
+                console.log(`[AppSettings] Native zoom detected: ${roundedNew}`);
+                updateSetting('zoomFactor', roundedNew);
+            }
+        });
+    }, []); // Empty deps to keep listener stable
 
     const loadSettings = async () => {
         try {
@@ -94,27 +123,33 @@ export const AppSettingsProvider = ({ children }: AppSettingsProviderProps) => {
         }
     };
 
-    const updateSetting = async (key: string, value: any) => {
+    const updateSetting = useCallback(async (key: string, value: any) => {
+        // Optimistic update
+        setSettings(prev => ({ ...prev, [key]: value }));
+
         try {
             const updated = await window.api.appSettings.updateSetting(key, value);
+            // Sync with actual server response if different
             setSettings(prev => ({ ...prev, ...updated }));
-
-            // Re-configure providers when AI settings change
-            // Re-configuration handled by Main process
         } catch (error) {
             console.error('Failed to update app setting:', error);
-            // Optimistic update fallback? For now just log error.
+            // Rollback optimistic update on failure (reload from memory/server)
+            loadSettings();
         }
-    };
+    }, []);
 
-    const updateSettings = async (newSettings: Partial<AppSettings>) => {
+    const updateSettings = useCallback(async (newSettings: Partial<AppSettings>) => {
+        // Optimistic update
+        setSettings(prev => ({ ...prev, ...newSettings }));
+
         try {
             const updated = await window.api.appSettings.updateSettings(newSettings);
             setSettings(prev => ({ ...prev, ...updated }));
         } catch (error) {
             console.error('Failed to update app settings:', error);
+            loadSettings();
         }
-    };
+    }, []);
 
     return (
         <AppSettingsContext.Provider value={{ settings, isLoading, updateSetting, updateSettings }}>

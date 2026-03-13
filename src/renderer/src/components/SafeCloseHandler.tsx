@@ -100,7 +100,7 @@ export const SafeCloseHandler = () => {
                         Pending Changes
                     </DialogTitle>
                     <DialogDescription>
-                        You have unsaved changes in your workspace.
+                        You have unsaved changes in your Keep.
                         {hasUncommitted && <div className="mt-2 text-foreground">• {status.files.length} uncommitted files</div>}
                         {hasUnpushed && <div className="mt-1 text-foreground">• {status.ahead} unpushed commits</div>}
                     </DialogDescription>

@@ -17,7 +17,15 @@ export const APP_CONSTANTS = {
     NOTEBOOK_FILE: 'notebooks.json',
     LATEX_DIR: 'latex',
     TAGS_FILE: 'tags.json',
-    BOARDS_FILE: 'boards.json'
+    BOARDS_FILE: 'boards.json',
+    ICONS_BASE: 'assets/icons',
+    BRANDING_BASE: 'assets/branding'
+  },
+  UI: {
+    GENERIC_ERROR: 'An unexpected error occurred. Please try again.',
+    LOADING: 'Loading...',
+    SAVING: 'Saving changes...',
+    NO_DATA: 'No data found'
   }
 };
 

@@ -1,4 +1,4 @@
-import { ipcMain, net } from 'electron';
+import { ipcMain, net, clipboard } from 'electron';
 import { IPC_CHANNELS } from '@shared';
 
 /**
@@ -19,7 +19,7 @@ import { IPC_CHANNELS } from '@shared';
 // ⚠️  REPLACE THIS with your GitHub App's Client ID
 //     Found at: github.com/settings/apps/<your-app> → Client ID
 // ============================================================
-const GITHUB_APP_CLIENT_ID = process.env.MAIN_VITE_GITHUB_CLIENT_ID || 'Ov23lieuVtPiNTMTYJ4v';
+const GITHUB_APP_CLIENT_ID = process.env.MAIN_VITE_GITHUB_CLIENT_ID;
 
 interface DeviceFlowResponse {
   device_code: string;
@@ -67,7 +67,7 @@ export class GitHubAuthService {
    * The user_code is what the user enters at the verification_uri.
    */
   async startDeviceFlow(): Promise<DeviceFlowResponse> {
-    console.log('[GitHubAuthService] Starting device flow...');
+    console.log(`[GitHubAuthService] Starting device flow with Client ID: ${GITHUB_APP_CLIENT_ID}...`);
 
     try {
       const response = await net.fetch('https://github.com/login/device/code', {
@@ -85,11 +85,19 @@ export class GitHubAuthService {
       const data = await response.json() as any;
 
       if (!response.ok) {
-        console.error('[GitHubAuthService] Device code request failed:', data);
-        throw new Error(data.error_description || data.error || 'Failed to start device flow');
+        console.error('[GitHubAuthService] Device code request failed:', {
+          status: response.status,
+          statusText: response.statusText,
+          data
+        });
+        throw new Error(data.error_description || data.error || `GitHub API error (${response.status}): ${response.statusText}`);
       }
 
       console.log('[GitHubAuthService] Device flow started. User code:', data.user_code);
+      
+      // Automatically copy to clipboard for convenience
+      clipboard.writeText(data.user_code);
+      
       return {
         device_code: data.device_code,
         user_code: data.user_code,

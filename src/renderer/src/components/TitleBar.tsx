@@ -53,6 +53,20 @@ export const TitleBar = () => {
 
     const [canGoBack, setCanGoBack] = useState(false);
     const [canGoForward, setCanGoForward] = useState(false);
+    const [isMaximized, setIsMaximized] = useState(false);
+    const [isFullScreen, setIsFullScreen] = useState(false);
+
+    useEffect(() => {
+        // Listen for window state changes from main process
+        const unlisten = window.api.on('window:state-changed', (state: { isMaximized: boolean; isFullScreen: boolean }) => {
+            setIsMaximized(state.isMaximized);
+            setIsFullScreen(state.isFullScreen);
+        });
+
+        return () => {
+            if (unlisten) unlisten();
+        };
+    }, []);
 
     useEffect(() => {
         // Use the Navigation API if available (Modern Electron/Chrome)
@@ -74,7 +88,12 @@ export const TitleBar = () => {
     const handleClose = () => window.api.window.close();
 
     return (
-        <div className="h-8 flex items-center bg-muted/20 border-b border-border select-none relative z-[100]" style={{ WebkitAppRegion: 'drag' } as any}>
+        <div 
+            className={cn(
+                "h-8 flex items-center bg-muted/20 border-b border-border select-none relative z-[100]"
+            )} 
+            style={{ WebkitAppRegion: 'drag' } as any}
+        >
             {/* 1. Left Section: Logo + Navigation & Core App Links */}
             <div className="flex items-center shrink-0 h-full">
                 {/* App Logo - Protruding Tab Style */}
@@ -368,8 +387,8 @@ export const TitleBar = () => {
                     <button onClick={handleMinimize} className="w-9 h-full flex items-center justify-center hover:bg-muted text-muted-foreground transition-colors">
                         <Icon name="Minus" size={14} />
                     </button>
-                    <button onClick={handleMaximize} className="w-9 h-full flex items-center justify-center hover:bg-muted text-muted-foreground transition-colors">
-                        <Icon name="Maximize" size={12} />
+                    <button onClick={handleMaximize} className="w-9 h-full flex items-center justify-center hover:bg-muted text-muted-foreground transition-colors" title={isFullScreen || isMaximized ? "Restore" : "Maximize"}>
+                        <Icon name={isFullScreen || isMaximized ? "Minimize2" : "Maximize"} size={12} />
                     </button>
                     <button onClick={handleClose} className="w-10 h-full flex items-center justify-center hover:bg-red-500 hover:text-white transition-colors">
                         <Icon name="X" size={14} />

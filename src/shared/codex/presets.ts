@@ -209,7 +209,7 @@ export const PRESETS: WorkspacePreset[] = [
     {
         id: 'custom-builder',
         name: 'Create Your Own',
-        description: 'Pick and choose specific entry types for your workspace.',
+        description: 'Pick and choose specific entry types for your keep.',
         icon: 'Wrench',
         category: 'Advanced',
         config: DEFAULT_WORKSPACE_CONFIG
