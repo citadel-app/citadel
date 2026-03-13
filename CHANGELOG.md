@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.2.0 (2026-03-13)
+
+### Bug Fixes
+
+* feat: improve zoom factor management to prevent redundant updates, implement optimistic app settings with rollback, and simplify TitleBar UI. ([c49fbd7](https://github.com/iwannabebot/citadel/commit/c49fbd7744d41be46e8ea67c04f3d1205b035860))
+* feat: introduce workspace presets and establish core application structure with new components and constants. ([ba3812a](https://github.com/iwannabebot/citadel/commit/ba3812a7af2d177be7cbcea47308a756a7c5c740))
+* feat: Implement dynamic port allocation for development, communicate service ports to the renderer, and enhance window state management. ([c735cf1](https://github.com/iwannabebot/citadel/commit/c735cf1dcb6a1455cc5c8d1810fec41fb17b5dcd))
+* feat: Update a comprehensive collection of AWS and Azure service icons. ([ff24d1a](https://github.com/iwannabebot/citadel/commit/ff24d1aa7b7136cc773716757f7eb38a759a839b))
+* build: Update Electron build to unpack better-sqlite3, disable macOS signing, and generate separate x64/arm64 macOS binaries. ([7899e58](https://github.com/iwannabebot/citadel/commit/7899e584c1ea447992d99579ad54cb09e760004b)) 
+* feat: Add macOS and Linux application icons, including an icon generation script and updated build configurations. ([83f0fc0](https://github.com/iwannabebot/citadel/commit/83f0fc06080ae0a4e451027102e241b7c536ee4e))
+
+### Bug Fixes
+
+* fix: Updated `banner.png` resource. ([4a181c3](https://github.com/iwannabebot/citadel/commit/4a181c3288d8d67903de7d282eb71aa7897a0219))
+
 ## 1.1.1 (2026-03-13)
 
 ### Bug Fixes
