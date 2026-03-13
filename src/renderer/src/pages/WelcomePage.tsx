@@ -258,7 +258,7 @@ export const WelcomePage: React.FC = () => {
         const configDir = `${path}/${APP_CONSTANTS.PATHS.CONFIG_DIR}`;
         const isValid = await window.api.fs.exists(configDir);
         if (!isValid) {
-            setValidationError(`"${path.split(/[\\/]/).pop()}" is not a valid Citadel workspace. No .codex configuration was found.`);
+            setValidationError(`"${path.split(/[\\/]/).pop()}" is not a valid Citadel Keep. No .codex configuration was found.`);
             return false;
         }
         setValidationError(null);
@@ -812,7 +812,7 @@ export const WelcomePage: React.FC = () => {
                                         <div className="text-center space-y-1">
                                             <h3 className="font-bold text-base">Open Local Folder</h3>
                                             <p className="text-[10px] text-muted-foreground font-medium opacity-60">
-                                                Open a workspace from your computer
+                                                Open a Citadel Keep from your computer
                                             </p>
                                         </div>
                                     </button>
@@ -858,9 +858,9 @@ export const WelcomePage: React.FC = () => {
                                             <Plus className="w-8 h-8" />
                                         </div>
                                         <div className="text-center space-y-1">
-                                            <h3 className="font-bold text-base">Create New Workspace</h3>
+                                            <h3 className="font-bold text-base">Create New Keep</h3>
                                             <p className="text-[10px] text-muted-foreground font-medium opacity-60">
-                                                Set up a new local workspace
+                                                Set up a new local Keep
                                             </p>
                                         </div>
                                     </button>
@@ -1048,14 +1048,14 @@ export const WelcomePage: React.FC = () => {
                                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 text-left">
                                     <div className="space-y-2">
                                         <h3 className="text-xl font-bold">Project Identity</h3>
-                                        <p className="text-xs text-muted-foreground font-medium">Name your workspace.</p>
+                                        <p className="text-xs text-muted-foreground font-medium">Name your Keep.</p>
                                     </div>
                                     <div className="space-y-5">
                                         <div className="space-y-2">
                                             <label className="text-[10px] font-black text-muted-foreground/60 uppercase tracking-[0.2em] px-1">Repo Name</label>
                                             <input
                                                 type="text"
-                                                placeholder="my-workspace"
+                                                placeholder="my-keep"
                                                 value={repoName}
                                                 onChange={(e) => setRepoName(e.target.value)}
                                                 className="w-full bg-card/60 border border-muted/60 rounded-2xl px-5 py-4 text-sm focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all font-bold"
@@ -1201,7 +1201,7 @@ export const WelcomePage: React.FC = () => {
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center gap-2">
                                                 <h4 className="font-bold text-sm truncate">{repo.full_name}</h4>
-                                                {repo.topics?.includes('citadel-workspace') && (
+                                                {repo.topics?.includes('citadel-keep') && (
                                                     <span className="text-[8px] px-1.5 py-0.5 rounded-full bg-primary/20 text-primary font-black uppercase tracking-wider shrink-0">Citadel</span>
                                                 )}
                                             </div>

@@ -65,6 +65,24 @@ export const AppSettingsProvider = ({ children }: AppSettingsProviderProps) => {
         }
     }, [settings.zoomFactor]);
 
+    // Handle native zoom events from Main process
+    useEffect(() => {
+        if (!window.api?.window?.onZoomChange) return;
+
+        return window.api.window.onZoomChange((newFactor: number) => {
+            // Only update if it's different to prevent loops
+            // Round to 2 decimal places to ignore floating point noise
+            const roundedNew = Math.round(newFactor * 100) / 100;
+            const roundedCurrent = Math.round((settings.zoomFactor || 1.0) * 100) / 100;
+
+            if (roundedNew !== roundedCurrent) {
+                console.log(`[AppSettings] Native zoom detected: ${roundedNew}`);
+                // Use updateSettings to bypass any single-key logic if needed
+                updateSetting('zoomFactor', roundedNew);
+            }
+        });
+    }, [settings.zoomFactor]);
+
     const loadSettings = async () => {
         try {
             if (!window.api?.appSettings) {

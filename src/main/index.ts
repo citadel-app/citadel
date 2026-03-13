@@ -296,6 +296,13 @@ function createWindow(): void {
   } else {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
+
+  // Listen for native zoom changes (keyboard shortcuts, trackpad, etc.)
+  mainWindow.webContents.on('zoom-changed', (_, zoomDirection) => {
+    const currentZoom = mainWindow!.webContents.getZoomFactor();
+    console.log(`[Main] Zoom changed (${zoomDirection}). Current factor: ${currentZoom}`);
+    mainWindow!.webContents.send(IPC_CHANNELS.WINDOW_ON_ZOOM_CHANGE, currentZoom);
+  });
 }
 
 // This method will be called when Electron has finished

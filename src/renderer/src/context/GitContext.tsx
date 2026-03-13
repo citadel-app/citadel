@@ -69,7 +69,7 @@ export const GitProvider = ({ children }: { children: React.ReactNode }) => {
             await operation();
             console.log(`[GitProvider] Completed ${operationName}.`);
             if (!silent && (operationName === 'Commit' || operationName === 'Push')) {
-                const message = operationName === 'Commit' ? 'Archives sealed and committed' : 'Chronicles synchronized with the remote keep';
+                const message = operationName === 'Commit' ? 'Archives sealed and committed' : 'Chronicles synchronized with the remote Keep';
                 toast(message, { type: 'success' });
             }
         } catch (error: any) {

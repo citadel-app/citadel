@@ -58,6 +58,11 @@ const api = {
     close: () => ipcRenderer.send(IPC_CHANNELS.WINDOW_CLOSE),
     setZoom: (factor: number) => ipcRenderer.invoke(IPC_CHANNELS.WINDOW_SET_ZOOM, factor),
     getZoom: () => ipcRenderer.invoke(IPC_CHANNELS.WINDOW_GET_ZOOM),
+    onZoomChange: (callback: (factor: number) => void) => {
+      const listener = (_: any, factor: number) => callback(factor);
+      ipcRenderer.on(IPC_CHANNELS.WINDOW_ON_ZOOM_CHANGE, listener);
+      return () => ipcRenderer.removeListener(IPC_CHANNELS.WINDOW_ON_ZOOM_CHANGE, listener);
+    },
     setupWelcome: () => ipcRenderer.send(IPC_CHANNELS.WINDOW_SETUP_WELCOME),
     setupBuilder: () => ipcRenderer.send(IPC_CHANNELS.WINDOW_SETUP_BUILDER),
     setupMain: () => ipcRenderer.send(IPC_CHANNELS.WINDOW_SETUP_MAIN)

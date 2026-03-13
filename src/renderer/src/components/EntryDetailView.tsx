@@ -221,7 +221,7 @@ const ConflictDialog = ({ open, onOpenChange, onResolve }: { open: boolean, onOp
         open={open}
         onOpenChange={onOpenChange}
         title="File Change Conflict"
-        description="This file was changed externally (e.g., via Git). You have unsaved changes in your editor. Would you like to keep your local edits or overwrite them with the version from disk?"
+        description="This file was changed externally (e.g., via Git). You have unsaved changes in your editor. Would you like to Keep your local edits or overwrite them with the version from disk?"
         confirmLabel="Keep Local Edits"
         cancelLabel="Overwrite from Disk"
         onConfirm={() => {

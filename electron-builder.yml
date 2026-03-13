@@ -17,6 +17,9 @@ files:
   - "!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}"
   - "!.venv/*"
   - "!data-sources/*"
+  - "!resources/Citadel Banners/*"
+  - "!resources/Citadel Logos/*"
+  - "!resources/logo-main.png"
 asarUnpack:
   - resources/**
   - node_modules/better-sqlite3/**
@@ -26,6 +29,8 @@ extraResources:
     filter:
       - "**/*"
       - "!**/*.onnx"
+      - "!**/*.json"
+      - "!**/*.npz"
   - from: docker-compose.yml
     to: tts-service/docker-compose.yml
 win:

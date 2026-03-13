@@ -102,7 +102,7 @@ export const useEntryContent = ({
             setLocalContent(dbContent);
             lastSyncedContentRef.current = dbContent;
         } else {
-            // use-local: keep local content, and mark it as the current "truth" for future diffs
+            // use-local: Keep local content, and mark it as the current "truth" for future diffs
             // This will trigger an auto-save shortly
             lastSyncedContentRef.current = localContent;
         }

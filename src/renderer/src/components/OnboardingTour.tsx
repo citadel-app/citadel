@@ -42,7 +42,7 @@ const TOUR_STEPS: TourStep[] = [
     {
         target: 'tour-main-content',
         title: 'You\'re all set!',
-        description: 'This is your main workspace area. Start by creating your first entry using Ctrl+N.',
+        description: 'This is your Citadel Keep. Start by creating your first entry using Ctrl+N.',
         position: 'bottom'
     }
 ];

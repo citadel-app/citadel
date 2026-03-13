@@ -134,6 +134,7 @@ export const IPC_CHANNELS = {
     WINDOW_CLOSE: 'window:close',
     WINDOW_SET_ZOOM: 'window:set-zoom',
     WINDOW_GET_ZOOM: 'window:get-zoom',
+    WINDOW_ON_ZOOM_CHANGE: 'window:onZoomChange',
     WINDOW_SETUP_BUILDER: 'window:setupBuilder',
     WINDOW_SETUP_WELCOME: 'window:setupWelcome',
     WINDOW_SETUP_MAIN: 'window:setup-main',

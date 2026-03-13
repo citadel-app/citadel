@@ -1,5 +1,6 @@
 import { Icon } from '../IconRegistry';
 import { useState, useMemo, useEffect } from 'react';
+import { APP_CONSTANTS } from '@shared';
 import CLOUD_ICONS_MAP from '../../config/cloud-icons.json';
 
 // Import all SVGs as URLs
@@ -107,33 +108,35 @@ const STANDARD_ITEMS: LibraryItem[] = [
 ];
 
 // Process Cloud Icons
-const CLOUD_ITEMS: LibraryItem[] = CLOUD_ICONS_MAP.map((icon: any) => {
-    // Resolve path: assets/icons/... -> ../../assets/icons/...
-    const assetKey = `../../${icon.path}`;
+const CLOUD_ITEMS: LibraryItem[] = (CLOUD_ICONS_MAP as any).i.map((item: any) => {
+    const [label, providerIdx, categoryIdx, pathSuffix, score] = item;
+    const provider = (CLOUD_ICONS_MAP as any).p[providerIdx];
+    const categoryName = (CLOUD_ICONS_MAP as any).c[categoryIdx];
+
+    // Reconstruct path: all suffixes are relative to assets/icons/
+    // We strip "assets/icons/" in the compaction script, so we add it back here
+    const assetKey = `../../${APP_CONSTANTS.PATHS.ICONS_BASE}/${pathSuffix}`;
     const assetUrl = iconAssets[assetKey];
 
     if (!assetUrl) return null;
 
     // Determine normalized size
-    // Most cloud icons are square. 
-    // If score is high (512), scale to reasonable default (e.g. 80).
-    // If score is 48 or 64, keep it.
-    const rawSize = icon.score || 64;
+    const rawSize = score || 64;
     const size = rawSize > 128 ? 80 : rawSize;
 
     return {
-        label: icon.label,
+        label: label,
         icon: assetUrl as string, // URL string
-        description: `${icon.provider} ${icon.category}`,
-        provider: icon.provider,
+        description: `${provider} ${categoryName}`,
+        provider: provider,
         // Create a unique category name: "AWS - Compute", "GCP - Databases"
-        category: `${icon.provider} - ${icon.category}`,
+        category: `${provider} - ${categoryName}`,
         defaultProps: {
             w: size,
             h: size,
             color: 'black', // Default text color
             icon: assetUrl as string,
-            text: icon.label,
+            text: label,
             align: 'bottom',
             border: 'none', // Cloud icons usually transparent/no border
             fill: 'none',

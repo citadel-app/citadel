@@ -1,4 +1,5 @@
 import { Icon } from '../IconRegistry';
+import { APP_CONSTANTS } from '@shared';
 import { NotebookConfig } from '../../pages/NotebookPage';
 import { EntryDetailView } from '../EntryDetailView';
 import { db } from '../../lib/db';
@@ -53,7 +54,7 @@ export const NotebookContent = ({ entryId, notebook, onToggleCompletion }: Noteb
                     <div className="flex items-center gap-2 group cursor-default">
                         <Icon name="FileText" size={14} className="text-muted-foreground/40 group-hover:text-primary transition-colors" />
                         <span className="text-xs font-black uppercase tracking-tight truncate max-w-xs transition-colors">
-                            {entry?.title || 'Loading...'}
+                            {entry?.title || APP_CONSTANTS.UI.LOADING}
                         </span>
                     </div>
                 </div>
