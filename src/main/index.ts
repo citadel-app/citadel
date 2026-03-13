@@ -507,7 +507,11 @@ app.whenReady().then(() => {
 
   ipcMain.handle(IPC_CHANNELS.WINDOW_SET_ZOOM, (event, zoomFactor: number) => {
     const webContents = event.sender;
-    webContents.setZoomFactor(zoomFactor);
+    const currentZoom = webContents.getZoomFactor();
+    // Only set if difference is significant to avoid redundant event triggers
+    if (Math.abs(currentZoom - zoomFactor) > 0.001) {
+        webContents.setZoomFactor(zoomFactor);
+    }
     return webContents.getZoomFactor();
   });
 

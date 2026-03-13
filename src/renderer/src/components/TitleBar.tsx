@@ -90,35 +90,29 @@ export const TitleBar = () => {
     return (
         <div 
             className={cn(
-                "h-8 flex items-center bg-muted/20 border-b border-border select-none relative z-[100]",
-                // In Mac fullscreen, the native overlay appears on hover. 
-                // We add some left padding to avoid the native traffic lights if they were visible,
-                // although we currently handle visibility in main.ts.
-                isFullScreen && "pl-20" 
+                "h-8 flex items-center bg-muted/20 border-b border-border select-none relative z-[100]"
             )} 
             style={{ WebkitAppRegion: 'drag' } as any}
         >
             {/* 1. Left Section: Logo + Navigation & Core App Links */}
             <div className="flex items-center shrink-0 h-full">
                 {/* App Logo - Protruding Tab Style */}
-                {!isFullScreen && (
-                    <div
-                        className={cn(
-                            "flex items-center justify-center px-1.5 h-16 -mt-px self-start",
-                            "bg-muted/40 backdrop-blur-md",
-                            "border-x border-b border-border/50",
-                            "rounded-br-xl shadow-lg z-50 transition-all"
-                        )}
-                        style={{ WebkitAppRegion: 'drag' } as any}
-                    >
-                        <img
-                            src={appIcon}
-                            alt="Citadel"
-                            className="w-12 h-12 rounded-lg shadow-inner brightness-110 contrast-125"
-                            draggable={false}
-                        />
-                    </div>
-                )}
+                <div
+                    className={cn(
+                        "flex items-center justify-center px-1.5 h-16 -mt-px self-start",
+                        "bg-muted/40 backdrop-blur-md",
+                        "border-x border-b border-border/50",
+                        "rounded-br-xl shadow-lg z-50 transition-all"
+                    )}
+                    style={{ WebkitAppRegion: 'drag' } as any}
+                >
+                    <img
+                        src={appIcon}
+                        alt="Citadel"
+                        className="w-12 h-12 rounded-lg shadow-inner brightness-110 contrast-125"
+                        draggable={false}
+                    />
+                </div>
 
                 {/* Navigation Group - Centered in h-8 */}
                 <div className="flex items-center h-8 px-2 ml-1" style={{ WebkitAppRegion: 'no-drag' } as any}>
