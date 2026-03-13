@@ -50,33 +50,46 @@ export const MonacoWrapper = ({ className, language, onMount, ...props }: Monaco
     useEffect(() => {
         if (!editorRef.current || !language) return;
 
+        let isCancelled = false;
         let ataDisposable: { dispose: () => void } | null = null;
         let lspDisposable: { dispose: () => void } | null = null;
 
-        // 1. Setup ATA for JS/TS
-        if (language === 'typescript' || language === 'javascript') {
-            console.log(`[MonacoWrapper] Initializing ATA for ${language}`);
-            import('../../lib/ata').then(({ setupATA }) => {
-                if (editorRef.current) {
-                    ataDisposable = setupATA(editorRef.current, (status) => {
-                        setIsAtaLoading(!!status);
-                    });
-                }
-            });
-        }
+        const init = async () => {
+            // 1. Setup ATA for JS/TS
+            if (language === 'typescript' || language === 'javascript') {
+                console.log(`[MonacoWrapper] Initializing ATA for ${language}`);
+                const { setupATA } = await import('../../lib/ata');
 
-        // 2. Setup LSP for other languages
-        if (language !== 'typescript' && language !== 'javascript') {
-            const env = settings?.executionEnvironments?.[language];
-            if (env && env.lspCommand) {
-                console.log(`[MonacoWrapper] Initializing LSP for ${language} with: ${env.lspCommand}`);
-                import('../../lib/lsp-client').then(({ initLSP }) => {
-                    lspDisposable = initLSP(language, env.lspCommand!);
+                if (isCancelled || !editorRef.current) return;
+
+                ataDisposable = setupATA(editorRef.current, (status) => {
+                    setIsAtaLoading(!!status);
                 });
             }
-        }
+
+            // 2. Setup LSP for other languages
+            if (language !== 'typescript' && language !== 'javascript') {
+                const env = settings?.executionEnvironments?.[language];
+                if (env && env.lspCommand) {
+                    console.log(`[MonacoWrapper] Initializing LSP for ${language} with: ${env.lspCommand}`);
+                    const { initLSP } = await import('../../lib/lsp-client');
+
+                    if (isCancelled) return;
+
+                    lspDisposable = await initLSP(language, env.lspCommand!);
+
+                    // If we finished but unmounted in the meantime
+                    if (isCancelled && lspDisposable) {
+                        lspDisposable.dispose();
+                    }
+                }
+            }
+        };
+
+        init();
 
         return () => {
+            isCancelled = true;
             console.log(`[MonacoWrapper] Cleaning up ${language} logic`);
             if (ataDisposable) ataDisposable.dispose();
             if (lspDisposable) lspDisposable.dispose();
