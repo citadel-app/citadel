@@ -23,6 +23,7 @@ import { feedDb } from './db';
 import { AIOrchestrator } from './ai/AIOrchestrator';
 import { setupMacOSMenu } from './menu-utils';
 import { ModelDownloadService } from './services/ModelDownloadService';
+import { findAvailablePort } from './utils/port';
 
 // Determine initial workspace from CLI
 let initialWorkspacePath: string | null = null
@@ -106,6 +107,10 @@ if (!gotTheLock) {
   }
 }
 // ----------------------------
+
+let lspPort = 3000;
+let ttsPort = 5050;
+let qdrantPort = 6333;
 
 // Parse CLI Args for Services
 if (args.includes('--with-execution')) {
@@ -244,10 +249,35 @@ function createWindow(): void {
     }
   })
 
-  // Hide native macOS traffic lights as per user request (preferring custom buttons)
   if (process.platform === 'darwin') {
     mainWindow.setWindowButtonVisibility(false);
   }
+
+  // Monitor window state to notify renderer
+  const notifyState = () => {
+    if (!mainWindow || mainWindow.isDestroyed()) return;
+    mainWindow.webContents.send('window:state-changed', {
+      isMaximized: mainWindow.isMaximized(),
+      isFullScreen: mainWindow.isFullScreen()
+    });
+  };
+
+  mainWindow.on('maximize', notifyState);
+  mainWindow.on('unmaximize', notifyState);
+  mainWindow.on('enter-full-screen', () => {
+    if (process.platform === 'darwin') {
+      // In fullscreen on Mac, showing traffic lights allows users to exit via native UI
+      // and avoids our custom titlebar clashing with the hidden native one
+      mainWindow?.setWindowButtonVisibility(true);
+    }
+    notifyState();
+  });
+  mainWindow.on('leave-full-screen', () => {
+    if (process.platform === 'darwin') {
+      mainWindow?.setWindowButtonVisibility(false);
+    }
+    notifyState();
+  });
 
   let isForceClose = false;
 
@@ -320,6 +350,39 @@ app.whenReady().then(() => {
   registerLatexHandlers()
   aiOrchestrator.registerHandlers()
 
+  // Find available ports for background services
+  findAvailablePort(3000).then(port => {
+    lspPort = port;
+    console.log(`[Main] LSP Port allocated: ${lspPort}`);
+    
+    // Start LSP Server
+    const lspServer = http.createServer((_req, res) => {
+      res.writeHead(404);
+      res.end();
+    });
+    new LspServer(lspServer);
+    lspServer.on('error', (err: any) => {
+      console.error(`[Main] LSP Server error: ${err.message}`);
+    });
+
+    lspServer.listen(lspPort, () => {
+      console.log(`[Main] LSP Server listening on port ${lspPort}`);
+    });
+
+    // Handle closure
+    app.on('before-quit', () => lspServer.close());
+  });
+
+  findAvailablePort(5050).then(port => {
+    ttsPort = port;
+    console.log(`[Main] TTS Port allocated: ${ttsPort}`);
+  });
+
+  findAvailablePort(6333).then(port => {
+    qdrantPort = port;
+    console.log(`[Main] Qdrant Port allocated: ${qdrantPort}`);
+  });
+
   // Initialize SQLite feed database for this workspace
   feedDb.setGuardrail();
   if (initialWorkspacePath) {
@@ -389,10 +452,6 @@ app.whenReady().then(() => {
                   await backendManager.stopAll();
                   feedDb.close();
                   fileWatcher.close();
-                  if (lspServer) {
-                      console.log('[Main] Closing LSP server...');
-                      lspServer.close();
-                  }
               })(),
               new Promise((_, reject) => setTimeout(() => reject(new Error('Shutdown timed out')), 15000))
           ]);
@@ -405,23 +464,6 @@ app.whenReady().then(() => {
       }
   });
 
-  // Start LSP Server
-  const lspServer = http.createServer((_req, res) => {
-    res.writeHead(404);
-    res.end();
-  });
-  new LspServer(lspServer);
-  lspServer.on('error', (err: any) => {
-    if (err.code === 'EADDRINUSE') {
-      console.error(`[Main] LSP Server port 3000 in use. Continuing without LSP...`);
-    } else {
-      console.error(`[Main] LSP Server error: ${err.message}`);
-    }
-  });
-
-  lspServer.listen(3000, () => {
-    console.log('[Main] LSP Server listening on port 3000');
-  });
   
   // Register Workspace Discovery IPC
   ipcMain.handle(IPC_CHANNELS.APP_GET_INIT_CONTEXT, () => {
@@ -431,7 +473,10 @@ app.whenReady().then(() => {
       workspacePath: initialWorkspacePath,
       appVersion: app.getVersion(),
       platform: process.platform,
-      deepLinkUrl: url
+      deepLinkUrl: url,
+      lspPort: lspPort,
+      ttsPort: ttsPort,
+      qdrantPort: qdrantPort
     };
   });
 
@@ -633,10 +678,17 @@ app.whenReady().then(() => {
 
   ipcMain.on(IPC_CHANNELS.WINDOW_MAXIMIZE, (event) => {
     const win = BrowserWindow.fromWebContents(event.sender)
-    if (win?.isMaximized()) {
-      win.unmaximize()
+    if (!win) return
+
+    if (process.platform === 'darwin') {
+      // On Mac, maximize button usually enters native fullscreen
+      win.setFullScreen(!win.isFullScreen())
     } else {
-      win?.maximize()
+      if (win.isMaximized()) {
+        win.unmaximize()
+      } else {
+        win.maximize()
+      }
     }
   })
 

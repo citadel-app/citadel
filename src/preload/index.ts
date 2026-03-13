@@ -189,6 +189,11 @@ const api = {
       ipcRenderer.on('models:download-progress', listener);
       return () => ipcRenderer.removeListener('models:download-progress', listener);
     }
+  },
+  on: (channel: string, callback: (...args: any[]) => void) => {
+    const listener = (_: any, ...args: any[]) => callback(...args);
+    ipcRenderer.on(channel, listener);
+    return () => ipcRenderer.removeListener(channel, listener);
   }
 }
 

@@ -26,11 +26,13 @@ export function createUrl(hostname: string, port: number, path: string): string 
     return `${protocol}://${hostname}:${port}${path}`;
 }
 
-export function initLSP(language: string, command: string): { dispose: () => void } {
+export async function initLSP(language: string, command: string): Promise<{ dispose: () => void }> {
     let client: MonacoLanguageClient | null = null;
     let webSocket: WebSocket | null = null;
 
-    const url = createUrl('localhost', 3000, `/lsp?lang=${language}&command=${encodeURIComponent(command)}`);
+    const context = await window.api.app.getInitContext();
+    const port = context.lspPort || 3000;
+    const url = createUrl('localhost', port, `/lsp?lang=${language}&command=${encodeURIComponent(command)}`);
     webSocket = new WebSocket(url);
 
     webSocket.onopen = () => {
