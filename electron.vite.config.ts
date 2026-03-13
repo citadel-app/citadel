@@ -38,6 +38,9 @@ export default defineConfig({
     define: {
       'process.env.IS_PREACT': JSON.stringify('false')
     },
+    server: {
+      port: Number(process.env.VITE_PORT) || 5174
+    },
     plugins: [react()],
     optimizeDeps: {
       include: ['es6-promise-pool']

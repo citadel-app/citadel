@@ -21,7 +21,7 @@ export interface CustomAPI {
     openExternal: (url: string) => Promise<void>
     onLog: (callback: (data: { severity: 'warning' | 'error', message: string }) => void) => () => void;
     onDeepLink: (callback: (url: string) => void) => () => void;
-    getInitContext: () => Promise<{ workspacePath: string | null, appVersion: string, platform: string, deepLinkUrl?: string | null }>;
+    getInitContext: () => Promise<{ workspacePath: string | null, appVersion: string, platform: string, deepLinkUrl?: string | null, lspPort: number, ttsPort: number, qdrantPort: number }>;
     getDownloadsPath: () => Promise<string>;
     openWorkspace: (path: string) => Promise<void>;
     setActiveWorkspace: (path: string) => Promise<boolean>;
@@ -149,6 +149,7 @@ export interface CustomAPI {
     getFeedStatus: () => Promise<Record<string, { read: boolean, relatedEntries: any[] }>>
     updateFeedStatus: (itemId: string, status: { read?: boolean, relatedEntries?: any[] }) => Promise<void>
   }
+  on: (channel: string, callback: (...args: any[]) => void) => () => void
 }
 
 declare global {
