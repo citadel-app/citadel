@@ -4,6 +4,8 @@ module.exports = {
   content: [
     './src/renderer/index.html',
     './src/renderer/src/**/*.{js,ts,jsx,tsx}',
+    './packages/modules/*/src/renderer/**/*.{js,ts,jsx,tsx}',
+    './packages/ui/src/**/*.{js,ts,jsx,tsx}',
   ],
   theme: {
     extend: {

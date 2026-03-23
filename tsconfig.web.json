@@ -5,15 +5,58 @@
     "src/renderer/src/**/*",
     "src/renderer/src/**/*.tsx",
     "src/preload/*.d.ts",
-    "src/shared/**/*"
+    "src/shared/**/*",
+    "packages/*/src/**/*",
+    "packages/modules/*/src/renderer/lib/**/*",
+    "packages/modules/*/src/renderer/context/**/*",
+    "packages/modules/*/src/renderer/components/**/*",
+    "packages/modules/*/src/renderer/pages/**/*",
+    "packages/modules/*/src/renderer/index.ts"
   ],
-  "compilerOptions": {
+  "compilerOptions": { "skipLibCheck": true,
     "composite": true,
     "moduleResolution": "bundler",
     "jsx": "react-jsx",
     "baseUrl": ".",
     "paths": {
+      "@citadel-app/core": [
+        "packages/core/src/index.ts"
+      ],
+      "@citadel-app/ui": [
+        "packages/ui/src/index.ts"
+      ],
+      "@citadel-app/sdk": [
+        "packages/sdk/src/index.ts"
+      ],
+      "@citadel-app/rss": [
+        "packages/modules/rss/src/renderer/index.ts"
+      ],
+      "@citadel-app/excalidraw": [
+        "packages/modules/excalidraw/src/renderer/index.ts"
+      ],
+      "@citadel-app/pdf": [
+        "packages/modules/pdf/src/renderer/index.ts"
+      ],
+      "@citadel-app/base": [
+        "packages/modules/base/src/renderer/index.ts"
+      ],
+      "@citadel-app/code": [
+        "packages/modules/code/src/renderer/index.ts"
+      ],
+      "@citadel-app/core/*": [
+        "packages/core/src/*"
+      ],
+      "@citadel-app/ui/*": [
+        "packages/ui/src/*"
+      ],
+      "@citadel-app/sdk/*": [
+        "packages/sdk/src/*"
+      ],
       "@renderer/*": [
+        "packages/modules/base/src/renderer/*",
+        "src/renderer/src/*"
+      ],
+      "@app/*": [
         "src/renderer/src/*"
       ],
       "@shared": [

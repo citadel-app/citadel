@@ -8,7 +8,7 @@ import {
     SectionBatteryInput,
     IntentResult,
     CodexEntry
-} from '@shared';
+} from '@citadel-app/core';
 
 interface AIAPI {
     isAvailable: () => Promise<{ 
@@ -80,6 +80,12 @@ declare global {
         };
         on: (channel: string, callback: (...args: any[]) => void) => () => void;
     };
+  }
+}
+
+declare module "react" {
+  interface FunctionComponent<P = {}> {
+    (props: P, context?: any): ReactElement<any, any> | null;
   }
 }
 

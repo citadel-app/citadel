@@ -1,0 +1,16 @@
+{
+  "extends": "../../../tsconfig.node.json",
+  "compilerOptions": {
+    "composite": true,
+    "outDir": "dist",
+    "rootDir": "src",
+    "jsx": "react-jsx",
+    "paths": {
+      "@citadel-app/core": ["../../core/src"],
+      "@citadel-app/core/*": ["../../core/src/*"],
+      "@citadel-app/ui": ["../../ui/src"]
+    },
+    "types": ["vite/client"]
+  },
+  "include": ["src/**/*"]
+}

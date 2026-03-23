@@ -1,0 +1,40 @@
+{
+  "name": "@citadel-app/core",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/citadel-app/citadel.git"
+  },
+  "version": "1.0.0",
+  "main": "./src/index.node.ts",
+  "module": "./src/index.ts",
+  "types": "./src/index.node.ts",
+  "exports": {
+    ".": {
+      "browser": "./src/index.ts",
+      "node": "./src/index.node.ts",
+      "default": "./src/index.node.ts"
+    },
+    "./ai/*": "./src/ai/*",
+    "./commands/*": "./src/commands/*",
+    "./serializers/*": "./src/serializers/*",
+    "./settings/*": "./src/settings/*",
+    "./types/*": "./src/types/*",
+    "./codex/*": "./src/codex/*",
+    "./src/renderer/*": "./src/renderer/*"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/",
+    "access": "public"
+  },
+  "scripts": {
+    "lint": "eslint src/",
+    "build": "tsc -b",
+    "clean": "tsc -b --clean"
+  },
+  "dependencies": {
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.3"
+  }
+}
