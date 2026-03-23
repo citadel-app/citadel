@@ -22,8 +22,7 @@
     "sourceMap": true,
     "baseUrl": ".",
     "paths": {
-      "@citadel-app/core": ["../core/src/index.ts"],
-      "@citadel-app/excalidraw": ["../modules/excalidraw/src/renderer/index.ts"],
+      "@citadel-app/core": ["../core"],
       "@/*": ["./src/*"]
     }
   },
