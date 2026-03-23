@@ -5,22 +5,22 @@
     "url": "https://github.com/citadel-app/citadel.git"
   },
   "version": "1.0.0",
-  "main": "./src/index.node.ts",
-  "module": "./src/index.ts",
-  "types": "./src/index.node.ts",
+  "main": "./dist/index.node.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.node.d.ts",
   "exports": {
     ".": {
-      "browser": "./src/index.ts",
-      "node": "./src/index.node.ts",
-      "default": "./src/index.node.ts"
+      "browser": "./dist/index.js",
+      "node": "./dist/index.node.js",
+      "default": "./dist/index.node.js"
     },
-    "./ai/*": "./src/ai/*",
-    "./commands/*": "./src/commands/*",
-    "./serializers/*": "./src/serializers/*",
-    "./settings/*": "./src/settings/*",
-    "./types/*": "./src/types/*",
-    "./codex/*": "./src/codex/*",
-    "./src/renderer/*": "./src/renderer/*"
+    "./ai/*": "./dist/ai/*",
+    "./commands/*": "./dist/commands/*",
+    "./serializers/*": "./dist/serializers/*",
+    "./settings/*": "./dist/settings/*",
+    "./types/*": "./dist/types/*",
+    "./codex/*": "./dist/codex/*",
+    "./src/renderer/*": "./dist/renderer/*"
   },
   "publishConfig": {
     "registry": "https://npm.pkg.github.com/",

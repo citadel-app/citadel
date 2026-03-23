@@ -6,7 +6,8 @@
     "url": "https://github.com/citadel-app/citadel.git"
   },
   "description": "Public Plugin SDK for Citadel Workspace",
-  "main": "src/index.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "publishConfig": {
     "registry": "https://npm.pkg.github.com/",
     "access": "public"
