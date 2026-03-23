@@ -2,9 +2,9 @@ name: CI & Release
 
 on:
     push:
-        branches: ["**"]
+        branches: ["main", "development"]
     pull_request:
-        branches: ["main"]
+        branches: ["main", "development"]
 
 permissions:
     contents: write
@@ -66,32 +66,3 @@ jobs:
                       dist/*.snap
                   retention-days: 1
 
-    release:
-        needs: build
-        runs-on: ubuntu-latest
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        permissions:
-            contents: write
-            pull-requests: write
-        steps:
-            - name: Run release-please
-              id: release
-              uses: googleapis/release-please-action@v4
-              with:
-                  release-type: node
-                  prerelease: true
-                  token: ${{ secrets.PAT || secrets.GITHUB_TOKEN }}
-
-            - name: Download Artifacts
-              if: ${{ steps.release.outputs.release_created }}
-              uses: actions/download-artifact@v4
-              with:
-                  path: artifacts
-                  merge-multiple: true
-
-            - name: Upload Release Assets
-              if: ${{ steps.release.outputs.release_created }}
-              env:
-                  GITHUB_TOKEN: ${{ secrets.PAT || secrets.GITHUB_TOKEN }}
-              run: |
-                  gh release upload ${{ steps.release.outputs.tag_name }} ./artifacts/* --clobber

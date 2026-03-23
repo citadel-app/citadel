@@ -1,0 +1,14 @@
+{
+  "extends": "../../../tsconfig.node.json",
+  "compilerOptions": {
+    "composite": true,
+    "outDir": "dist",
+    "rootDir": "src",
+    "paths": {
+      "@citadel-app/core": ["../../core/src"],
+      "@citadel-app/core/*": ["../../core/src/*"],
+      "@citadel-app/ui": ["../../ui/src"]
+    }
+  },
+  "include": ["src/**/*"]
+}

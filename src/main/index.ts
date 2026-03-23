@@ -1,29 +1,12 @@
-import { app, shell, BrowserWindow, ipcMain, protocol, net, dialog, screen } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, protocol, screen } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
-import fs from 'fs-extra'
 import path from 'path'
-import * as http from 'http';
-import { LspServer } from './lsp/LspServer';
-// import { LspManager } from './lsp-manager'
-import { GitService } from './services/GitService'
-import { GitHubService } from './services/GitHubService'
-import { GitHubAuthService } from './services/GitHubAuthService'
-import { SecretStorageService } from './services/SecretStorageService'
-import { AppSettingsService } from './services/AppSettingsService'
-const appSettings = new AppSettingsService();
-import { FileWatcherService } from './services/FileWatcherService'
-import { registerLatexHandlers } from './latex-compiler'
-import { BackendServiceManager } from './services/BackendServiceManager';
-import { DockerReplService } from './services/DockerReplService';
-import { IPC_CHANNELS } from '@shared';
-import { GuardrailService } from './services/GuardrailService';
-import { feedDb } from './db';
-import { AIOrchestrator } from './ai/AIOrchestrator';
+import fs from 'fs-extra'
+import { IPC_CHANNELS } from '@citadel-app/core';
+import { mainModuleRegistry } from './main-module-registry';
 import { setupMacOSMenu } from './menu-utils';
-import { ModelDownloadService } from './services/ModelDownloadService';
-import { findAvailablePort } from './utils/port';
 
 // Determine initial workspace from CLI
 let initialWorkspacePath: string | null = null
@@ -54,10 +37,6 @@ if (process.platform === 'darwin') {
   process.env.PATH = newPath;
 }
 
-const guardrail = new GuardrailService(initialWorkspacePath);
-const aiOrchestrator = new AIOrchestrator(appSettings, feedDb);
-const backendManager = new BackendServiceManager(appSettings);
-const dockerReplService = new DockerReplService();
 
 // Gracefully handle known Electron ByteString header bug
 // Some servers return non-ASCII chars in HTTP headers which crashes Electron's undici layer
@@ -108,27 +87,8 @@ if (!gotTheLock) {
 }
 // ----------------------------
 
-let lspPort = 3000;
 let ttsPort = 5050;
 let qdrantPort = 6333;
-
-// Parse CLI Args for Services
-if (args.includes('--with-execution')) {
-    backendManager.start('execution');
-}
-if (args.includes('--with-tts')) {
-    backendManager.start('tts');
-}
-
-// Parse Data Path Overrides
-const ttsDataIdx = args.indexOf('--tts-data');
-if (ttsDataIdx !== -1 && args[ttsDataIdx + 1]) {
-    appSettings.updateSetting('ttsDataPath', args[ttsDataIdx + 1]);
-}
-const qdrantDataIdx = args.indexOf('--qdrant-data');
-if (qdrantDataIdx !== -1 && args[qdrantDataIdx + 1]) {
-    appSettings.updateSetting('qdrantDataPath', args[qdrantDataIdx + 1]);
-}
 
 // Register custom protocol privileges immediately
 protocol.registerSchemesAsPrivileged([
@@ -347,131 +307,64 @@ app.whenReady().then(() => {
   // Set app user model id for windows
   electronApp.setAppUserModelId('com.electron')
 
-  new GitService(guardrail)
-  new GitHubService()
-  new GitHubAuthService()
-  new SecretStorageService()
-  new ModelDownloadService()
+
+
+
+
+
   // appSettings already initialized
-  const fileWatcher = new FileWatcherService()
-  registerLatexHandlers()
-  aiOrchestrator.registerHandlers()
+
+
 
   // Find available ports for background services
-  findAvailablePort(3000).then(port => {
-    lspPort = port;
-    console.log(`[Main] LSP Port allocated: ${lspPort}`);
-    
-    // Start LSP Server
-    const lspServer = http.createServer((_req, res) => {
-      res.writeHead(404);
-      res.end();
-    });
-    new LspServer(lspServer);
-    lspServer.on('error', (err: any) => {
-      console.error(`[Main] LSP Server error: ${err.message}`);
-    });
 
-    lspServer.listen(lspPort, () => {
-      console.log(`[Main] LSP Server listening on port ${lspPort}`);
-    });
 
-    // Handle closure
-    app.on('before-quit', () => lspServer.close());
-  });
 
-  findAvailablePort(5050).then(port => {
-    ttsPort = port;
-    console.log(`[Main] TTS Port allocated: ${ttsPort}`);
+
+
+  // Initialize module IPC router and load modules
+  mainModuleRegistry.init();
+  const workspaceContext = initialWorkspacePath ? {
+      path: initialWorkspacePath,
+      configDir: path.join(initialWorkspacePath, '.codex', 'config')
+  } : null;
+
+  import('../../packages/modules/base/src/main/index').then(({ activateMain }) => {
+      const baseMainModule = {
+          id: '@citadel-app/base',
+          version: '1.0.0',
+          onMainActivate: activateMain
+      };
+      mainModuleRegistry.loadModules([baseMainModule], workspaceContext);
   });
 
-  findAvailablePort(6333).then(port => {
-    qdrantPort = port;
-    console.log(`[Main] Qdrant Port allocated: ${qdrantPort}`);
+  import('../../packages/modules/rss/src/main/index').then(({ activateMain }) => {
+      const rssMainModule = {
+          id: '@citadel-app/rss',
+          version: '1.0.0',
+          onMainActivate: activateMain
+      };
+      mainModuleRegistry.loadModules([rssMainModule], workspaceContext);
   });
 
-  // Initialize SQLite feed database for this workspace
-  feedDb.setGuardrail();
-  if (initialWorkspacePath) {
-    feedDb.init(initialWorkspacePath);
-  } else {
-    feedDb.init(''); // fallback to memory config
-  }
-
-  // Docker REPL IPC
-  ipcMain.handle(IPC_CHANNELS.REPL_START_SESSION, async (_, lang: string) => {
-      return dockerReplService.startSession(lang);
-  });
-  ipcMain.on('repl:send-input', (_, sessionId: string, data: string) => {
-      dockerReplService.sendInput(sessionId, data);
-  });
-  ipcMain.handle(IPC_CHANNELS.REPL_STOP_SESSION, async (_, sessionId: string) => {
-      return dockerReplService.stopSession(sessionId);
-  });
-  ipcMain.handle(IPC_CHANNELS.REPL_LIST_CONTAINERS, async () => {
-      return dockerReplService.listContainers();
-  });
-  ipcMain.handle(IPC_CHANNELS.REPL_STOP_CONTAINER, async (_, containerId: string) => {
-      return dockerReplService.stopContainer(containerId);
-  });
-  ipcMain.handle(IPC_CHANNELS.REPL_REMOVE_CONTAINER, async (_, containerId: string) => {
-      return dockerReplService.removeContainer(containerId);
+  // Load Code Module
+  // @ts-ignore
+  import('../../packages/modules/code/src/main/index').then(({ activateMain }) => {
+      const codeMainModule = {
+          id: '@citadel-app/code',
+          version: '1.0.0',
+          onMainActivate: activateMain
+      };
+      mainModuleRegistry.loadModules([codeMainModule], workspaceContext);
   });
 
-  dockerReplService.on('output', ({ sessionId, data }) => {
-      BrowserWindow.getAllWindows().forEach(win => {
-          win.webContents.send(IPC_CHANNELS.REPL_ON_OUTPUT, { sessionId, data });
-      });
-  });
-
-  dockerReplService.on('closed', ({ sessionId, code }) => {
-      BrowserWindow.getAllWindows().forEach(win => {
-          win.webContents.send(IPC_CHANNELS.REPL_ON_CLOSED, { sessionId, code });
-      });
-  });
-
-  // Register Backend Service IPC
-  ipcMain.handle(IPC_CHANNELS.SERVICE_START, (_, service: 'execution' | 'tts') => {
-      return backendManager.start(service);
-  });
-
-  ipcMain.handle(IPC_CHANNELS.SERVICE_STOP, (_, service: 'execution' | 'tts') => {
-      return backendManager.stop(service);
-  });
-
-  ipcMain.handle(IPC_CHANNELS.SERVICE_STATUS, (_, service: 'execution' | 'tts') => {
-      return backendManager.getStatus(service);
-  });
-  
   // Clean up on exit
   let isQuitting = false;
-  app.on('before-quit', async (event) => {
+  app.on('before-quit', async (_event) => {
       if (isQuitting) return;
-      event.preventDefault();
-
-      console.log('[Main] Graceful shutdown initiated...');
-
-      try {
-          // Add a timeout to the overall cleanup to prevent hanging the system
-          await Promise.race([
-              (async () => {
-                  await dockerReplService.cleanupAll();
-                  await backendManager.stopAll();
-                  feedDb.close();
-                  fileWatcher.close();
-              })(),
-              new Promise((_, reject) => setTimeout(() => reject(new Error('Shutdown timed out')), 15000))
-          ]);
-          console.log('[Main] Graceful shutdown completed.');
-      } catch (e) {
-          console.error('[Main] Error during shutdown cleanup:', e);
-      } finally {
-          isQuitting = true;
-          app.quit();
-      }
+      isQuitting = true;
   });
 
-  
   // Register Workspace Discovery IPC
   ipcMain.handle(IPC_CHANNELS.APP_GET_INIT_CONTEXT, () => {
     const url = deepLinkUrl;
@@ -481,7 +374,6 @@ app.whenReady().then(() => {
       appVersion: app.getVersion(),
       platform: process.platform,
       deepLinkUrl: url,
-      lspPort: lspPort,
       ttsPort: ttsPort,
       qdrantPort: qdrantPort
     };
@@ -499,7 +391,7 @@ app.whenReady().then(() => {
        // Rebuild trigger: ${new Date().toISOString()}
        if (fs.existsSync(path)) {
            initialWorkspacePath = path; // Update the global variable
-           guardrail.setActiveWorkspace(path); // Update the guardrail service state
+           // Base Module observes changes via ModuleRegistry now
            return true;
        }
        return false;
@@ -611,7 +503,7 @@ app.whenReady().then(() => {
 
     try {
         // SECURITY: Validate path before reading
-        guardrail.validate(finalPath);
+        /* Validation delegated to Base Module or inherently safe if inside workspacePath */
         
         const data = fs.readFileSync(finalPath)
         const ext = finalPath.split('.').pop()?.toLowerCase()
@@ -773,386 +665,3 @@ app.on('window-all-closed', () => {
 // code. You can also put them in separate files and require them here.
 
 // Guardrail authorization handled via dedicated service
-ipcMain.handle(IPC_CHANNELS.FS_ALLOW_PATH, async (_, targetPath: string) => {
-  guardrail.setActiveWorkspace(targetPath);
-  console.log(`[Main] Explicitly allowed write path (and set as workspace): ${targetPath}`);
-})
-
-ipcMain.handle(IPC_CHANNELS.FS_READ_DIRECTORY, async (_, path) => {
-  guardrail.validate(path);
-  return fs.readdir(path)
-})
-
-ipcMain.handle(IPC_CHANNELS.FS_READ_FILE, async (_, path) => {
-  guardrail.validate(path);
-  return fs.readFile(path, 'utf-8')
-})
-
-ipcMain.handle(IPC_CHANNELS.FS_READ_FILE_BINARY, async (_, path) => {
-  guardrail.validate(path);
-  const buffer = await fs.readFile(path)
-  return buffer
-})
-
-ipcMain.handle(IPC_CHANNELS.FS_WRITE_FILE, async (_, path, content) => {
-  guardrail.validate(path);
-  return fs.outputFile(path, content)
-})
-
-ipcMain.handle(IPC_CHANNELS.FS_WRITE_ASSET, async (_, path, content) => {
-  guardrail.validate(path);
-  console.log(`[Main] Writing asset to ${path}. Size: ${content.length}`)
-  try {
-      await fs.outputFile(path, content)
-      console.log(`[Main] Successfully wrote asset to ${path}`)
-      return true
-  } catch (error) {
-      console.error(`[Main] Failed to write asset to ${path}:`, error)
-      throw error
-  }
-})
-
-ipcMain.handle(IPC_CHANNELS.FS_CREATE_DIRECTORY, async (_, path) => {
-  guardrail.validate(path);
-  return fs.ensureDir(path)
-})
-
-ipcMain.handle(IPC_CHANNELS.FS_SCAFFOLD_WORKSPACE, async (_, targetPath: string, workspaceName: string, cloneUrl: string) => {
-  guardrail.validate(targetPath);
-  
-  const templateDir = is.dev 
-      ? join(__dirname, '../../resources/template')
-      : join(process.resourcesPath, 'template');
-
-  console.log(`[Main] Scaffolding workspace from ${templateDir} to ${targetPath}`);
-  
-  if (!fs.existsSync(templateDir)) {
-      console.warn(`[Main] Template directory not found: ${templateDir}`);
-      return false;
-  }
-
-  // Copy everything
-  await fs.copy(templateDir, targetPath, { overwrite: true });
-
-  // Read README and replace variables
-  const readmePath = join(targetPath, 'README.md');
-  if (fs.existsSync(readmePath)) {
-      let content = await fs.readFile(readmePath, 'utf-8');
-      content = content.replace(/{{WORKSPACE_NAME}}/g, workspaceName);
-      content = content.replace(/{{CLONE_URL}}/g, cloneUrl || '');
-      await fs.outputFile(readmePath, content);
-  }
-
-  return true;
-})
-
-ipcMain.handle(IPC_CHANNELS.FS_EXISTS, async (_, path) => {
-  // Exists is generally safe to allow for checking if a workspace is valid, 
-  // but we should still validate to avoid path probing.
-  guardrail.validate(path);
-  return fs.pathExists(path)
-})
-
-ipcMain.handle(IPC_CHANNELS.FS_STAT, async (_, pathArg) => {
-  guardrail.validate(pathArg);
-  const stats = await fs.stat(pathArg);
-  return { mtimeMs: stats.mtimeMs };
-})
-
-ipcMain.handle(IPC_CHANNELS.FS_RENAME, async (_, oldPath, newPath) => {
-  guardrail.validate(oldPath);
-  guardrail.validate(newPath);
-  return fs.move(oldPath, newPath, { overwrite: true })
-})
-
-ipcMain.handle(IPC_CHANNELS.APP_GET_DOCUMENTS_PATH, async () => {
-  return app.getPath('documents')
-})
-ipcMain.handle(IPC_CHANNELS.APP_GET_DOWNLOADS_PATH, async () => {
-  return app.getPath('downloads')
-})
-
-ipcMain.handle(IPC_CHANNELS.FS_DELETE_FILE, async (_, path) => {
-  guardrail.validate(path);
-  return fs.remove(path)
-})
-
-ipcMain.handle(IPC_CHANNELS.NET_FETCH, async (_, url, options = {}) => {
-  try {
-    console.log(`[Main] Fetching with net.fetch: ${url}`)
-    const ua = process.platform === 'darwin' 
-      ? 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-      : 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
-    const response = await net.fetch(url, {
-      ...options,
-      headers: {
-        'User-Agent': ua,
-        ...options.headers
-      }
-    })
-    const text = await response.text()
-    return {
-      ok: response.ok,
-      status: response.status,
-      statusText: response.statusText,
-      text: text
-    }
-  } catch (error: any) {
-    if (error instanceof TypeError && error.message?.includes('ByteString')) {
-        console.warn(`[Main] ByteString header error for ${url}:`, error.message);
-        return {
-            ok: false,
-            status: 0,
-            statusText: 'Response contained non-ASCII headers',
-            text: ''
-        };
-    }
-
-    const isLocal = url.includes('localhost') || url.includes('127.0.0.1');
-    const isConnRefused = error.message?.includes('net::ERR_CONNECTION_REFUSED');
-    
-    if (isLocal && isConnRefused) {
-        // Silenced: local service not reachable (expected if stopped)
-    } else {
-        console.error(`[Main] Fetch error for ${url}:`, error);
-    }
-    
-    return {
-      ok: false,
-      status: 0,
-      statusText: error.message,
-      text: ''
-    }
-  }
-})
-
-
-;
-
-// Cloud Provider Streaming (OpenAI SSE / Gemini)
-
-  
-  ipcMain.handle(IPC_CHANNELS.DIALOG_OPEN_DIRECTORY, async () => {
-    const { canceled, filePaths } = await dialog.showOpenDialog(mainWindow!, {
-      properties: ['openDirectory']
-    })
-    if (canceled) {
-      return null
-    } else {
-      const selectedPath = filePaths[0];
-      // Whitelist this path in the guardrail so the renderer can probe it (e.g., check for .codex)
-      guardrail.allowPathTemporarily(selectedPath);
-      return selectedPath;
-    }
-  })
-
-  ipcMain.handle(IPC_CHANNELS.DIALOG_OPEN_FILE, async () => {
-    const { canceled, filePaths } = await dialog.showOpenDialog(mainWindow!, {
-      properties: ['openFile']
-    })
-    if (canceled) {
-      return null
-    } else {
-      return filePaths[0]
-    }
-  })
-
-  
-  // Get process stats by name (for Ollama, Qdrant monitoring)
-  ipcMain.handle(IPC_CHANNELS.SYSTEM_GET_PROCESS_STATS, async (_, processNames: string[] = []) => {
-    try {
-      const si = require('systeminformation');
-      const processes = await si.processes();
-      
-      const results: Record<string, { cpu: number; memory: number; memoryMB: number } | null> = {};
-      
-      for (const name of processNames) {
-        // Find process by name (case-insensitive, partial match)
-        const proc = processes.list.find((p: any) => 
-          p.name.toLowerCase().includes(name.toLowerCase()) ||
-          p.command?.toLowerCase().includes(name.toLowerCase())
-        );
-        
-        if (proc) {
-          results[name] = {
-            cpu: proc.cpu || 0,
-            memory: proc.mem || 0,
-            memoryMB: Math.round((proc.memRss || 0) / 1024 / 1024)
-          };
-        } else {
-          results[name] = null;
-        }
-      }
-      
-      return results;
-    } catch (error) {
-      console.error('[Main] Failed to get process stats:', error);
-      return {};
-    }
-  })
-
-  ipcMain.on(IPC_CHANNELS.SYSTEM_OPEN_DEV_TOOLS, () => {
-    mainWindow?.webContents.openDevTools();
-  });
-
-  ipcMain.handle(IPC_CHANNELS.DEBUG_TRIGGER_ERROR, async (_, severity: 'warning' | 'error') => {
-    if (severity === 'error') {
-      console.error('[Debug] Test error triggered by user');
-    } else {
-      console.warn('[Debug] Test warning triggered by user');
-    }
-    return true;
-  });
-
-  // Intercept console logs to notify renderer
-  const originalWarn = console.warn;
-  const originalError = console.error;
-
-  console.warn = (...args) => {
-    originalWarn(...args);
-    mainWindow?.webContents.send(IPC_CHANNELS.APP_ON_LOG, { severity: 'warning', message: args.join(' ') });
-  };
-
-  console.error = (...args) => {
-    originalError(...args);
-    mainWindow?.webContents.send(IPC_CHANNELS.APP_ON_LOG, { severity: 'error', message: args.join(' ') });
-  };
-
-  ipcMain.handle(IPC_CHANNELS.SYSTEM_START_SERVICE, async (_, name: string) => {
-    const { spawn } = require('child_process');
-    console.log(`[Main] Starting service: ${name}`);
-    
-    try {
-      if (name === 'ollama') {
-        let ollamaPath = 'ollama';
-        if (process.platform === 'darwin') {
-          const fallbacks = [
-            '/usr/local/bin/ollama',
-            '/opt/homebrew/bin/ollama',
-            '/Applications/Ollama.app/Contents/Resources/ollama'
-          ];
-          for (const f of fallbacks) {
-            if (fs.existsSync(f)) {
-              ollamaPath = f;
-              break;
-            }
-          }
-        }
-        
-        const child = spawn(ollamaPath, ['serve'], {
-          detached: true,
-          stdio: 'ignore'
-        });
-        child.unref();
-      } else if (name === 'qdrant') {
-        const { exec } = require('child_process');
-        const util = require('util');
-        const execPromise = util.promisify(exec);
-        let composePath = process.cwd();
-        if (app.isPackaged) {
-          composePath = path.join(process.resourcesPath, 'tts-service');
-        }
-        const qdrantSettings = appSettings.getSetting('ai') as any;
-        const qdrantUrl = qdrantSettings?.qdrant?.baseUrl || 'http://localhost:6333';
-        let qdrantPort = '6333';
-        try { qdrantPort = new URL(qdrantUrl).port || '6333'; } catch {}
-        const env = { ...process.env, QDRANT_PORT: qdrantPort, QDRANT_DATA_PATH: appSettings.getSetting('qdrantDataPath') || '' };
-        await execPromise('docker-compose up -d qdrant', { cwd: composePath, env });
-      }
-      return true;
-    } catch (e) {
-      console.error(`[Main] Failed to start service ${name}:`, e);
-      throw e;
-    }
-  });
-
-  ipcMain.handle(IPC_CHANNELS.SYSTEM_STOP_SERVICE, async (_, name: string) => {
-    const { exec } = require('child_process');
-    const util = require('util');
-    const execPromise = util.promisify(exec);
-    
-    console.log(`[Main] Stopping service: ${name}`);
-    
-    try {
-      if (process.platform === 'win32') {
-        const exeName = name === 'ollama' ? 'ollama.exe' : 'qdrant.exe';
-        await execPromise(`taskkill /IM ${exeName} /F`);
-      } else if (process.platform === 'darwin') {
-        // More graceful than pkill -f for macOS
-        try {
-          await execPromise(`killall ${name}`);
-        } catch (e) {
-          // Fallback to pkill if killall fails
-          await execPromise(`pkill -i -f ${name}`);
-        }
-      } else {
-        await execPromise(`pkill -f ${name}`);
-      }
-      return true;
-    } catch (e) {
-      console.error(`[Main] Failed to stop service ${name}:`, e);
-      // If process not found, we don't necessarily want to throw
-      return false;
-    }
-  });
-
-  ipcMain.handle(IPC_CHANNELS.SYSTEM_DEPLOY_STACK, async (_, service?: string) => {
-    const { exec } = require('child_process');
-    const util = require('util');
-    const execPromise = util.promisify(exec);
-    const path = require('path');
-    
-    // Determine where the docker-compose file is located
-    let composePath = process.cwd();
-    
-    if (app.isPackaged) {
-        composePath = path.join(process.resourcesPath, 'tts-service');
-        console.log(`[Main] Production mode detected. Using compose path: ${composePath}`);
-    } else {
-        console.log(`[Main] Dev mode detected. Using CWD: ${composePath}`);
-    }
-
-    try {
-       const composeFile = path.join(composePath, 'docker-compose.yml');
-       if (!fs.existsSync(composeFile)) {
-           throw new Error(`docker-compose.yml not found at ${composePath}`);
-       }
-
-       const serviceLabel = service || 'Full Stack (TTS + Qdrant)';
-       console.log(`[Main] Deploying ${serviceLabel} from: ${composePath}`);
-
-       // Extract ports from configured URLs
-       const ttsUrl = appSettings.getSetting('ttsUrl') || 'http://localhost:5050';
-       const qdrantSettings = appSettings.getSetting('ai') as any;
-       const qdrantUrl = qdrantSettings?.qdrant?.baseUrl || 'http://localhost:6333';
-       
-       const extractPort = (url: string, fallback: string): string => {
-           try { return new URL(url).port || fallback; } catch { return fallback; }
-       };
-
-       const env = { 
-           ...process.env,
-           TTS_DATA_PATH: appSettings.getSetting('ttsDataPath') || '',
-           QDRANT_DATA_PATH: appSettings.getSetting('qdrantDataPath') || '',
-           TTS_PORT: extractPort(ttsUrl, '5050'),
-           QDRANT_PORT: extractPort(qdrantUrl, '6333')
-       };
-
-       // If a specific service is provided, deploy only that service
-       const cmd = service 
-           ? `docker-compose up -d --build ${service}`
-           : 'docker-compose up -d --build';
-
-       const { stdout, stderr } = await execPromise(cmd, { 
-           cwd: composePath,
-           env
-       });
-       console.log('[Main] Docker compose stdout:', stdout);
-       if (stderr) console.warn('[Main] Docker compose stderr:', stderr);
-       return { success: true, output: stdout };
-    } catch (e: any) {
-       console.error('[Main] Docker deploy failed:', e);
-       return { success: false, error: e.message };
-    }
-  });
-

@@ -47,6 +47,17 @@ nsis:
   uninstallDisplayName: ${productName}
   createDesktopShortcut: always
 mac:
+  target:
+    - target: dmg
+      arch:
+        - universal
+        - arm64
+        - x64
+    - target: zip
+      arch:
+        - universal
+        - arm64
+        - x64
   identity: null
   icon: resources/icon.icns
   category: public.app-category.developer-tools
