@@ -1,0 +1,23 @@
+{
+  "name": "@citadel-app/sdk",
+  "version": "1.0.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/citadel-app/citadel.git"
+  },
+  "description": "Public Plugin SDK for Citadel Workspace",
+  "main": "src/index.ts",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/",
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@citadel-app/core": "*"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3"
+  }
+}

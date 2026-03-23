@@ -1,0 +1,25 @@
+{
+  "name": "@citadel-app/base",
+  "version": "1.0.0",
+  "description": "Base module for Citadel providing essential services and pages.",
+  "main": "./src/main/index.ts",
+  "module": "./src/renderer/index.ts",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -b",
+    "dev": "tsc -b -w",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@citadel-app/core": "*",
+    "@citadel-app/ui": "*"
+  },
+  "exports": {
+    ".": {
+      "browser": "./src/renderer/index.ts",
+      "node": "./src/main/index.ts",
+      "default": "./src/main/index.ts",
+      "types": "./src/renderer/index.ts"
+    }
+  }
+}

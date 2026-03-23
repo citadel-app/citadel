@@ -1,0 +1,35 @@
+{
+  "name": "@citadel-app/rss",
+  "version": "1.0.0",
+  "main": "./src/main/index.ts",
+  "types": "dist/main/index.d.ts",
+  "exports": {
+    ".": {
+      "browser": "./src/renderer/index.ts",
+      "node": "./src/main/index.ts",
+      "default": "./src/main/index.ts",
+      "types": "./src/renderer/index.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "clean": "tsc -b --clean"
+  },
+  "dependencies": {
+    "@citadel-app/core": "*",
+    "@citadel-app/ui": "*",
+    "better-sqlite3": "^12.8.0",
+    "lucide-react": "^0.453.0",
+    "rss-parser": "^3.13.0"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.11",
+    "@types/react": "^18.3.11",
+    "@types/react-dom": "^18.3.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "typescript": "^5.6.3",
+    "uuid": "^10.0.0"
+  },
+  "module": "./src/renderer/index.ts"
+}

@@ -22,3 +22,21 @@ src/python/kokoro-v0_19.onnx
 .env
 .env.*
 !.env.template
+src/renderer/**/*.js
+src/renderer/**/*.d.ts
+src/renderer/**/*.js.map
+src/renderer/**/*.d.ts.map
+
+packages/*/src/**/*.js
+packages/*/src/**/*.d.ts
+packages/*/src/**/*.js.map
+packages/*/src/**/*.d.ts.map
+
+packages/modules/*/src/**/*.js
+packages/modules/*/src/**/*.d.ts
+packages/modules/*/src/**/*.js.map
+packages/modules/*/src/**/*.d.ts.map
+
+# Keep manually written declaration files
+!src/renderer/src/env.d.ts
+!src/preload/index.d.ts

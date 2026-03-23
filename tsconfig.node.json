@@ -4,7 +4,11 @@
     "electron.vite.config.*",
     "src/main/**/*",
     "src/preload/**/*",
-    "src/shared/**/*"
+    "src/shared/**/*",
+    "packages/core/src/**/*",
+    "packages/modules/rss/src/main/**/*",
+    "packages/modules/code/src/main/**/*",
+    "packages/modules/base/src/main/**/*"
   ],
   "compilerOptions": {
     "composite": true,
@@ -13,6 +17,13 @@
       "electron-vite/node"
     ],
     "paths": {
+      "@citadel-app/sdk": [
+        "packages/sdk/src/index.ts"
+      ],
+      "@citadel-app/*": [
+        "packages/*",
+        "packages/modules/*"
+      ],
       "@shared": [
         "src/shared/index.ts"
       ],

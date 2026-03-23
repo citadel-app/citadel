@@ -1,27 +1,6 @@
 # Changelog
 
-## 1.2.0 (2026-03-13)
-
-### Bug Fixes
-
-* feat: improve zoom factor management to prevent redundant updates, implement optimistic app settings with rollback, and simplify TitleBar UI. ([c49fbd7](https://github.com/iwannabebot/citadel/commit/c49fbd7744d41be46e8ea67c04f3d1205b035860))
-* feat: introduce workspace presets and establish core application structure with new components and constants. ([ba3812a](https://github.com/iwannabebot/citadel/commit/ba3812a7af2d177be7cbcea47308a756a7c5c740))
-* feat: Implement dynamic port allocation for development, communicate service ports to the renderer, and enhance window state management. ([c735cf1](https://github.com/iwannabebot/citadel/commit/c735cf1dcb6a1455cc5c8d1810fec41fb17b5dcd))
-* feat: Update a comprehensive collection of AWS and Azure service icons. ([ff24d1a](https://github.com/iwannabebot/citadel/commit/ff24d1aa7b7136cc773716757f7eb38a759a839b))
-* build: Update Electron build to unpack better-sqlite3, disable macOS signing, and generate separate x64/arm64 macOS binaries. ([7899e58](https://github.com/iwannabebot/citadel/commit/7899e584c1ea447992d99579ad54cb09e760004b)) 
-* feat: Add macOS and Linux application icons, including an icon generation script and updated build configurations. ([83f0fc0](https://github.com/iwannabebot/citadel/commit/83f0fc06080ae0a4e451027102e241b7c536ee4e))
-
-### Bug Fixes
-
-* fix: Updated `banner.png` resource. ([4a181c3](https://github.com/iwannabebot/citadel/commit/4a181c3288d8d67903de7d282eb71aa7897a0219))
-
-## 1.1.1 (2026-03-13)
-
-### Bug Fixes
-
-* fix: Remove GitHub App client id, add related environment variable template, and update gitignore. ([1098ff4](https://github.com/iwannabebot/citadel/commit/1098ff408f9adba950ba5f005cd4c57ea5d8a1a3))
-
-## 1.1.0 (2026-03-12)
+## 1.0.0 (2026-03-24)
 
 ### Features
 
@@ -34,22 +13,6 @@
 * chore: Remove snap build target, separate Linux build architectures, and update README badges and feature descriptions. ([d87df3c](https://github.com/iwannabebot/citadel/commit/d87df3cd37f09161a835c4ee4217ab1331e68f70))
 * feat: Rename project to Citadel, update README banner, and include architecture in build artifact names. ([419bf21](https://github.com/iwannabebot/citadel/commit/419bf2188d60588990abd7d11c3a07f70378344e))
 * feat: Added multiple platform arch ([588536c](https://github.com/iwannabebot/citadel/commit/588536c878920d9369203920e9fec201d45178f3))
-
-### Bug Fixes
-
-* fix: Better cleanup and timeout for repl containers ([9a39eb3](https://github.com/iwannabebot/citadel/commit/9a39eb3d0b143c67a9f3acc3aa1f6cd211bd6cb3))
-* fix: kbuild gate before release and all push ([b322cc0](https://github.com/iwannabebot/citadel/commit/b322cc05290a7c6852859ff34fcfc27f1a1ac806))
-
-### Documentation
-
-* docs: Add changelog entries for version 1.0.1, detailing new features and bug fixes. ([19a3860](https://github.com/iwannabebot/citadel/commit/19a3860c39c2c0ce1480f6b45c4671d653b66d01))
-
-
-## 1.0.0 (2026-03-04)
-
-
-### Features
-
 * 0.0.0 pre alpha ([ffd3fef](https://github.com/iwannabebot/citadel/commit/ffd3fef089e6bd0763e9173e3ba1de3c0f30c631))
 * add GitHub Actions workflow to build Citadel across multiple operating systems. ([bebdc4f](https://github.com/iwannabebot/citadel/commit/bebdc4fe4d14d6eefc2a736b1204e58910da0ddf))
 * Add Release Please GitHub Actions workflow and update README with new logo, badges, and enhanced features section. ([36f8ab4](https://github.com/iwannabebot/citadel/commit/36f8ab41839d99e9e979426f39973c22c22b30a4))
@@ -59,7 +22,21 @@
 
 
 ### Bug Fixes
-
+* feat: improve zoom factor management to prevent redundant updates, implement optimistic app settings with rollback, and simplify TitleBar UI. ([c49fbd7](https://github.com/iwannabebot/citadel/commit/c49fbd7744d41be46e8ea67c04f3d1205b035860))
+* feat: introduce workspace presets and establish core application structure with new components and constants. ([ba3812a](https://github.com/iwannabebot/citadel/commit/ba3812a7af2d177be7cbcea47308a756a7c5c740))
+* feat: Implement dynamic port allocation for development, communicate service ports to the renderer, and enhance window state management. ([c735cf1](https://github.com/iwannabebot/citadel/commit/c735cf1dcb6a1455cc5c8d1810fec41fb17b5dcd))
+* feat: Update a comprehensive collection of AWS and Azure service icons. ([ff24d1a](https://github.com/iwannabebot/citadel/commit/ff24d1aa7b7136cc773716757f7eb38a759a839b))
+* build: Update Electron build to unpack better-sqlite3, disable macOS signing, and generate separate x64/arm64 macOS binaries. ([7899e58](https://github.com/iwannabebot/citadel/commit/7899e584c1ea447992d99579ad54cb09e760004b)) 
+* feat: Add macOS and Linux application icons, including an icon generation script and updated build configurations. ([83f0fc0](https://github.com/iwannabebot/citadel/commit/83f0fc06080ae0a4e451027102e241b7c536ee4e))
+* fix: Updated `banner.png` resource. ([4a181c3](https://github.com/iwannabebot/citadel/commit/4a181c3288d8d67903de7d282eb71aa7897a0219))
+* fix: Remove GitHub App client id, add related environment variable template, and update gitignore. ([1098ff4](https://github.com/iwannabebot/citadel/commit/1098ff408f9adba950ba5f005cd4c57ea5d8a1a3))
+* fix: Better cleanup and timeout for repl containers ([9a39eb3](https://github.com/iwannabebot/citadel/commit/9a39eb3d0b143c67a9f3acc3aa1f6cd211bd6cb3))
+* fix: kbuild gate before release and all push ([b322cc0](https://github.com/iwannabebot/citadel/commit/b322cc05290a7c6852859ff34fcfc27f1a1ac806))
 * Fix for node's default 2GB memory limit ([525b325](https://github.com/iwannabebot/citadel/commit/525b32508e2d0bab2ed5df71cc584b8681b9d753))
 * Run npm install ([c6d65d4](https://github.com/iwannabebot/citadel/commit/c6d65d44993b20c074a66f3d56f554b3228ab7e5))
 * update missing functions ([2ed2bc8](https://github.com/iwannabebot/citadel/commit/2ed2bc8ceee2e1bbade0b668ddb17b548921157c))
+
+
+### Documentation
+
+* docs: Add changelog entries for version 1.0.1, detailing new features and bug fixes. ([19a3860](https://github.com/iwannabebot/citadel/commit/19a3860c39c2c0ce1480f6b45c4671d653b66d01))
