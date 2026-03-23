@@ -10,6 +10,7 @@
   "types": "./dist/index.node.d.ts",
   "exports": {
     ".": {
+      "types": "./dist/index.d.ts",
       "node": {
         "import": "./dist/index.node.js",
         "require": "./dist/index.node.cjs"
