@@ -6,11 +6,13 @@
     "url": "https://github.com/citadel-app/citadel.git"
   },
   "main": "./dist/index.js",
+  "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
-    ".": "./dist/index.js",
-    "./components/*": "./dist/components/*",
-    "./lib/*": "./dist/lib/*"
+    ".": {
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
   },
   "publishConfig": {
     "registry": "https://npm.pkg.github.com/",
@@ -18,7 +20,7 @@
   },
   "scripts": {
     "lint": "eslint src/",
-    "build": "tsc -b",
+    "build": "tsc -b && vite build",
     "clean": "tsc -b --clean"
   },
   "dependencies": {

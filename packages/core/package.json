@@ -5,22 +5,21 @@
     "url": "https://github.com/citadel-app/citadel.git"
   },
   "version": "1.0.1",
-  "main": "./dist/index.node.js",
+  "main": "./dist/index.node.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.node.d.ts",
   "exports": {
     ".": {
-      "browser": "./dist/index.js",
-      "node": "./dist/index.node.js",
-      "default": "./dist/index.node.js"
-    },
-    "./ai/*": "./dist/ai/*",
-    "./commands/*": "./dist/commands/*",
-    "./serializers/*": "./dist/serializers/*",
-    "./settings/*": "./dist/settings/*",
-    "./types/*": "./dist/types/*",
-    "./codex/*": "./dist/codex/*",
-    "./src/renderer/*": "./dist/renderer/*"
+      "node": {
+        "import": "./dist/index.node.js",
+        "require": "./dist/index.node.cjs"
+      },
+      "browser": {
+        "import": "./dist/index.js",
+        "require": "./dist/index.cjs"
+      },
+      "default": "./dist/index.node.cjs"
+    }
   },
   "publishConfig": {
     "registry": "https://npm.pkg.github.com/",
@@ -28,7 +27,7 @@
   },
   "scripts": {
     "lint": "eslint src/",
-    "build": "tsc -b",
+    "build": "tsc -b && vite build",
     "clean": "tsc -b --clean"
   },
   "dependencies": {

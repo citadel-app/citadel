@@ -6,14 +6,21 @@
     "url": "https://github.com/citadel-app/citadel.git"
   },
   "description": "Public Plugin SDK for Citadel Workspace",
-  "main": "dist/index.js",
+  "main": "dist/index.cjs",
+  "module": "dist/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
   "publishConfig": {
     "registry": "https://npm.pkg.github.com/",
     "access": "public"
   },
   "scripts": {
-    "build": "tsc"
+    "build": "tsc -b && vite build"
   },
   "dependencies": {
     "@citadel-app/core": "*"
