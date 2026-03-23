@@ -338,14 +338,6 @@ app.whenReady().then(() => {
       mainModuleRegistry.loadModules([baseMainModule], workspaceContext);
   });
 
-  import('../../packages/modules/rss/src/main/index').then(({ activateMain }) => {
-      const rssMainModule = {
-          id: '@citadel-app/rss',
-          version: '1.0.0',
-          onMainActivate: activateMain
-      };
-      mainModuleRegistry.loadModules([rssMainModule], workspaceContext);
-  });
 
   // Load Code Module
   // @ts-ignore

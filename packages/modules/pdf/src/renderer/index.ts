@@ -20,9 +20,11 @@ export const PdfModule: IModule = {
     },
 
     contentViewers: {
-        pdf: lazy(() =>
-            import('./components/PdfViewerWrapper').then(m => ({ default: m.PdfViewerWrapper as React.ComponentType<any> }))
-        )
+        // @ts-ignore
+        pdf: lazy(async () => {
+            const m = await import('./components/PdfViewerWrapper');
+            return { default: m.PdfViewerWrapper as React.ComponentType<any> };
+        })
     }
 };
 

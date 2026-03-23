@@ -4,7 +4,6 @@ import { SplashScreen, ErrorBoundary } from '@citadel-app/ui';
 import { appModuleRegistry } from './lib/module-registry';
 import { BaseModule } from '@citadel-app/base';
 
-import { RssModule } from '@citadel-app/rss';
 import { ExcalidrawModule } from '@citadel-app/excalidraw';
 import { PdfModule } from '@citadel-app/pdf';
 // @ts-ignore
@@ -18,7 +17,6 @@ export default function App() {
     loadRuntimePlugins().then((plugins) => {
       appModuleRegistry.loadModules([
         BaseModule, 
-        RssModule, 
         ExcalidrawModule, 
         CodeModule, 
         PdfModule, 

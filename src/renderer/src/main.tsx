@@ -13,14 +13,12 @@ import App from './App'
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import * as ReactDOMClient from 'react-dom/client';
-import * as CitadelSDK from '@citadel-app/sdk';
 import * as CitadelUI from '@citadel-app/ui';
 
 // Expose shared libraries globally for runtime plugins
 if (typeof window !== 'undefined') {
   (window as any).React = React;
   (window as any).ReactDOM = { ...ReactDOM, client: ReactDOMClient };
-  (window as any).CitadelSDK = CitadelSDK;
   (window as any).CitadelUI = CitadelUI;
 }
 

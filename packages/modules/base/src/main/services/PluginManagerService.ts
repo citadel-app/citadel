@@ -38,9 +38,36 @@ export class PluginManagerService {
         });
 
         this.registrar.handle('plugins.install', async (pluginId: string, downloadUrl: string) => {
-            // Implementation for downloading zip and extracting would go here
-            // For now, assume it's done via another mechanism or we mock it
-            throw new Error("Install not fully implemented yet");
+            try {
+                const res = await fetch(downloadUrl);
+                if (!res.ok) throw new Error(`Failed to download plugin zip: ${res.statusText}`);
+
+                const arrayBuffer = await res.arrayBuffer();
+                const buffer = Buffer.from(arrayBuffer);
+                
+                const tempZipPath = path.join(app.getPath('temp'), `${pluginId}-${Date.now()}.zip`);
+                await fs.writeFile(tempZipPath, buffer);
+                
+                const extract = require('extract-zip');
+                const targetPath = path.join(this.pluginsDir, pluginId.replace(/[^a-zA-Z0-9_-]/g, ''));
+                
+                if (fs.existsSync(targetPath)) {
+                    await fs.remove(targetPath);
+                }
+                await fs.mkdirp(targetPath);
+                
+                try {
+                    await extract(tempZipPath, { dir: targetPath });
+                } finally {
+                    await fs.remove(tempZipPath);
+                }
+                
+                await this.loadPlugins();
+                return;
+            } catch (e) {
+                console.error("Plugin installation error:", e);
+                throw e;
+            }
         });
 
         this.registrar.handle('plugins.uninstall', async (pluginId: string) => {

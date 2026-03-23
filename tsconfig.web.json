@@ -25,12 +25,6 @@
       "@citadel-app/ui": [
         "packages/ui/src/index.ts"
       ],
-      "@citadel-app/sdk": [
-        "packages/sdk/src/index.ts"
-      ],
-      "@citadel-app/rss": [
-        "packages/modules/rss/src/renderer/index.ts"
-      ],
       "@citadel-app/excalidraw": [
         "packages/modules/excalidraw/src/renderer/index.ts"
       ],
@@ -48,9 +42,6 @@
       ],
       "@citadel-app/ui/*": [
         "packages/ui/src/*"
-      ],
-      "@citadel-app/sdk/*": [
-        "packages/sdk/src/*"
       ],
       "@renderer/*": [
         "packages/modules/base/src/renderer/*",
