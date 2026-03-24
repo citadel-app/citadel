@@ -4,7 +4,7 @@
     "type": "git",
     "url": "https://github.com/citadel-app/citadel.git"
   },
-  "version": "1.0.1",
+  "version": "1.0.3",
   "main": "./dist/index.node.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.node.d.ts",
@@ -26,6 +26,9 @@
     "registry": "https://npm.pkg.github.com/",
     "access": "public"
   },
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "lint": "eslint src/",
     "build": "tsc -b && vite build",

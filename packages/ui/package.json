@@ -1,6 +1,6 @@
 {
   "name": "@citadel-app/ui",
-  "version": "1.0.1",
+  "version": "1.0.3",
   "repository": {
     "type": "git",
     "url": "https://github.com/citadel-app/citadel.git"
@@ -19,6 +19,9 @@
     "registry": "https://npm.pkg.github.com/",
     "access": "public"
   },
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "lint": "eslint src/",
     "build": "tsc -b && vite build",
