@@ -7,7 +7,7 @@ import { ConfigEditor } from '../components/settings/ConfigEditor';
 import { ConfirmDialog } from '@citadel-app/ui';
 
 import { ModelSelect } from '../components/settings/ModelSelect';
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { useToast } from '@citadel-app/ui';
 import { THEMES } from '@citadel-app/core';
@@ -24,11 +24,9 @@ export const SettingsPage = () => {
     const navigate = useNavigate();
     const location = useLocation();
 
-    // Determine current tab from URL
-    const currentPath = location.pathname.split('/').pop() || 'app';
     const modulePanels = appModuleRegistry.getSettingsPanels();
-    const modulePanelIds = modulePanels.map(p => p.id);
-    const knownTabs = ['system', 'database', 'intelligence', 'execution', 'workspace', 'networking', 'plugins', ...modulePanelIds];
+    const knownTabs = ['system', 'database', 'intelligence', 'workspace', 'networking', 'plugins', ...modulePanels.map(p => p.id)];
+    const currentPath = location.pathname.split('/').pop() || 'app';
     const activeTab = knownTabs.includes(currentPath) ? currentPath : 'app';
 
     const [connectionStatus, setConnectionStatus] = useState<'idle' | 'checking' | 'success' | 'error'>('idle');
@@ -126,6 +124,17 @@ export const SettingsPage = () => {
                             </Tabs.Trigger>
                         </>
                     )}
+
+                    {modulePanels.map((panel) => (
+                        <Tabs.Trigger
+                            key={panel.id}
+                            value={panel.id}
+                            className="px-4 py-3 text-sm font-medium text-muted-foreground border-b-2 border-transparent hover:text-foreground data-[state=active]:text-primary data-[state=active]:border-primary transition-all flex items-center gap-2 whitespace-nowrap"
+                        >
+                            {panel.icon && <Icon name={panel.icon as any} size={14} />}
+                            {panel.title}
+                        </Tabs.Trigger>
+                    ))}
 
                     <Tabs.Trigger
                         value="plugins"
@@ -1269,6 +1278,18 @@ export const SettingsPage = () => {
                     >
                         <Outlet />
                     </Tabs.Content>
+
+                    {modulePanels.map((panel) => (
+                        <Tabs.Content
+                            key={panel.id}
+                            value={panel.id}
+                            className="flex-1 flex-col min-h-0 outline-none overflow-hidden hidden data-[state=active]:flex"
+                        >
+                            <Suspense fallback={<div className="p-6 text-sm text-muted-foreground flex items-center justify-center h-full">Loading mapping...</div>}>
+                                <panel.component />
+                            </Suspense>
+                        </Tabs.Content>
+                    ))}
                 </div>
             </Tabs.Root>
 

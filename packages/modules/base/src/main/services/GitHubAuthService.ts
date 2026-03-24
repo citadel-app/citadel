@@ -49,7 +49,7 @@ export class GitHubAuthService {
   }
 
   private registerIpcHandlers() {
-    ipcMain.handle(IPC_CHANNELS.GITHUB_START_DEVICE_FLOW, async () => {
+    this.registrar.handle('github.startDeviceFlow', async () => {
       return this.startDeviceFlow();
     });
 

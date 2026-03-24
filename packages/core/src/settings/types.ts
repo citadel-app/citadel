@@ -48,6 +48,7 @@ export interface AppSettings {
     peerEnabled: boolean;
     peerId: string;
     peerIceServers: { urls: string }[];
+    plugins?: Record<string, Record<string, any>>;
     [key: string]: any;
 }
 

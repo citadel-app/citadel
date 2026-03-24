@@ -34,6 +34,7 @@ export async function activateMain(registrar: MainRegistrar<'@citadel-app/base'>
         new ModelDownloadService(registrar);
 
         aiOrchestrator.registerHandlers(registrar);
+        coreDb.registerIpcHandlers(registrar);
     }
 
     if (workspace) {

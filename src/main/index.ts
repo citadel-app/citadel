@@ -1,4 +1,4 @@
-import { app, shell, BrowserWindow, ipcMain, protocol, screen } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, protocol, screen, dialog } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
@@ -333,6 +333,19 @@ app.whenReady().then(() => {
       const baseMainModule = {
           id: '@citadel-app/base',
           version: '1.0.0',
+          ipcs: [
+            "ai.isAvailable", "ai.chat", "ai.chatStream", "ai.analyzeIntent", "ai.indexEntry", "ai.search", "ai.getContext", "ai.getStructuralContext", "ai.needsIndexing", "ai.deleteEntryIndex", "ai.getHardwareSpecs", "ai.scoreModel", "ai.pullModel", "ai.getModels", "ai.abortChat", "ai.generateMetadata", "ai.generateSummary", "ai.proofread", "ai.generateSection",
+            "db.getAiIndexStatus", "db.updateAiIndexStatus", "db.deleteAiIndexStatus", "db.initWorkspace",
+            "service.start", "service.stop", "service.status",
+            "fs.readDirectory", "fs.readFile", "fs.readFileBinary", "fs.writeFile", "fs.writeAsset", "fs.createDirectory", "fs.deleteFile", "fs.exists", "fs.stat", "fs.rename", "fs.allowPath",
+            "appSettings.getSettings", "appSettings.updateSetting", "appSettings.updateSettings",
+            "fs.watchPath",
+            "github.startDeviceFlow", "github.pollDeviceToken", "github.getUser", "github.createRepository", "github.listRepos", "github.forkRepository",
+            "git.status", "git.init", "git.add", "git.commit", "git.push", "git.pull", "git.addRemote", "git.history", "git.getRemotes", "git.show", "git.checkIsRepo", "git.getBranches", "git.checkout", "git.clone", "git.discard", "git.createBranch", "git.deleteBranch", "git.setConfig", "git.unstage", "git.discardBulk", "git.removeRemote",
+            "models.checkStatus", "models.download",
+            "plugins.list", "plugins.install", "plugins.uninstall", "plugins.toggle", "plugins.readRenderer",
+            "secrets.get", "secrets.set", "secrets.delete"
+          ],
           onMainActivate: activateMain
       };
       mainModuleRegistry.loadModules([baseMainModule], workspaceContext);
@@ -345,6 +358,18 @@ app.whenReady().then(() => {
       const codeMainModule = {
           id: '@citadel-app/code',
           version: '1.0.0',
+          ipcs: [
+            "repl:start-session",
+            "repl:stop-session",
+            "repl:list-containers",
+            "repl:stop-container",
+            "repl:remove-container",
+            "repl:check-session",
+            "repl:send-input",
+            "getLspPort",
+            "latex:check",
+            "latex:compile"
+          ],
           onMainActivate: activateMain
       };
       mainModuleRegistry.loadModules([codeMainModule], workspaceContext);
@@ -357,7 +382,26 @@ app.whenReady().then(() => {
       isQuitting = true;
   });
 
-  // Register Workspace Discovery IPC
+  ipcMain.handle(IPC_CHANNELS.DIALOG_OPEN_DIRECTORY, async () => {
+    const { canceled, filePaths } = await dialog.showOpenDialog({
+      properties: ['openDirectory']
+    })
+    if (!canceled && filePaths.length > 0) {
+      return filePaths[0]
+    }
+    return null
+  });
+
+  ipcMain.handle(IPC_CHANNELS.DIALOG_OPEN_FILE, async () => {
+    const { canceled, filePaths } = await dialog.showOpenDialog({
+      properties: ['openFile']
+    })
+    if (!canceled && filePaths.length > 0) {
+      return filePaths[0]
+    }
+    return null
+  });
+
   ipcMain.handle(IPC_CHANNELS.APP_GET_INIT_CONTEXT, () => {
     const url = deepLinkUrl;
     deepLinkUrl = null; // Consume it once read

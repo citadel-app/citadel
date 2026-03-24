@@ -4,7 +4,7 @@ import { useAppSettings } from '../context/AppSettingsContext';
 import { useGit } from '../context/GitContext';
 import { Icon } from '@citadel-app/ui';
 import { DiffView } from '../components/DiffView';
-import { SplitPaneLayout } from '@citadel-app/ui';
+import { SplitPaneLayout, SplitPaneProvider } from '@citadel-app/ui';
 import { BranchManagerModal } from '../components/git/BranchManagerModal';
 import { VirtualizedFileList, GitItem } from '@citadel-app/ui';
 import { ConfirmDialog } from '@citadel-app/ui';
@@ -577,13 +577,15 @@ export const SourceControlPage = () => {
 
     return (
         <div className="h-full w-full overflow-hidden relative">
-            <SplitPaneLayout
-                leftPanel={LeftPanel}
-                rightPanel={RightPanel}
-                defaultLeftSize={30}
-                minSize={20}
-                showLayoutControls={false}
-            />
+            <SplitPaneProvider id="source-control">
+                <SplitPaneLayout
+                    leftPanel={LeftPanel}
+                    rightPanel={RightPanel}
+                    defaultLeftSize={30}
+                    minSize={20}
+                    showLayoutControls={false}
+                />
+            </SplitPaneProvider>
             {showBranchModal && <BranchManagerModal onClose={() => setShowBranchModal(false)} />}
 
             <ConfirmDialog

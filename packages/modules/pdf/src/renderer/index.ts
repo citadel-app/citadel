@@ -4,6 +4,7 @@ import { lazy } from 'react';
 export const PdfModule: IModule = {
     id: '@citadel-app/pdf',
     version: '1.0.0',
+    ipcs: [],
     permissions: {
         ipc: []
     },

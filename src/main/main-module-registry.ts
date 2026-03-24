@@ -34,7 +34,7 @@ class MainModuleRegistry {
 
         for (const mod of modules) {
             if (mod.onMainActivate) {
-                const registrar = this.createRegistrar(mod.id as keyof ModuleAPIRegistry);
+                const registrar = this.createRegistrar<any>(mod);
                 console.log(`[MainModuleRegistry] Activating module "${mod.id}" v${mod.version}`);
                 await mod.onMainActivate(registrar, workspace);
             }
@@ -55,10 +55,15 @@ class MainModuleRegistry {
         }
     }
 
-    private createRegistrar<M extends keyof ModuleAPIRegistry>(moduleId: M): MainRegistrar<M> {
+    private createRegistrar<M extends keyof ModuleAPIRegistry>(mod: IModule): MainRegistrar<M> {
         return {
-            handle: ((method: any, handler: any) => {
-                const key = `${moduleId as string}:${method}`;
+            handle: ((method: string, handler: any) => {
+                const key = `${mod.id}:${method}`;
+
+                if (!mod.ipcs || !mod.ipcs.includes(method)) {
+                    throw new Error(`[Security] Module "${mod.id}" attempted to register IPC "${method}", but it is not declared in its manifest.ipcs ownership list!`);
+                }
+
                 if (this.handlers.has(key)) {
                     console.warn(`[MainModuleRegistry] Overwriting handler "${key}"`);
                 }
