@@ -1,4 +1,5 @@
 import { IModule } from '@citadel-app/core';
+import * as CitadelCore from '@citadel-app/core';
 import { __hostApi } from './api-vault';
 // The Backend exposes PluginManager IPCs under @citadel-app/base
 // e.g. plugins.list -> { id, version, main, renderer, enabled }
@@ -31,10 +32,11 @@ export async function loadRuntimePlugins(): Promise<IModule[]> {
                 // plugins bundled as CJS or UMD will safely drop their payload here.
                 const loader = new Function('module', 'exports', 'require', 'window', scriptCode);
                 
-                // Stub a require to provide '@citadel-app/sdk' from window via polyfill matching
                 const sandboxRequire = (moduleId: string) => {
                     if (moduleId === 'react') return (window as any).React;
+                    if (moduleId === 'react/jsx-runtime') return (window as any).ReactJSXRuntime;
                     if (moduleId === 'react-dom') return (window as any).ReactDOM;
+                    if (moduleId === '@citadel-app/core') return CitadelCore;
                     if (moduleId === '@citadel-app/sdk') return (window as any).CitadelSDK;
                     if (moduleId === '@citadel-app/ui') return (window as any).CitadelUI;
                     if (moduleId === 'react-router-dom') return (window as any).ReactRouterDOM;
@@ -46,7 +48,19 @@ export async function loadRuntimePlugins(): Promise<IModule[]> {
                 loader(module, exports, sandboxRequire, window);
 
                 // Determine the plugin entry object
-                const pluginObj = module.exports.default || module.exports || exports.default || exports;
+                let pluginObj = module.exports.default || module.exports || exports.default || exports;
+
+                // Fallback: If the root export isn't an IModule, scan deeply for an exported IModule
+                if (!pluginObj || !pluginObj.id || !pluginObj.version) {
+                    const candidateKeys = Object.keys(pluginObj || {});
+                    for (const key of candidateKeys) {
+                        const candidate = pluginObj[key];
+                        if (candidate && typeof candidate === 'object' && candidate.id && candidate.version) {
+                            pluginObj = candidate;
+                            break;
+                        }
+                    }
+                }
 
                 if (pluginObj && pluginObj.id && pluginObj.version) {
                     plugins.push(pluginObj as IModule);

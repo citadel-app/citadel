@@ -83,7 +83,7 @@ export interface CoreServices {
     /** File I/O primitives for module-owned data persistence. */
     storage: StorageProvider;
 
-    /** SQLite-backed feed item caching. */
+    /** SQLite-backed feed item caching for modules. */
     feedDb: FeedDB;
 
     /** Remove related links from entries that reference the given IDs. */
@@ -106,7 +106,7 @@ export interface CoreServices {
 
     /**
      * Write a single key back to AppSettings.
-     * Module-owned keys (e.g. rssRefreshInterval) are stored via the generic index signature.
+     * Module-owned keys (e.g. extensionRefreshInterval) are stored via the generic index signature.
      */
     updateSetting: (key: string, value: any) => void;
 
@@ -121,7 +121,7 @@ export interface CoreServices {
 // ---------------------------------------------------------------------------
 
 export interface ProviderRegistration {
-    /** Unique identifier for this provider (e.g. 'rss', 'youtube-player'). */
+    /** Unique identifier for this provider (e.g. 'news-feed', 'youtube-player'). */
     id: string;
 
     /** 'global' = wraps the entire app, 'route' = wraps specific routes only. */
@@ -290,6 +290,14 @@ export interface MainRegistrar<M extends keyof ModuleAPIRegistry = any> {
         method: K, 
         handler: (...args: Parameters<ValidIPC<ModuleAPIRegistry[M][K]>>) => ReturnType<ValidIPC<ModuleAPIRegistry[M][K]>> | Promise<Awaited<ReturnType<ValidIPC<ModuleAPIRegistry[M][K]>>>>
     ): void;
+
+    /** Spawn a scoped sub-registrar strictly bounded by the given module's capability manifest. */
+    createChildRegistrar?: <CM extends keyof ModuleAPIRegistry = any>(manifest: IModule) => MainRegistrar<CM>;
+
+    /** 
+     * Register a native microservice dependency hooked securely to the application's global Sidecar Manager.
+     */
+    registerSidecar?: (sidecar: any) => void;
 }
 
 export interface ModuleManifest {

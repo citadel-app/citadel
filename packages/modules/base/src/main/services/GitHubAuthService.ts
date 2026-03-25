@@ -1,5 +1,5 @@
-import { ipcMain, net, clipboard } from 'electron';
-import { MainRegistrar, IPC_CHANNELS } from '@citadel-app/core';
+import { net, clipboard } from 'electron';
+import { MainRegistrar } from '@citadel-app/core';
 
 /**
  * GitHub App Device Flow Authentication Service

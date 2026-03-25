@@ -4,22 +4,27 @@
     "type": "git",
     "url": "https://github.com/citadel-app/citadel.git"
   },
-  "version": "1.0.4",
+  "version": "1.1.0",
   "main": "./dist/index.node.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.node.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
       "node": {
+        "types": "./dist/index.node.d.ts",
         "import": "./dist/index.node.js",
         "require": "./dist/index.node.cjs"
       },
       "browser": {
+        "types": "./dist/index.d.ts",
         "import": "./dist/index.js",
         "require": "./dist/index.cjs"
       },
-      "default": "./dist/index.node.cjs"
+      "default": {
+        "types": "./dist/index.d.ts",
+        "import": "./dist/index.node.js",
+        "require": "./dist/index.node.cjs"
+      }
     }
   },
   "publishConfig": {

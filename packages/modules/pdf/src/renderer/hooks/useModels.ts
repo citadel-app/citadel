@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { hostApi as __hostApi } from '../host-services';
+import { useCoreServices } from '@citadel-app/ui';
 
 export interface DownloadProgress {
     total: number;
@@ -15,12 +15,13 @@ export interface ModelStatus {
 }
 
 export const useModels = () => {
+    const { hostApi: __hostApi } = useCoreServices();
     const [status, setStatus] = useState<ModelStatus | null>(null);
     const [downloadProgress, setDownloadProgress] = useState<DownloadProgress | null>(null);
     const [isDownloading, setIsDownloading] = useState(false);
 
     const refreshStatus = useCallback(async () => {
-        const currentStatus = await __hostApi.module.invoke('@citadel-app/base', 'models.checkStatus');
+        const currentStatus = await __hostApi.module.invoke('@citadel-app/pdf', 'pdf.tts.checkModels');
         setStatus(currentStatus);
     }, []);
 
@@ -42,7 +43,7 @@ export const useModels = () => {
     const downloadModel = useCallback(async () => {
         setIsDownloading(true);
         try {
-            const result = await __hostApi.module.invoke('@citadel-app/base', 'models.download');
+            const result = await __hostApi.module.invoke('@citadel-app/pdf', 'pdf.tts.downloadModels');
             if (result.success) {
                 await refreshStatus();
             }

@@ -25,7 +25,7 @@ export const SettingsPage = () => {
     const location = useLocation();
 
     const modulePanels = appModuleRegistry.getSettingsPanels();
-    const knownTabs = ['system', 'database', 'intelligence', 'workspace', 'networking', 'plugins', ...modulePanels.map(p => p.id)];
+    const knownTabs = ['system', 'database', 'intelligence', 'workspace', 'networking', ...modulePanels.map(p => p.id)];
     const currentPath = location.pathname.split('/').pop() || 'app';
     const activeTab = knownTabs.includes(currentPath) ? currentPath : 'app';
 
@@ -135,14 +135,6 @@ export const SettingsPage = () => {
                             {panel.title}
                         </Tabs.Trigger>
                     ))}
-
-                    <Tabs.Trigger
-                        value="plugins"
-                        className="px-4 py-3 text-sm font-medium text-muted-foreground border-b-2 border-transparent hover:text-foreground data-[state=active]:text-primary data-[state=active]:border-primary transition-all flex items-center gap-2 whitespace-nowrap"
-                    >
-                        <Icon name="Puzzle" size={14} />
-                        Plugins
-                    </Tabs.Trigger>
                 </Tabs.List>
 
                 <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
@@ -988,37 +980,6 @@ export const SettingsPage = () => {
                                             </div>
                                         </div>
 
-                                        {/* ═══════════════════ SECTION 6: Text-to-Speech ═══════════════════ */}
-                                        <div className="p-5 bg-card border border-border rounded-xl space-y-5">
-                                            <div className="flex items-center gap-2 pb-3 border-b border-border">
-                                                <Icon name="Volume2" size={18} className="text-purple-500" />
-                                                <h3 className="text-sm font-semibold">Text-to-Speech</h3>
-                                            </div>
-
-                                            <div className="grid gap-4">
-                                                <div className="flex items-center gap-3">
-                                                    <input type="checkbox" id="ttsEnabled2" checked={settings.ttsEnabled ?? false} onChange={(e) => updateSetting('ttsEnabled', e.target.checked)} className="rounded border-border" />
-                                                    <label htmlFor="ttsEnabled2" className="text-sm font-medium">Enable TTS Features</label>
-                                                </div>
-
-                                                <div className="grid gap-1.5">
-                                                    <label className="text-sm font-medium">TTS Server URL</label>
-                                                    <input type="text" className="bg-muted border border-border rounded px-3 py-2 text-sm w-full max-w-xs focus:ring-1 focus:ring-primary outline-none" value={settings.ttsUrl || 'http://localhost:5050'} onChange={(e) => updateSetting('ttsUrl', e.target.value)} placeholder="http://localhost:5050" />
-                                                    <p className="text-xs text-muted-foreground">URL of the local Python TTS server (Kokoro).</p>
-                                                </div>
-
-                                                <div className="grid gap-1.5 pt-2 border-t border-border/30">
-                                                    <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Volume Persistence</label>
-                                                    <label className="text-sm font-medium">TTS Data Host Path</label>
-                                                    <div className="flex gap-2">
-                                                        <input type="text" className="flex-1 bg-muted border border-border rounded px-3 py-2 text-sm focus:ring-1 focus:ring-primary outline-none" value={settings.ttsDataPath || ''} onChange={(e) => updateSetting('ttsDataPath', e.target.value)} placeholder="e.g. C:\Users\name\tts_data" />
-                                                        <button onClick={async () => { const path = await __hostApi.dialog.openDirectory(); if (path) updateSetting('ttsDataPath', path); }} className="px-3 py-2 bg-secondary text-secondary-foreground rounded-md text-xs hover:bg-secondary/80">Browse</button>
-                                                        {settings.ttsDataPath && (<button onClick={() => updateSetting('ttsDataPath', null)} className="px-3 py-2 text-muted-foreground hover:text-foreground text-xs" title="Reset to default">Clear</button>)}
-                                                    </div>
-                                                    <p className="text-xs text-muted-foreground">Host directory for TTS models and cache. Leave empty for default.</p>
-                                                </div>
-                                            </div>
-                                        </div>
 
                                         {/* ═══════════════════ SECTION 7: Infrastructure Deploy ═══════════════════ */}
                                         <div className="p-5 bg-card border border-border rounded-xl space-y-5">
@@ -1046,23 +1007,7 @@ export const SettingsPage = () => {
                                                 >
                                                     <Icon name="Database" size={14} /> Deploy Qdrant
                                                 </button>
-                                                <button
-                                                    onClick={async () => {
-                                                        if (!window.api?.system?.deployStack) { toast("Deploy feature not available in this build.", { type: 'error' }); return; }
-                                                        const btn = document.getElementById('btn-deploy-tts-2') as HTMLButtonElement;
-                                                        if (btn) { btn.disabled = true; btn.textContent = "Deploying..."; }
-                                                        try {
-                                                            const res = await __hostApi.module.invoke('@citadel-app/base', 'system.deployStack', 'tts-server');
-                                                            if (res.success) { toast("TTS server is starting up!", { type: 'success' }); updateSetting('ttsUrl', 'http://localhost:5050'); }
-                                                            else { toast("TTS Deploy Failed: " + res.error + ". Make sure Docker Desktop is running.", { type: 'error' }); }
-                                                        } catch (e) { toast("Error: " + e, { type: 'error' }); }
-                                                        finally { if (btn) { btn.disabled = false; btn.textContent = "Deploy TTS Server"; } }
-                                                    }}
-                                                    id="btn-deploy-tts-2"
-                                                    className="px-4 py-2 bg-secondary text-secondary-foreground rounded-lg text-xs font-medium hover:bg-secondary/80 flex items-center gap-2 transition-colors"
-                                                >
-                                                    <Icon name="AudioLines" size={14} /> Deploy TTS Server
-                                                </button>
+
                                             </div>
                                         </div>
 

@@ -8,7 +8,6 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { useNavigate } from 'react-router-dom';
 import { useConfig } from '../context/ConfigContext';
 import { cn } from '@citadel-app/ui';
-import { useModels } from '../hooks/useModels';
 import { hostApi as __hostApi } from '../host-services';
 import { appModuleRegistry } from '../host-services';
 
@@ -27,12 +26,7 @@ interface CollectionInfo {
     status: string;
 }
 
-interface TtsStatus {
-    status: string;
-    model_loaded: boolean;
-    model_path: string;
-    cache_entries: number;
-}
+
 
 // Humanized time helper
 const timeAgo = (date: Date): string => {
@@ -83,17 +77,13 @@ export const SystemStatusPage = () => {
     const [qdrantUrl, setQdrantUrl] = useState('http://localhost:6333');
     const [collections, setCollections] = useState<CollectionInfo[]>([]);
 
-    // TTS State
-    const [ttsConnected, setTtsConnected] = useState(false);
-    const [ttsStatus, setTtsStatus] = useState<TtsStatus | null>(null);
-    const [ttsUrl, setTtsUrl] = useState('http://localhost:5050');
 
     // Execution State (Moved to CodeStatusWidget)
     // Docker Containers (Moved to CodeStatusWidget)
 
     const [isIndexing, setIsIndexing] = useState(false);
     const [indexProgress, setIndexProgress] = useState({ current: 0, total: 0 });
-    const { status: modelStatus, isDownloading, downloadProgress, downloadModel } = useModels();
+
 
     // ... (rest of state stays same)
 
@@ -183,24 +173,7 @@ export const SystemStatusPage = () => {
         setCollections([]); // Could be populated via a new IPC if critical
     }, [settings]);
 
-    const refreshTts = useCallback(async () => {
-        try {
-            const url = settings?.ttsUrl || 'http://localhost:5050';
-            setTtsUrl(url);
-            const res = await fetch(`${url}/status`);
-            if (res.ok) {
-                const status = await res.json();
-                setTtsStatus(status);
-                setTtsConnected(true);
-            } else {
-                setTtsStatus(null);
-                setTtsConnected(false);
-            }
-        } catch (e) {
-            setTtsStatus(null);
-            setTtsConnected(false);
-        }
-    }, [settings]);
+
 
     // Docker and Execution Refresh (Moved to CodeStatusWidget)
 
@@ -221,23 +194,15 @@ export const SystemStatusPage = () => {
         await Promise.all([
             refreshOllama(),
             refreshHardware(),
-            refreshQdrant(),
-            refreshTts()
+            refreshQdrant()
         ]);
-    }, [refreshOllama, refreshHardware, refreshQdrant, refreshTts, refreshProcessStats]);
+    }, [refreshOllama, refreshHardware, refreshQdrant, refreshProcessStats]);
 
     // Service Control Handlers
     const handleStartService = async (name: string) => {
         setTransitioningServices(prev => new Set(prev).add(name));
         try {
-            if (name === 'tts') {
-                const result = await __hostApi.module.invoke('@citadel-app/base', 'service.start', name);
-                if (typeof result === 'object' && result && (result as any)?.needsDownload) {
-                    console.log(`[SystemStatusPage] Service ${name} needs model download first.`);
-                }
-            } else {
-                await __hostApi.module.invoke('@citadel-app/base', 'service.start', name);
-            }
+            await __hostApi.module.invoke('@citadel-app/base', 'service.start', name);
             // Rapid refresh initially
             setTimeout(refreshAll, 1000);
             setTimeout(refreshAll, 3000);
@@ -254,11 +219,7 @@ export const SystemStatusPage = () => {
     const handleStopService = async (name: string) => {
         setTransitioningServices(prev => new Set(prev).add(name));
         try {
-            if (name === 'tts') {
-                await __hostApi.module.invoke('@citadel-app/base', 'service.stop', name);
-            } else {
-                await __hostApi.module.invoke('@citadel-app/base', 'service.stop', name);
-            }
+            await __hostApi.module.invoke('@citadel-app/base', 'service.stop', name);
             setTimeout(refreshAll, 1000);
         } catch (e) {
             console.error(`[SystemStatusPage] Failed to stop ${name}:`, e);
@@ -281,14 +242,13 @@ export const SystemStatusPage = () => {
 
                 if (next.has('ollama') && ollamaConnected) { next.delete('ollama'); changed = true; }
                 if (next.has('qdrant') && qdrantConnected) { next.delete('qdrant'); changed = true; }
-                if (next.has('tts') && ttsConnected) { next.delete('tts'); changed = true; }
 
                 return changed ? next : prev;
             });
         };
 
         checkTransitions();
-    }, [ollamaConnected, qdrantConnected, ttsConnected, transitioningServices]);
+    }, [ollamaConnected, qdrantConnected, transitioningServices]);
 
     // Safety timeout to clear transitions after 5 mins (e.g. build failure)
     useEffect(() => {
@@ -376,16 +336,14 @@ export const SystemStatusPage = () => {
         refreshHardware();
         refreshOllama();
         refreshQdrant();
-        refreshTts();
 
         const interval = setInterval(() => {
             refreshOllama();
             refreshQdrant();
-            refreshTts();
         }, pollInterval);
 
         return () => clearInterval(interval);
-    }, [refreshOllama, refreshHardware, refreshQdrant, refreshTts, pollInterval]);
+    }, [refreshOllama, refreshHardware, refreshQdrant, pollInterval]);
 
     const formatBytes = (bytes: number) => {
         if (bytes === 0) return '0 B';
@@ -597,74 +555,7 @@ export const SystemStatusPage = () => {
                             .filter(w => w.group === 'Cloud & Local Stack')
                             .map(w => <w.component key={w.id} />)}
 
-                        {/* TTS Engine */}
-                        <div className="p-5 bg-card/50 border border-border rounded-2xl shadow-sm">
-                            <div className="flex items-center justify-between mb-4">
-                                <h2 className="font-bold text-lg flex items-center gap-3 text-card-foreground">
-                                    <Icon name="Volume2" size={20} className="text-blue-500" />
-                                    Audio (TTS)
-                                </h2>
-                                <button
-                                    onClick={() => ttsConnected ? handleStopService('tts') : handleStartService('tts')}
-                                    disabled={transitioningServices.has('tts')}
-                                    className="p-1.5 hover:bg-muted rounded-md transition-colors"
-                                >
-                                    <Icon name={transitioningServices.has('tts') ? 'Loader2' : (ttsConnected ? 'Square' : 'Play')} size={14} className={transitioningServices.has('tts') ? 'animate-spin' : (ttsConnected ? 'text-destructive' : 'text-primary')} />
-                                </button>
-                            </div>
-                            <div className="space-y-2 text-sm">
-                                <div className="flex justify-between items-center p-2 bg-muted/20 rounded-lg">
-                                    <span className="text-muted-foreground">Engine</span>
-                                    <span className={cn("font-bold uppercase text-[10px]", ttsConnected ? "text-green-500" : "text-red-500")}>
-                                        {ttsConnected ? 'Kokoro Ready' : 'Stopped'}
-                                    </span>
-                                </div>
-                                <div className="flex justify-between items-center px-2 py-1">
-                                    <span className="text-muted-foreground text-xs">Cache</span>
-                                    <span className="font-mono text-xs font-medium">{ttsStatus?.cache_entries ?? 0} items</span>
-                                </div>
 
-                                {/* Model Status & Download */}
-                                <div className="mt-4 pt-4 border-t border-border/40 space-y-3">
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-xs font-medium text-muted-foreground uppercase flex items-center gap-1.5">
-                                            <Icon name="Database" size={12} />
-                                            Kokoro Model v0.19
-                                        </span>
-                                        <span className={cn(
-                                            "text-[10px] font-bold px-1.5 py-0.5 rounded border",
-                                            (modelStatus?.modelExists && modelStatus?.voicesExists) ? "bg-green-500/10 text-green-500 border-green-500/20" : "bg-orange-500/10 text-orange-500 border-orange-500/20"
-                                        )}>
-                                            {(modelStatus?.modelExists && modelStatus?.voicesExists) ? 'Downloaded' : 'Missing'}
-                                        </span>
-                                    </div>
-
-                                    {!(modelStatus?.modelExists && modelStatus?.voicesExists) && !isDownloading && (
-                                        <button
-                                            onClick={() => downloadModel()}
-                                            className="w-full py-2 bg-primary text-primary-foreground rounded-lg text-xs font-bold hover:bg-primary/90 transition-colors"
-                                        >
-                                            Download Model (310MB)
-                                        </button>
-                                    )}
-
-                                    {isDownloading && downloadProgress && (
-                                        <div className="space-y-2">
-                                            <div className="flex justify-between text-[10px] font-mono">
-                                                <span className="truncate max-w-[150px]">{downloadProgress.filename}</span>
-                                                <span>{downloadProgress.percent}%</span>
-                                            </div>
-                                            <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
-                                                <div
-                                                    className="h-full bg-primary transition-all duration-300"
-                                                    style={{ width: `${downloadProgress.percent}%` }}
-                                                />
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
                     </div>
 
                     {/* --- MANAGEMENT & DATA --- */}

@@ -577,7 +577,7 @@ export const SourceControlPage = () => {
 
     return (
         <div className="h-full w-full overflow-hidden relative">
-            <SplitPaneProvider id="source-control">
+            <SplitPaneProvider>
                 <SplitPaneLayout
                     leftPanel={LeftPanel}
                     rightPanel={RightPanel}

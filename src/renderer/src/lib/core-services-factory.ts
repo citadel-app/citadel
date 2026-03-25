@@ -78,9 +78,9 @@ export function buildStorage(api: CoreServicesAPI, vaultPath: string | null): St
  */
 export function buildFeedDb(api: CoreServicesAPI): FeedDB {
     return {
-        getFeedStatus: () => api.module.invoke('@citadel-app/rss', 'getFeedStatus'),
-        getFeedItems: (feedId: string, limit?: number) => api.module.invoke('@citadel-app/rss', 'getFeedItems', feedId, limit),
-        saveFeedItems: (feedId: string, items: any[]) => api.module.invoke('@citadel-app/rss', 'saveFeedItems', feedId, items),
-        updateFeedStatus: (itemId: string, status: any) => api.module.invoke('@citadel-app/rss', 'updateFeedStatus', itemId, status),
+        getFeedStatus: () => api.module.invoke('@citadel-app/base', 'db.getFeedStatus'),
+        getFeedItems: (feedId: string, limit?: number) => api.module.invoke('@citadel-app/base', 'db.getFeedItems', feedId, limit),
+        saveFeedItems: (feedId: string, items: any[]) => api.module.invoke('@citadel-app/base', 'db.saveFeedItems', feedId, items),
+        updateFeedStatus: (itemId: string, status: any) => api.module.invoke('@citadel-app/base', 'db.updateFeedStatus', itemId, status),
     };
 }

@@ -1,13 +1,24 @@
 import { IModule, RendererRegistrar, ScopedAPI } from '@citadel-app/core';
 import { lazy } from 'react';
+import { PdfModelStatusWidget } from './components/PdfModelStatusWidget';
 
 export const PdfModule: IModule = {
     id: '@citadel-app/pdf',
     version: '1.0.0',
-    ipcs: [],
+    ipcs: [
+        'pdf.tts.start',
+        'pdf.tts.stop',
+        'pdf.tts.status',
+        'pdf.tts.checkModels',
+        'pdf.tts.downloadModels'
+    ],
     permissions: {
         ipc: []
     },
+
+    statusWidgets: [
+        { id: 'pdf-models', group: 'Cloud & Local Stack', component: PdfModelStatusWidget }
+    ],
 
     contentModules: {
         pdf: {

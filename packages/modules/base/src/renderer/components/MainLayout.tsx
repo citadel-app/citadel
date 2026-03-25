@@ -157,6 +157,13 @@ export const MainLayout = () => {
                             {/* Separator */}
                             <div className="w-6 h-[1px] bg-border/40 mb-2 shrink-0" />
 
+                            <ActivityBarItem
+                                to="/plugins"
+                                icon="Puzzle"
+                                title="Extensions & Plugins"
+                                active={location.pathname.startsWith('/plugins')}
+                            />
+
                             {status?.files?.length > 0 && (settings && (settings.developerMode || !settings.autoCommitEnabled)) && (
                                 <ActivityBarItem
                                     to="/source-control"
@@ -262,15 +269,12 @@ const ActivityBarItem = ({ to, icon, title, active, badge, tourId }: ActivityBar
             {active && (
                 <div className="nav-active-gem" />
             )}
-            <Icon
-                name={icon}
-                size={16}
-                strokeWidth={2}
-                className={cn(
+            <div className={cn(
                     "opacity-80 group-hover:opacity-100 transition-all duration-300",
                     active ? "text-primary scale-110" : "text-muted-foreground group-hover:text-foreground"
-                )}
-            />
+                )}>
+                <Icon name={icon} size={16} />
+            </div>
 
             {/* Badge */}
             {badge !== undefined && (

@@ -21,8 +21,6 @@ export const StatusBar = () => {
     const [logSeverity, setLogSeverity] = useState<'none' | 'warning' | 'error'>('none');
     const [ollamaConnected, setOllamaConnected] = useState(false);
     const [qdrantConnected, setQdrantConnected] = useState(false);
-    const [ttsConnected, setTtsConnected] = useState(false);
-    const [executionConnected, setExecutionConnected] = useState(false);
     const [localZoom, setLocalZoom] = useState(appSettings.zoomFactor || 1.0);
     const [appVersion, setAppVersion] = useState<string>('');
 
@@ -61,19 +59,6 @@ export const StatusBar = () => {
                 const results = await __hostApi.module.invoke('@citadel-app/base', 'ai.isAvailable');
                 setOllamaConnected(results.services?.ollama || false);
                 setQdrantConnected(results.services?.ragAvailable || false);
-
-                // Check TTS if enabled
-                if (appSettings.ttsEnabled) {
-                    const ttsRes = await fetch(`${appSettings.ttsUrl || 'http://localhost:5050'}/status`).then(r => r.ok).catch(() => false);
-                    setTtsConnected(ttsRes);
-                } else {
-                    setTtsConnected(false);
-                }
-
-                // Check execution server
-                const execUrl = (appSettings.executionUrl || 'http://localhost:5051').replace('localhost', '127.0.0.1');
-                const execRes = await fetch(`${execUrl}/health`).then(r => r.ok).catch(() => false);
-                setExecutionConnected(execRes);
             } catch (e) {
                 // Silently handle errors in status polling
             }
@@ -85,7 +70,7 @@ export const StatusBar = () => {
         const interval = setInterval(pollServices, intervalMs);
 
         return () => clearInterval(interval);
-    }, [appSettings.ai?.enabled, appSettings.ai?.ollama?.baseUrl, appSettings.ai?.qdrant?.baseUrl, appSettings.system?.statusPollInterval, appSettings.ttsEnabled, appSettings.ttsUrl, appSettings.executionUrl]);
+    }, [appSettings.ai?.enabled, appSettings.ai?.ollama?.baseUrl, appSettings.ai?.qdrant?.baseUrl, appSettings.system?.statusPollInterval]);
 
     const handleServiceClick = () => {
         navigate('/settings/system');
@@ -175,28 +160,7 @@ export const StatusBar = () => {
                         >
                             <Icon name="Database" size={12} />
                         </div>
-                        <div
-                            className={cn(
-                                "flex items-center gap-1 hover:bg-white/10 px-1 rounded cursor-pointer transition-colors",
-                                executionConnected ? "text-green-500" : "text-red-500"
-                            )}
-                            title={`Execution Server (${appSettings.executionUrl || 'http://localhost:5051'}): ${executionConnected ? 'Connected' : 'Disconnected'}`}
-                            onClick={handleServiceClick}
-                        >
-                            <Icon name="Terminal" size={12} />
-                        </div>
-                        {appSettings.ttsEnabled && (
-                            <div
-                                className={cn(
-                                    "flex items-center gap-1 hover:bg-white/10 px-1 rounded cursor-pointer transition-colors",
-                                    ttsConnected ? "text-green-500" : "text-red-500"
-                                )}
-                                title={`TTS Engine: ${ttsConnected ? 'Connected' : 'Disconnected'} (Click for System Status)`}
-                                onClick={handleServiceClick}
-                            >
-                                <Icon name="Volume2" size={12} />
-                            </div>
-                        )}
+
                     </div>
                 )}
             </div>

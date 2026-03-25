@@ -329,50 +329,13 @@ app.whenReady().then(() => {
       configDir: path.join(initialWorkspacePath, '.codex', 'config')
   } : null;
 
-  import('../../packages/modules/base/src/main/index').then(({ activateMain }) => {
-      const baseMainModule = {
-          id: '@citadel-app/base',
-          version: '1.0.0',
-          ipcs: [
-            "ai.isAvailable", "ai.chat", "ai.chatStream", "ai.analyzeIntent", "ai.indexEntry", "ai.search", "ai.getContext", "ai.getStructuralContext", "ai.needsIndexing", "ai.deleteEntryIndex", "ai.getHardwareSpecs", "ai.scoreModel", "ai.pullModel", "ai.getModels", "ai.abortChat", "ai.generateMetadata", "ai.generateSummary", "ai.proofread", "ai.generateSection",
-            "db.getAiIndexStatus", "db.updateAiIndexStatus", "db.deleteAiIndexStatus", "db.initWorkspace",
-            "service.start", "service.stop", "service.status",
-            "fs.readDirectory", "fs.readFile", "fs.readFileBinary", "fs.writeFile", "fs.writeAsset", "fs.createDirectory", "fs.deleteFile", "fs.exists", "fs.stat", "fs.rename", "fs.allowPath",
-            "appSettings.getSettings", "appSettings.updateSetting", "appSettings.updateSettings",
-            "fs.watchPath",
-            "github.startDeviceFlow", "github.pollDeviceToken", "github.getUser", "github.createRepository", "github.listRepos", "github.forkRepository",
-            "git.status", "git.init", "git.add", "git.commit", "git.push", "git.pull", "git.addRemote", "git.history", "git.getRemotes", "git.show", "git.checkIsRepo", "git.getBranches", "git.checkout", "git.clone", "git.discard", "git.createBranch", "git.deleteBranch", "git.setConfig", "git.unstage", "git.discardBulk", "git.removeRemote",
-            "models.checkStatus", "models.download",
-            "plugins.list", "plugins.install", "plugins.uninstall", "plugins.toggle", "plugins.readRenderer",
-            "secrets.get", "secrets.set", "secrets.delete"
-          ],
-          onMainActivate: activateMain
-      };
-      mainModuleRegistry.loadModules([baseMainModule], workspaceContext);
-  });
-
-
-  // Load Code Module
-  // @ts-ignore
-  import('../../packages/modules/code/src/main/index').then(({ activateMain }) => {
-      const codeMainModule = {
-          id: '@citadel-app/code',
-          version: '1.0.0',
-          ipcs: [
-            "repl:start-session",
-            "repl:stop-session",
-            "repl:list-containers",
-            "repl:stop-container",
-            "repl:remove-container",
-            "repl:check-session",
-            "repl:send-input",
-            "getLspPort",
-            "latex:check",
-            "latex:compile"
-          ],
-          onMainActivate: activateMain
-      };
-      mainModuleRegistry.loadModules([codeMainModule], workspaceContext);
+  Promise.all([
+    import('../../packages/modules/base/src/main/index'),
+    import('../../packages/modules/code/src/main/index')
+  ]).then(([{ BaseMainModule }, { CodeMainModule }]) => {
+      mainModuleRegistry.loadModules([BaseMainModule, CodeMainModule], workspaceContext);
+  }).catch(err => {
+      console.error('[Main] Failed to load modules:', err);
   });
 
   // Clean up on exit
@@ -696,6 +659,26 @@ app.on('window-all-closed', () => {
     app.quit()
   }
 })
+
+let isQuitting = false;
+app.on('before-quit', async (e) => {
+    // If we're already gracefully exiting, let Electron close normally
+    if (isQuitting) return;
+
+    // Halt immediate termination while we spin down detached Docker containers
+    e.preventDefault();
+    console.log('[Main] Stopping background sidecars before exit...');
+    
+    try {
+        await mainModuleRegistry.sidecars.stopAll();
+    } catch (err) {
+        console.error('[Main] Error while stopping sidecars:', err);
+    }
+    
+    // Resume destruction sequence
+    isQuitting = true;
+    app.quit();
+});
 
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.

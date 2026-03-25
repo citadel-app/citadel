@@ -5,6 +5,7 @@ import { CodeSectionEditor } from './components/CodeSectionEditor';
 import { CodeContentViewer } from './components/CodeContentViewer';
 import { ReplProvider } from './context/ReplContext';
 import { CodeStatusWidget } from './components/CodeStatusWidget';
+import { CodeExecutionWidget } from './components/CodeExecutionWidget';
 
 // @ts-ignore
 import editorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker';
@@ -26,6 +27,17 @@ export const CodeModule: IModule = {
             'fs.readFileBinary'
         ]
     },
+    ipcs: [
+        'kernel.start',
+        'kernel.execute',
+        'kernel.stop',
+        'kernel.status',
+        'latex:check',
+        'latex:compile',
+        'code.execution.start',
+        'code.execution.stop',
+        'code.execution.status'
+    ],
 
 
     contentModules: {
@@ -89,9 +101,9 @@ export const CodeModule: IModule = {
     contentViewers: {
         code: CodeContentViewer
     },
-
     statusWidgets: [
-        { id: 'code-status', group: 'Cloud & Local Stack', component: CodeStatusWidget }
+        { id: 'code-status', group: 'Cloud & Local Stack', component: CodeStatusWidget },
+        { id: 'code-execution', group: 'Cloud & Local Stack', component: CodeExecutionWidget }
     ],
 
     async onRendererActivate(registrar: RendererRegistrar) {

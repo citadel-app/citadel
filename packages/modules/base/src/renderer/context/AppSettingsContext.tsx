@@ -61,7 +61,7 @@ export const AppSettingsProvider = ({ children }: AppSettingsProviderProps) => {
 
     // Apply zoom factor
     useEffect(() => {
-        if (window.api?.window?.setZoom) {
+        if (__hostApi.window?.setZoom) {
             // Only set if different from actual window zoom to avoid loops
             __hostApi.window.getZoom().then((currentFactor: number) => {
                 const roundedNew = Math.round((settings.zoomFactor || 1.0) * 100) / 100;
@@ -80,7 +80,7 @@ export const AppSettingsProvider = ({ children }: AppSettingsProviderProps) => {
 
     // Handle native zoom events from Main process
     useEffect(() => {
-        if (!window.api?.window?.onZoomChange) return;
+        if (!__hostApi.window?.onZoomChange) return;
 
         return __hostApi.window.onZoomChange((newFactor: number) => {
             // Only update if it's different to prevent loops
@@ -97,10 +97,6 @@ export const AppSettingsProvider = ({ children }: AppSettingsProviderProps) => {
 
     const loadSettings = async () => {
         try {
-            if (!window.api?.appSettings) {
-                console.warn('[AppSettingsContext] __hostApi.appSettings is not defined. Restart the app if you just added this feature.');
-                return;
-            }
             const loaded = await __hostApi.module.invoke('@citadel-app/base', 'appSettings.getSettings');
 
             // Merge loaded settings with defaults

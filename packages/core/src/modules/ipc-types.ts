@@ -18,6 +18,12 @@ export interface BaseModuleAPI {
     'fs.rename': (oldPath: string, newPath: string) => Promise<void>;
     'fs.allowPath': (path: string) => Promise<void>;
 
+    // Extracted global feed management API mappings
+    'db.getFeedItems': (feedId: string, limit?: number) => Promise<any[]>;
+    'db.saveFeedItems': (feedId: string, items: any[]) => Promise<void>;
+    'db.getFeedStatus': () => Promise<Record<string, any>>;
+    'db.updateFeedStatus': (itemId: string, status: any) => Promise<void>;
+
     // Network
     'net.fetch': (url: string, options?: any) => Promise<any>;
 
@@ -101,14 +107,7 @@ export interface BaseModuleAPI {
     'db.updateAiIndexStatus': (status: any) => Promise<void>;
     'db.deleteAiIndexStatus': (entryId: string) => Promise<void>;
 
-    // Models
-    'models.checkStatus': () => Promise<any>;
-    'models.download': () => Promise<any>;
-
     // Docker / Execution Services
-    'service.start': (service: 'execution' | 'tts') => Promise<void>;
-    'service.stop': (service: 'execution' | 'tts') => Promise<void>;
-    'service.status': (service: 'execution' | 'tts') => Promise<any>;
 
     // Plugins
     'plugins.list': () => Promise<any[]>;
@@ -118,13 +117,6 @@ export interface BaseModuleAPI {
     'plugins.readRenderer': (pluginId: string) => Promise<string | null>;
 }
 
-export interface RSSModuleAPI {
-    'getFeedStatus': () => Promise<Record<string, any>>;
-    'getFeedItems': (feedId: string, limit?: number) => Promise<any[]>;
-    'saveFeedItems': (feedId: string, items: any[]) => Promise<void>;
-    'updateFeedStatus': (itemId: string, status: any) => Promise<void>;
-}
-
 export interface CodeModuleAPI {
     'kernel.start': (language: string) => Promise<void>;
     'kernel.execute': (language: string, code: string) => Promise<any>;
@@ -132,10 +124,22 @@ export interface CodeModuleAPI {
     'kernel.status': (language: string) => Promise<string>;
     'latex:check': () => Promise<boolean>;
     'latex:compile': (args: { files: Array<{name: string, content: string, isBinary?: boolean}> }) => Promise<any>;
+    'code.execution.start': () => Promise<boolean>;
+    'code.execution.stop': () => Promise<boolean>;
+    'code.execution.status': () => Promise<any>;
+}
+
+export interface PdfModuleAPI {
+    'pdf.tts.start': () => Promise<boolean>;
+    'pdf.tts.stop': () => Promise<boolean>;
+    'pdf.tts.status': () => Promise<any>;
+    'pdf.tts.checkModels': () => Promise<any>;
+    'pdf.tts.downloadModels': () => Promise<any>;
 }
 
 export interface ModuleAPIRegistry {
     '@citadel-app/base': BaseModuleAPI;
-    '@citadel-app/rss': RSSModuleAPI;
     '@citadel-app/code': CodeModuleAPI;
+    '@citadel-app/pdf': PdfModuleAPI;
+    [key: string]: any; // Allows dynamic plugin RPC typings to merge gracefully
 }

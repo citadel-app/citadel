@@ -1,6 +1,7 @@
 import { ipcMain } from 'electron';
 import { IPC_CHANNELS } from '@citadel-app/core';
 import type { IModule, MainRegistrar, WorkspaceContext, ModuleAPIRegistry } from '@citadel-app/core';
+import { SidecarManager } from '@citadel-app/core';
 
 /**
  * Main-process module registry.
@@ -9,6 +10,7 @@ import type { IModule, MainRegistrar, WorkspaceContext, ModuleAPIRegistry } from
 class MainModuleRegistry {
     private handlers = new Map<string, Function>();
     private modules: IModule[] = [];
+    public sidecars: SidecarManager = new SidecarManager();
 
     /**
      * Initialize the generic module:invoke IPC handler.
@@ -30,17 +32,21 @@ class MainModuleRegistry {
      * Calls onMainActivate for each module that implements it.
      */
     async loadModules(modules: IModule[], workspace: WorkspaceContext | null) {
-        this.modules = modules;
+        this.modules = [...this.modules, ...modules];
 
         for (const mod of modules) {
-            if (mod.onMainActivate) {
-                const registrar = this.createRegistrar<any>(mod);
-                console.log(`[MainModuleRegistry] Activating module "${mod.id}" v${mod.version}`);
-                await mod.onMainActivate(registrar, workspace);
+            try {
+                if (mod.onMainActivate) {
+                    const registrar = this.createRegistrar<any>(mod);
+                    console.log(`[MainModuleRegistry] Activating module "${mod.id}" v${mod.version}`);
+                    await mod.onMainActivate(registrar, workspace);
+                }
+            } catch (err) {
+                console.error(`[MainModuleRegistry] Failed to activate module "${mod.id}":`, err);
             }
         }
 
-        console.log(`[MainModuleRegistry] ${this.handlers.size} handlers registered from ${modules.length} modules`);
+        console.log(`[MainModuleRegistry] ${this.handlers.size} total handlers registered from ${this.modules.length} active modules`);
     }
 
     /**
@@ -61,15 +67,22 @@ class MainModuleRegistry {
                 const key = `${mod.id}:${method}`;
 
                 if (!mod.ipcs || !mod.ipcs.includes(method)) {
-                    throw new Error(`[Security] Module "${mod.id}" attempted to register IPC "${method}", but it is not declared in its manifest.ipcs ownership list!`);
+                    const errorMsg = `[Security] Module "${mod.id}" attempted to register IPC "${method}", but it is not declared in its manifest.ipcs ownership list!`;
+                    console.error(errorMsg);
+                    throw new Error(errorMsg);
                 }
 
                 if (this.handlers.has(key)) {
                     console.warn(`[MainModuleRegistry] Overwriting handler "${key}"`);
                 }
+                console.log(`[MainModuleRegistry] [${mod.id}] Registered handler: ${method}`);
                 this.handlers.set(key, handler);
-            }) as any
-        };
+            }) as any,
+            createChildRegistrar: (manifest: IModule) => this.createRegistrar<any>(manifest),
+            registerSidecar: (sidecar: any) => {
+                this.sidecars.registerSidecar(sidecar);
+            }
+        } as MainRegistrar<M>;
     }
 }
 
