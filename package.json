@@ -101,7 +101,7 @@
     "eslint-plugin-react-refresh": "^0.4.24",
     "gray-matter": "^4.0.3",
     "katex": "^0.16.28",
-    "liquidjs": "^10.24.0",
+    "liquidjs": "^10.25.0",
     "lowlight": "^3.3.0",
     "lucide-react": "^0.563.0",
     "mermaid": "^11.12.2",
