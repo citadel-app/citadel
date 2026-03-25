@@ -9,6 +9,8 @@ interface IconProps extends React.SVGProps<SVGSVGElement> {
     name: string;
     provider?: IconProvider;
     size?: string | number;
+    className?: string;
+    strokeWidth?: string | number;
 }
 
 // Pre-compute lowercase map for case-insensitive lookup of Simple Icons

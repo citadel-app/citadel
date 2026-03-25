@@ -18,18 +18,18 @@ export class ModelDownloadService {
         'https://huggingface.co/thewh1teagle/Kokoro/resolve/main/voices.json'
     ];
 
-    constructor(private registrar: MainRegistrar<'@citadel-app/base'>) {
+    constructor(private registrar: MainRegistrar<'@citadel-app/pdf'>) {
         this.modelsDir = path.join(app.getPath('userData'), 'models');
         fs.ensureDirSync(this.modelsDir);
         this.registerHandlers();
     }
 
     private registerHandlers() {
-        this.registrar.handle('models.checkStatus', async () => {
+        this.registrar.handle('pdf.tts.checkModels', async () => {
             return this.checkModelStatus();
         });
 
-        this.registrar.handle('models.download', async () => {
+        this.registrar.handle('pdf.tts.downloadModels', async () => {
             if (this.isDownloading) return { success: false, error: 'Download already in progress' };
             
             try {

@@ -83,7 +83,7 @@ export interface CoreServices {
     /** File I/O primitives for module-owned data persistence. */
     storage: StorageProvider;
 
-    /** SQLite-backed feed item caching. */
+    /** SQLite-backed feed item caching for modules. */
     feedDb: FeedDB;
 
     /** Remove related links from entries that reference the given IDs. */
@@ -106,7 +106,7 @@ export interface CoreServices {
 
     /**
      * Write a single key back to AppSettings.
-     * Module-owned keys (e.g. rssRefreshInterval) are stored via the generic index signature.
+     * Module-owned keys (e.g. extensionRefreshInterval) are stored via the generic index signature.
      */
     updateSetting: (key: string, value: any) => void;
 
@@ -121,7 +121,7 @@ export interface CoreServices {
 // ---------------------------------------------------------------------------
 
 export interface ProviderRegistration {
-    /** Unique identifier for this provider (e.g. 'rss', 'youtube-player'). */
+    /** Unique identifier for this provider (e.g. 'news-feed', 'youtube-player'). */
     id: string;
 
     /** 'global' = wraps the entire app, 'route' = wraps specific routes only. */
@@ -174,18 +174,36 @@ export interface SidebarItem {
     tourId?: string;
 }
 
-/**
- * A settings panel contributed by a module.
- * Rendered as a tab inside the host SettingsPage.
- */
+export type PluginSettingFieldType = 
+    | 'string' | 'number' | 'boolean' | 'select' | 'string-array' 
+    | 'password' 
+    | 'secret' 
+    | 'textarea';
+
+export interface PluginSettingField {
+    id: string; // The property key mapped cleanly inside appSettings.plugins[pluginId][id]
+    label: string;
+    description?: string;
+    type: PluginSettingFieldType;
+    options?: { label: string; value: string | number }[]; // For 'select' dropdowns
+    defaultValue?: any;
+    placeholder?: string;
+}
+
 export interface SettingsPanel {
     id: string;
     title: string;
     icon?: string;
-    /** React component rendered as the tab body. Receives no props — module owns its own state. */
     component: any;
-    /** Optional priority for ordering tabs (lower = earlier). Defaults to 100. */
     priority?: number;
+}
+
+/**
+ * A declarative schema dictating how the host dynamically builds generic setting forms for this module.
+ */
+export interface PluginSettingsSchema {
+    title?: string;
+    fields: PluginSettingField[];
 }
 
 /**
@@ -227,11 +245,14 @@ export interface RendererRegistrar {
     /** Provide a navigation button for the TitleBar */
     registerNavigationItem: (item: NavigationItem) => void;
 
-    /** Provide a navigation button for the Sidebar (Activity Bar) */
+    /** Register a navigation button for the Sidebar (Activity Bar) */
     registerSidebarItem: (item: SidebarItem) => void;
 
-    /** Inject a settings tab into the host SettingsPage */
+    /** Registers a legacy custom React-based settings UI for built-in modules */
     registerSettingsPanel: (panel: SettingsPanel) => void;
+
+    /** Hook a declarative JSON schema to configure this module via the Plugin Manager settings sheet */
+    registerPluginSettingsConfig: (schema: PluginSettingsSchema) => void;
 
     /** Register a content-viewer component for a specific entry type (e.g. 'whiteboard', 'pdf') */
     registerContentViewer: (entryType: string, component: any) => void;
@@ -269,11 +290,26 @@ export interface MainRegistrar<M extends keyof ModuleAPIRegistry = any> {
         method: K, 
         handler: (...args: Parameters<ValidIPC<ModuleAPIRegistry[M][K]>>) => ReturnType<ValidIPC<ModuleAPIRegistry[M][K]>> | Promise<Awaited<ReturnType<ValidIPC<ModuleAPIRegistry[M][K]>>>>
     ): void;
+
+    /** Spawn a scoped sub-registrar strictly bounded by the given module's capability manifest. */
+    createChildRegistrar?: <CM extends keyof ModuleAPIRegistry = any>(manifest: IModule) => MainRegistrar<CM>;
+
+    /** 
+     * Register a native microservice dependency hooked securely to the application's global Sidecar Manager.
+     */
+    registerSidecar?: (sidecar: any) => void;
 }
 
-export interface IModule {
+export interface ModuleManifest {
     id: string;
+    name?: string;
     version: string;
+    
+    /** 
+     * The actual IPC endpoints this module provides to the main process.
+     * Must be explicitly namespaced (e.g. ['fs.readFile', 'github.startDeviceFlow'])
+     */
+    ipcs?: string[];
 
     /**
      * Declare which window.api methods this module requires.
@@ -283,6 +319,9 @@ export interface IModule {
     permissions?: {
         ipc: string[];
     };
+}
+
+export interface IModule extends ModuleManifest {
     
     // --- Declarative UI Registrations ---
     // Instead of calling registrar methods imperatively in onRendererActivate,
@@ -292,7 +331,7 @@ export interface IModule {
 
     contentViewers?: Record<string, any>; // Entry Type (e.g. 'pdf') -> React Component
     sectionEditors?: Record<string, any>; // Section Type (e.g. 'whiteboard') -> React Component
-    settingsPanels?: SettingsPanel[];
+    settingsConfig?: PluginSettingsSchema;
     statusWidgets?: { id: string; group: string; component: any }[];
     globalComponents?: { region: string; component: any }[];
     routes?: { path: string; component: any }[];

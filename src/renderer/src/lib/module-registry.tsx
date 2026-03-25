@@ -7,6 +7,7 @@ import {
     CrossLinkHandler,
     NavigationItem,
     SidebarItem,
+    PluginSettingsSchema,
     SettingsPanel,
     ScopedAPI,
     CoreServices,
@@ -112,7 +113,8 @@ export class ModuleRegistry implements RendererRegistrar {
     private crossLinkHandlers: CrossLinkHandler[] = [];
     private navigationItems: NavigationItem[] = [];
     private sidebarItems: SidebarItem[] = [];
-    private settingsPanels: SettingsPanel[] = [];
+    private settingsConfigs: Map<string, PluginSettingsSchema> = new Map();
+    private settingsPanels: Map<string, SettingsPanel> = new Map();
 
     // Module-contributed registries
     private contentViewers: Map<string, any> = new Map();
@@ -181,8 +183,8 @@ export class ModuleRegistry implements RendererRegistrar {
             if (module.sectionEditors) {
                 for (const [st, comp] of Object.entries(module.sectionEditors)) this.registerSectionEditor(st, comp);
             }
-            if (module.settingsPanels) {
-                for (const sp of module.settingsPanels) this.registerSettingsPanel(sp);
+            if (module.settingsConfig) {
+                this.registerPluginSettingsConfig(module.settingsConfig);
             }
             if (module.statusWidgets) {
                 for (const sw of module.statusWidgets) this.registerStatusWidget(sw.id, sw.group, sw.component);
@@ -362,13 +364,22 @@ export class ModuleRegistry implements RendererRegistrar {
         return this.sidebarItems;
     }
 
+    registerPluginSettingsConfig(schema: PluginSettingsSchema) {
+        if (this._currentModuleId) {
+            this.settingsConfigs.set(this._currentModuleId, schema);
+        }
+    }
+
+    getPluginSettingsConfig(moduleId: string) {
+        return this.settingsConfigs.get(moduleId) || null;
+    }
+
     registerSettingsPanel(panel: SettingsPanel) {
-        this.settingsPanels.push(panel);
-        this.settingsPanels.sort((a, b) => (a.priority ?? 100) - (b.priority ?? 100));
+        this.settingsPanels.set(panel.id, panel);
     }
 
     getSettingsPanels() {
-        return this.settingsPanels;
+        return Array.from(this.settingsPanels.values()).sort((a, b) => (a.priority || 100) - (b.priority || 100));
     }
 
     // --- Content Viewers (module-contributed entry type viewers) ---

@@ -1,6 +1,6 @@
 {
   "name": "@citadel-app/pdf",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "PDF Viewer and Annotator Module for Citadel",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -8,8 +8,8 @@
     "build": "tsc"
   },
   "dependencies": {
-    "@citadel-app/core": "*",
-    "@citadel-app/ui": "*",
+    "@citadel-app/core": "^1.1.0",
+    "@citadel-app/ui": "^1.1.0",
     "lucide-react": "^0.475.0",
     "pdfjs-dist": "^4.10.38",
     "react-pdf-highlighter-extended": "^8.1.0"

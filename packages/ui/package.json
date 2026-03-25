@@ -1,24 +1,30 @@
 {
   "name": "@citadel-app/ui",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/citadel-app/citadel.git"
   },
   "main": "./dist/index.js",
+  "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
-    ".": "./dist/index.js",
-    "./components/*": "./dist/components/*",
-    "./lib/*": "./dist/lib/*"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
   },
   "publishConfig": {
     "registry": "https://npm.pkg.github.com/",
     "access": "public"
   },
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "lint": "eslint src/",
-    "build": "tsc -b",
+    "build": "tsc -b && vite build",
     "clean": "tsc -b --clean"
   },
   "dependencies": {

@@ -16,6 +16,7 @@ import { dataManager } from './lib/data-manager';
 import { db } from './lib/db';
 import { commandRegistry } from './commands/CommandRegistry';
 import { SafeCloseHandler } from './components/SafeCloseHandler';
+import { buildFeedDb } from '@app/lib/core-services-factory';
 
 // Lazy load pages
 const HomePage = lazy(() => import('./pages/HomePage').then(m => ({ default: m.HomePage })));
@@ -52,7 +53,7 @@ const RedirectWithSearch = ({ to }: { to: string }) => {
   return <Navigate to={`${to}${location.search}`} replace />;
 };
 
-const LoadingFallback = () => <LoadingPlaceholder fullScreen />;
+const LoadingFallback = ({ logoSrc }: { logoSrc?: string }) => <LoadingPlaceholder fullScreen bannerImgSrc={logoSrc} />;
 
 const CoreServicesBridge: FC<{ children: ReactNode }> = ({ children }) => {
   const { vaultPath, config } = useConfig();
@@ -104,13 +105,10 @@ const CoreServicesBridge: FC<{ children: ReactNode }> = ({ children }) => {
       },
     };
   }, [vaultPath]);
+  
+    const feedDb = useMemo(() => buildFeedDb({ module: __hostApi.module } as any), []);
 
-  const feedDb = useMemo(() => ({
-    getFeedStatus: () => __hostApi.module.invoke('@citadel-app/rss', 'getFeedStatus'),
-    getFeedItems: (feedId: string, limit?: number) => __hostApi.module.invoke('@citadel-app/rss', 'getFeedItems', feedId, limit),
-    saveFeedItems: (feedId: string, items: any[]) => __hostApi.module.invoke('@citadel-app/rss', 'saveFeedItems', feedId, items),
-    updateFeedStatus: (itemId: string, status: any) => __hostApi.module.invoke('@citadel-app/rss', 'updateFeedStatus', itemId, status),
-  }), []);
+ 
 
   const removeRelatedLinks = useCallback(
     (targetIds: string[], linkType: string) => dataManager.removeRelatedLinks(targetIds, linkType),
@@ -146,13 +144,13 @@ const CoreServicesBridge: FC<{ children: ReactNode }> = ({ children }) => {
       settings,
       toast,
       storage,
-      feedDb,
       removeRelatedLinks,
       commandRegistry,
       createLocalEntry,
       updateSetting: updateSettingFn,
       db,
       dataManager,
+      feedDb,
       hostApi: __hostApi,
       getPluginModules,
     }), [vaultPath, config, settings, toast, storage, feedDb, removeRelatedLinks, createLocalEntry, updateSettingFn, getPluginModules]);
@@ -164,7 +162,7 @@ const CoreServicesBridge: FC<{ children: ReactNode }> = ({ children }) => {
   );
 };
 
-const AppContent = () => {
+const AppContent = ({ logoSrc }: { logoSrc?: string }) => {
   const { vaultPath, isLoading, setVaultPath, pendingDeepLink, setPendingDeepLink } = useConfig();
   const [stepResolved, setStepResolved] = useState(false);
 
@@ -226,14 +224,14 @@ const AppContent = () => {
   }, [setVaultPath, vaultPath, setPendingDeepLink]);
 
   if (isLoading || (!vaultPath && !stepResolved)) {
-    return <SplashScreen />;
+    return <SplashScreen logoSrc={logoSrc} />;
   }
 
   return (
     <>
       <SafeCloseHandler />
       <HashRouter>
-        <Suspense fallback={<LoadingFallback />}>
+        <Suspense fallback={<LoadingFallback logoSrc={logoSrc} />}>
           <Routes>
             {!vaultPath ? (
               <>
@@ -261,8 +259,8 @@ const AppContent = () => {
                   <Route path="networking" element={null} />
                   <Route path="system" element={<SystemStatusPage />} />
                   <Route path="database" element={<DebugDatabasePage />} />
-                  <Route path="plugins" element={<PluginManagerPage />} />
                 </Route>
+                <Route path="/plugins" element={<PluginManagerPage />} />
                 <Route path="/browser" element={<RedirectWithSearch to="/" />} />
                 <Route path="/system" element={<RedirectWithSearch to="/settings/system" />} />
                 <Route path="/" element={<EntryBrowserPage />} />
@@ -303,7 +301,7 @@ export function BaseAppHost(props: any) {
                         <BackgroundIndexingProvider>
                           <AudioProvider>
                               <PeerProvider>
-                                <AppContent />
+                                <AppContent logoSrc={props.logoSrc} />
                                 <ToastViewport />
                               </PeerProvider>
                           </AudioProvider>

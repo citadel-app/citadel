@@ -4,6 +4,7 @@ import { lazy } from 'react';
 export const ExcalidrawModule: IModule = {
     id: '@citadel-app/excalidraw',
     version: '1.0.0',
+    ipcs: [],
     permissions: {
         ipc: [
             'fs.readFile',

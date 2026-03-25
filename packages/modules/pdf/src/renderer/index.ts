@@ -1,12 +1,24 @@
 import { IModule, RendererRegistrar, ScopedAPI } from '@citadel-app/core';
 import { lazy } from 'react';
+import { PdfModelStatusWidget } from './components/PdfModelStatusWidget';
 
 export const PdfModule: IModule = {
     id: '@citadel-app/pdf',
     version: '1.0.0',
+    ipcs: [
+        'pdf.tts.start',
+        'pdf.tts.stop',
+        'pdf.tts.status',
+        'pdf.tts.checkModels',
+        'pdf.tts.downloadModels'
+    ],
     permissions: {
         ipc: []
     },
+
+    statusWidgets: [
+        { id: 'pdf-models', group: 'Cloud & Local Stack', component: PdfModelStatusWidget }
+    ],
 
     contentModules: {
         pdf: {
@@ -20,9 +32,11 @@ export const PdfModule: IModule = {
     },
 
     contentViewers: {
-        pdf: lazy(() =>
-            import('./components/PdfViewerWrapper').then(m => ({ default: m.PdfViewerWrapper as React.ComponentType<any> }))
-        )
+        // @ts-ignore
+        pdf: lazy(async () => {
+            const m = await import('./components/PdfViewerWrapper');
+            return { default: m.PdfViewerWrapper as React.ComponentType<any> };
+        })
     }
 };
 

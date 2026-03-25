@@ -20,7 +20,7 @@ export interface Feed {
     items: FeedItem[];
     lastFetched?: string;
     error?: string;
-    folder?: string; // RSS specific
+    folder?: string; // Extension specific classification
 }
 
 export interface FeedItemStatus {
@@ -49,7 +49,7 @@ export function mergeFeedItems(oldItems: FeedItem[], newItems: FeedItem[], maxIt
         itemMap.set(key, {
             ...existing,
             ...item,
-            // Preserve specific fields that might be lost in raw RSS/Fetch
+            // Preserve extension-specific fields that might be lost during raw network fetch
             channelId: item.channelId || existing?.channelId
         });
     });

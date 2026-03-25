@@ -4,12 +4,12 @@ import { SplashScreen, ErrorBoundary } from '@citadel-app/ui';
 import { appModuleRegistry } from './lib/module-registry';
 import { BaseModule } from '@citadel-app/base';
 
-import { RssModule } from '@citadel-app/rss';
 import { ExcalidrawModule } from '@citadel-app/excalidraw';
 import { PdfModule } from '@citadel-app/pdf';
 // @ts-ignore
 import { CodeModule } from '@citadel-app/code';
 import { loadRuntimePlugins } from './lib/plugin-loader';
+import bannerImg from './assets/branding/banner.png';
 
 export default function App() {
   const [modulesLoaded, setModulesLoaded] = useState(false);
@@ -18,7 +18,6 @@ export default function App() {
     loadRuntimePlugins().then((plugins) => {
       appModuleRegistry.loadModules([
         BaseModule, 
-        RssModule, 
         ExcalidrawModule, 
         CodeModule, 
         PdfModule, 
@@ -28,7 +27,7 @@ export default function App() {
   }, []);
 
   if (!modulesLoaded) {
-    return <SplashScreen />; // Hold entire tree until Registry boots modules
+    return <SplashScreen logoSrc={bannerImg} />; // Hold entire tree until Registry boots modules
   }
 
   const Host = appModuleRegistry.getGlobalComponents('app-host')[0] as React.ComponentType<any>;
@@ -39,7 +38,7 @@ export default function App() {
 
   return (
     <ErrorBoundary>
-      <Host hostApi={__hostApi} appModuleRegistry={appModuleRegistry} />
+      <Host hostApi={__hostApi} appModuleRegistry={appModuleRegistry} logoSrc={bannerImg} />
     </ErrorBoundary>
   );
 }

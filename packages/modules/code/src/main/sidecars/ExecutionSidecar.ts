@@ -1,17 +1,19 @@
-import { ISidecarConfig, AbstractDockerSidecar } from '@citadel-app/core';
+import { AbstractDockerSidecar } from '@citadel-app/core';
+import { is } from '@electron-toolkit/utils';
+import path from 'path';
 import { spawn } from 'child_process';
 
+// We must bypass core index shielding for native node classes
 export class ExecutionSidecar extends AbstractDockerSidecar {
     
     constructor() {
-        const config: ISidecarConfig = {
+        super({
             id: 'execution',
             type: 'daemon',
             containerName: 'codex-execution',
-            image: 'ghcr.io/citadel-app/sidecar-execution:latest',
+            image: 'codex-execution', // We build it locally from Dockerfile.execution
             ports: ['5051:5051']
-        };
-        super(config);
+        });
     }
 
     protected buildDockerRunArgs(): string[] {
@@ -23,21 +25,25 @@ export class ExecutionSidecar extends AbstractDockerSidecar {
     }
 
     protected async onBeforeStart(): Promise<boolean> {
-        console.log(`[Sidecar:execution] Pulling execution image ${this.config.image}...`);
+        console.log(`[Sidecar:execution] Building execution image codex-execution locally...`);
         
         return new Promise<boolean>((resolve) => {
-            const pullCmd = `${this.dockerPath} pull ${this.config.image}`;
-            // We don't need a specific cwd anymore
-            const pullChild = spawn(pullCmd, { shell: true });
-            
-            pullChild.stdout.on('data', (data) => console.log(`[Sidecar:execution:pull] ${data}`));
-            pullChild.stderr.on('data', (data) => console.error(`[Sidecar:execution:pull] ${data}`));
+            const srcDir = is.dev 
+                ? path.join(process.cwd(), 'src/python') 
+                : path.join(process.resourcesPath, 'tts-service', 'src', 'python'); 
 
-            pullChild.on('close', (code) => {
+            const dockerfile = 'Dockerfile.execution';
+            const buildCmd = `${this.dockerPath} build -t ${this.config.image} -f ${dockerfile} .`;
+            
+            const buildChild = spawn(buildCmd, { cwd: srcDir, shell: true });
+            
+            buildChild.stdout.on('data', (data) => console.log(`[Sidecar:execution:build] ${data}`));
+            buildChild.stderr.on('data', (data) => console.error(`[Sidecar:execution:build] ${data}`));
+
+            buildChild.on('close', (code) => {
                 if (code !== 0) {
-                    console.error(`[Sidecar:execution] Docker pull failed with code ${code}. Will attempt boot with cached image if available.`);
-                    // We don't hard fail if pull fails (user might be offline but have image cached)
-                    resolve(true);
+                    console.error(`[Sidecar:execution] Docker build failed with code ${code}.`);
+                    resolve(false);
                 } else {
                     resolve(true);
                 }

@@ -1,4 +1,4 @@
-import { app, shell, BrowserWindow, ipcMain, protocol, screen } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, protocol, screen, dialog } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
@@ -329,33 +329,13 @@ app.whenReady().then(() => {
       configDir: path.join(initialWorkspacePath, '.codex', 'config')
   } : null;
 
-  import('../../packages/modules/base/src/main/index').then(({ activateMain }) => {
-      const baseMainModule = {
-          id: '@citadel-app/base',
-          version: '1.0.0',
-          onMainActivate: activateMain
-      };
-      mainModuleRegistry.loadModules([baseMainModule], workspaceContext);
-  });
-
-  import('../../packages/modules/rss/src/main/index').then(({ activateMain }) => {
-      const rssMainModule = {
-          id: '@citadel-app/rss',
-          version: '1.0.0',
-          onMainActivate: activateMain
-      };
-      mainModuleRegistry.loadModules([rssMainModule], workspaceContext);
-  });
-
-  // Load Code Module
-  // @ts-ignore
-  import('../../packages/modules/code/src/main/index').then(({ activateMain }) => {
-      const codeMainModule = {
-          id: '@citadel-app/code',
-          version: '1.0.0',
-          onMainActivate: activateMain
-      };
-      mainModuleRegistry.loadModules([codeMainModule], workspaceContext);
+  Promise.all([
+    import('../../packages/modules/base/src/main/index'),
+    import('../../packages/modules/code/src/main/index')
+  ]).then(([{ BaseMainModule }, { CodeMainModule }]) => {
+      mainModuleRegistry.loadModules([BaseMainModule, CodeMainModule], workspaceContext);
+  }).catch(err => {
+      console.error('[Main] Failed to load modules:', err);
   });
 
   // Clean up on exit
@@ -365,7 +345,26 @@ app.whenReady().then(() => {
       isQuitting = true;
   });
 
-  // Register Workspace Discovery IPC
+  ipcMain.handle(IPC_CHANNELS.DIALOG_OPEN_DIRECTORY, async () => {
+    const { canceled, filePaths } = await dialog.showOpenDialog({
+      properties: ['openDirectory']
+    })
+    if (!canceled && filePaths.length > 0) {
+      return filePaths[0]
+    }
+    return null
+  });
+
+  ipcMain.handle(IPC_CHANNELS.DIALOG_OPEN_FILE, async () => {
+    const { canceled, filePaths } = await dialog.showOpenDialog({
+      properties: ['openFile']
+    })
+    if (!canceled && filePaths.length > 0) {
+      return filePaths[0]
+    }
+    return null
+  });
+
   ipcMain.handle(IPC_CHANNELS.APP_GET_INIT_CONTEXT, () => {
     const url = deepLinkUrl;
     deepLinkUrl = null; // Consume it once read
@@ -660,6 +659,26 @@ app.on('window-all-closed', () => {
     app.quit()
   }
 })
+
+let isQuitting = false;
+app.on('before-quit', async (e) => {
+    // If we're already gracefully exiting, let Electron close normally
+    if (isQuitting) return;
+
+    // Halt immediate termination while we spin down detached Docker containers
+    e.preventDefault();
+    console.log('[Main] Stopping background sidecars before exit...');
+    
+    try {
+        await mainModuleRegistry.sidecars.stopAll();
+    } catch (err) {
+        console.error('[Main] Error while stopping sidecars:', err);
+    }
+    
+    // Resume destruction sequence
+    isQuitting = true;
+    app.quit();
+});
 
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.
