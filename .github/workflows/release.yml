@@ -52,6 +52,7 @@ jobs:
           generate_release_notes: true
           draft: false
           prerelease: false
+          overwrite_files: false
         env:
           GITHUB_TOKEN: ${{ secrets.CITADEL_RELEASE_TOKEN }}
 
