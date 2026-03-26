@@ -1,6 +1,6 @@
 {
   "name": "@citadel-app/app",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "a hackable second brain for software developers",
   "main": "./out/main/index.js",
   "author": "Citadel",
@@ -22,7 +22,6 @@
     "start": "electron-vite preview",
     "dev": "node scripts/dev-wrapper.js",
     "build": "npm run typecheck && cross-env NODE_OPTIONS=\"--max-old-space-size=8192\" electron-vite build",
-    "postinstall": "electron-builder install-app-deps",
     "build:unpack": "npm run build && electron-builder --dir",
     "copy-assets": "node scripts/copy-excalidraw-assets.js",
     "start:server": "python src/python/tts_server.py",

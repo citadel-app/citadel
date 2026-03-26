@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.0.1 (2026-03-24)
+## 1.0.2 (2026-03-24)
 
 ### Features
 
@@ -39,4 +39,4 @@
 
 ### Documentation
 
-* docs: Add changelog entries for version 1.0.1, detailing new features and bug fixes. ([19a3860](https://github.com/citadel-app/citadel/commit/19a3860c39c2c0ce1480f6b45c4671d653b66d01))
+* docs: Add changelog entries for version 1.0.2, detailing new features and bug fixes. ([19a3860](https://github.com/citadel-app/citadel/commit/19a3860c39c2c0ce1480f6b45c4671d653b66d01))
