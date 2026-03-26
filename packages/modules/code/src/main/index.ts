@@ -28,29 +28,29 @@ function findAvailablePort(startPort: number): Promise<number> {
 
 export const CodeMainModule: IModule = {
     id: '@citadel-app/code',
-    version: '1.0.0',
+    version: '1.0.1',
     ipcs: [
         "kernel.start", "kernel.execute", "kernel.stop", "kernel.status",
         "latex:check", "latex:compile",
         "code.execution.start", "code.execution.stop", "code.execution.status",
-        "repl:start-session", "repl:stop-session", "repl:list-containers", "repl:stop-container", 
+        "repl:start-session", "repl:stop-session", "repl:list-containers", "repl:stop-container",
         "repl:remove-container", "repl:check-session", "repl:send-input", "getLspPort"
     ],
     onMainActivate: async (registrar: MainRegistrar, _workspace: WorkspaceContext | null) => {
         console.log('[CodeModule/Main] Activating Code module services');
 
         const dockerReplService = new DockerReplService();
-        
+
         // 0. Setup Execution Sidecar
         const executionSidecar = new ExecutionSidecar();
         if ((registrar as any).registerSidecar) {
             (registrar as any).registerSidecar(executionSidecar);
         }
-        
+
         registrar.handle('code.execution.start', async () => await (executionSidecar as any).start());
         registrar.handle('code.execution.stop', async () => await (executionSidecar as any).stop());
         registrar.handle('code.execution.status', async () => (executionSidecar as any).status);
-        
+
         // 1. Setup Docker REPL IPC
         registrar.handle('repl:start-session', async (...args: any[]) => dockerReplService.startSession(args[0]));
         registrar.handle('repl:stop-session', async (...args: any[]) => dockerReplService.stopSession(args[0]));
@@ -80,7 +80,7 @@ export const CodeMainModule: IModule = {
         try {
             lspPort = await findAvailablePort(3000);
             console.log(`[CodeModule/Main] LSP Port allocated: ${lspPort}`);
-            
+
             const lspServer = http.createServer((_req, res) => {
                 res.writeHead(404);
                 res.end();

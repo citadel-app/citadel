@@ -21,11 +21,11 @@ import type { IModule, RendererRegistrar, MainRegistrar, WorkspaceContext, Scope
 
 export const MyModule: IModule = {
     id: '@myorg/my-module',
-    version: '1.0.0',
-    
+    version: '1.0.1',
+
     // Strict scoping for host API capabilities
     permissions: {
-        ipc: ['fs.readFile']  
+        ipc: ['fs.readFile']
     },
 
     // Declarative UI Contributions
@@ -68,9 +68,9 @@ All lifecycle hooks are optional. A data-only module can implement just `onMainA
 
 ## Entry Types vs. Content Modules
 
-**Critical Architectural Rule:** Modules **DO NOT** dictate `entryTypes`. 
+**Critical Architectural Rule:** Modules **DO NOT** dictate `entryTypes`.
 
-Entry Types (like `problem`, `design`, `paper`) belong purely to the user's Workspace configuration (`config.entries` in `.codex/workspace.json`). 
+Entry Types (like `problem`, `design`, `paper`) belong purely to the user's Workspace configuration (`config.entries` in `.codex/workspace.json`).
 
 Modules provide `contentModules` (like `pdf`, `whiteboard`, `code`) and register `contentViewers` and `sectionEditors` to fulfill the rendering requirements of those entry types. The workspace config declaratively binds an Entry Type's layout to a specific content module.
 

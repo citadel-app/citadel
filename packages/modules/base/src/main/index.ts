@@ -19,25 +19,25 @@ let feedService: FeedService;
 
 export const BaseMainModule: IModule = {
     id: '@citadel-app/base',
-    version: '1.0.0',
+    version: '1.0.1',
     ipcs: [
-        "fs.readDirectory", "fs.readFile", "fs.readFileBinary", "fs.writeFile", "fs.writeAsset", "fs.createDirectory", 
-        "fs.scaffoldWorkspace", "fs.deleteFile", "fs.exists", "fs.stat", "fs.getDocumentsPath", "fs.watchPath", 
+        "fs.readDirectory", "fs.readFile", "fs.readFileBinary", "fs.writeFile", "fs.writeAsset", "fs.createDirectory",
+        "fs.scaffoldWorkspace", "fs.deleteFile", "fs.exists", "fs.stat", "fs.getDocumentsPath", "fs.watchPath",
         "fs.rename", "fs.allowPath",
-        "db.getFeedItems", "db.saveFeedItems", "db.getFeedStatus", "db.updateFeedStatus", "db.initWorkspace", 
+        "db.getFeedItems", "db.saveFeedItems", "db.getFeedStatus", "db.updateFeedStatus", "db.initWorkspace",
         "db.getAiIndexStatus", "db.updateAiIndexStatus", "db.deleteAiIndexStatus",
         "net.fetch",
         "dialog.openDirectory", "dialog.openFile",
-        "git.status", "git.init", "git.add", "git.commit", "git.push", "git.pull", "git.history", "git.checkIsRepo", 
-        "git.getBranches", "git.checkout", "git.clone", "git.discard", "git.createBranch", "git.deleteBranch", 
+        "git.status", "git.init", "git.add", "git.commit", "git.push", "git.pull", "git.history", "git.checkIsRepo",
+        "git.getBranches", "git.checkout", "git.clone", "git.discard", "git.createBranch", "git.deleteBranch",
         "git.addRemote", "git.setConfig", "git.removeRemote", "git.unstage", "git.discardBulk", "git.getRemotes", "git.show",
-        "github.createRepository", "github.startDeviceFlow", "github.pollDeviceToken", "github.getUser", 
+        "github.createRepository", "github.startDeviceFlow", "github.pollDeviceToken", "github.getUser",
         "github.listRepos", "github.forkRepository",
         "secrets.get", "secrets.set", "secrets.delete",
         "appSettings.getSettings", "appSettings.updateSetting", "appSettings.updateSettings",
-        "ai.isAvailable", "ai.chat", "ai.chatStream", "ai.analyzeIntent", "ai.indexEntry", "ai.search", "ai.getContext", 
-        "ai.getStructuralContext", "ai.needsIndexing", "ai.deleteEntryIndex", "ai.getHardwareSpecs", "ai.scoreModel", 
-        "ai.pullModel", "ai.getModels", "ai.abortChat", "ai.generateMetadata", "ai.generateSummary", "ai.proofread", 
+        "ai.isAvailable", "ai.chat", "ai.chatStream", "ai.analyzeIntent", "ai.indexEntry", "ai.search", "ai.getContext",
+        "ai.getStructuralContext", "ai.needsIndexing", "ai.deleteEntryIndex", "ai.getHardwareSpecs", "ai.scoreModel",
+        "ai.pullModel", "ai.getModels", "ai.abortChat", "ai.generateMetadata", "ai.generateSummary", "ai.proofread",
         "ai.generateSection",
         "system.getProcessStats", "system.startService", "system.stopService", "system.deployStack", "system.triggerDebugError",
         "models.checkStatus", "models.download",
@@ -50,7 +50,7 @@ export const BaseMainModule: IModule = {
             guardrail = new GuardrailService(workspace?.path || null);
             aiOrchestrator = new AIOrchestrator(appSettings, coreDb);
             feedService = new FeedService(registrar);
-            
+
             new FileWatcherService(registrar);
             new PluginManagerService(registrar);
 
@@ -111,7 +111,7 @@ export const BaseMainModule: IModule = {
         });
 
         registrar.handle('fs.exists', async (path: string) => {
-            guardrail.validate(path); 
+            guardrail.validate(path);
             return fs.pathExists(path);
         });
 
