@@ -51,6 +51,6 @@ jobs:
         run: |
           curl -X POST \
             -H "Accept: application/vnd.github.v3+json" \
-            -H "Authorization: token ${{ secrets.CITADEL_GIT_TOKEN }}" \
+            -H "Authorization: token ${{ secrets.CITADEL_RELEASE_TOKEN }}" \
             https://api.github.com/repos/iwannabebot/citadel-desktop/dispatches \
             -d '{"event_type": "new-core-release"}'
