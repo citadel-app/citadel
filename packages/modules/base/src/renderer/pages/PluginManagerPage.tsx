@@ -360,7 +360,7 @@ export const PluginManagerPage = () => {
                                             </span>
                                         )}
                                         <span className="opacity-40">&bull;</span>
-                                        <span className="font-mono bg-muted px-1.5 py-0.5 rounded text-[11px] shadow-sm tracking-wider">v{selectedPluginObj.version || '1.0.2'}</span>
+                                        <span className="font-mono bg-muted px-1.5 py-0.5 rounded text-[11px] shadow-sm tracking-wider">v{selectedPluginObj.version || '1.0.0'}</span>
                                         <span className="opacity-40">&bull;</span>
                                         <span className="font-mono text-muted-foreground/70">{selectedPluginObj.id || selectedPluginObj.name}</span>
                                     </div>

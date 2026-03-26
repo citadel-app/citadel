@@ -21,7 +21,7 @@ import type { IModule, RendererRegistrar, MainRegistrar, WorkspaceContext, Scope
 
 export const MyModule: IModule = {
     id: '@myorg/my-module',
-    version: '1.0.2',
+    version: '1.0.0',
 
     // Strict scoping for host API capabilities
     permissions: {

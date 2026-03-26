@@ -1,6 +1,6 @@
 {
   "name": "@citadel-app/app",
-  "version": "1.0.2",
+  "version": "1.0.0",
   "description": "a hackable second brain for software developers",
   "main": "./out/main/index.js",
   "author": "Citadel",
@@ -94,8 +94,8 @@
     "date-fns": "^4.1.0",
     "dexie": "^4.3.0",
     "dexie-react-hooks": "^4.2.0",
-    "electron": "^39.2.6",
-    "electron-builder": "^26.0.12",
+    "electron": "^33.2.0",
+    "electron-builder": "^25.1.8",
     "electron-vite": "^5.0.0",
     "eslint": "^9.39.1",
     "eslint-plugin-react": "^7.37.5",
