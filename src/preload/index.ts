@@ -3,7 +3,7 @@ import { electronAPI } from '@electron-toolkit/preload'
 import { IPC_CHANNELS } from '@citadel-app/core'
 
 // Custom APIs for renderer
-console.log('[Preload] Initializing Codex APIs v1.0.1');
+console.log('[Preload] Initializing Codex APIs v1.0.2');
 const api = {
   app: {
     openExternal: (url: string) => shell.openExternal(url),

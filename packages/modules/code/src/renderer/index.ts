@@ -20,7 +20,7 @@ import tsWorker from 'monaco-editor/esm/vs/language/typescript/ts.worker?worker'
 
 export const CodeModule: IModule = {
     id: '@citadel-app/code',
-    version: '1.0.1',
+    version: '1.0.2',
     permissions: {
         ipc: [
             'fs.readFile',
