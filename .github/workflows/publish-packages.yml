@@ -3,6 +3,8 @@ name: Publish Packages
 on:
   release:
     types: [published]
+  repository_dispatch:
+    types: [trigger-publish]
   workflow_dispatch:
 
 env:
