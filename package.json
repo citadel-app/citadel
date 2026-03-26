@@ -5,6 +5,14 @@
   "main": "./out/main/index.js",
   "author": "Citadel",
   "homepage": "https://github.com/citadel-app/citadel",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/",
+    "access": "public"
+  },
+  "files": [
+    "out",
+    "package.json"
+  ],
   "scripts": {
     "format": "prettier --write .",
     "lint": "eslint --cache .",

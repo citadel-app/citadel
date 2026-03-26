@@ -49,6 +49,18 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build App
+        run: npm run build
+        env:
+          MAIN_VITE_GITHUB_CLIENT_ID: ${{ secrets.CITADEL_GITHUB_CLIENT_ID }}
+
+      - name: Publish App
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Trigger Desktop Build
         run: |
           curl -X POST \
