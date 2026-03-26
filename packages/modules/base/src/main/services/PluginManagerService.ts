@@ -9,6 +9,8 @@ export interface PluginManifest {
     name: string;
     description: string;
     author: string;
+    authorUrl?: string;
+    verified?: boolean;
     main?: string;       // Path to node process entry
     renderer?: string;   // Path to renderer process entry
     enabled: boolean;
@@ -138,7 +140,9 @@ export class PluginManagerService {
                                 version: pkg.citadel.version || pkg.version,
                                 name: pkg.citadel.title || pkg.citadel.name || pkg.name,
                                 description: pkg.citadel.description || pkg.description,
-                                author: pkg.citadel.author || pkg.author,
+                                author: pkg.citadel.author || (typeof pkg.author === 'object' ? pkg.author.name : pkg.author),
+                                authorUrl: pkg.citadel.authorUrl || (typeof pkg.author === 'object' ? pkg.author.url : undefined),
+                                verified: pkg.citadel.verified === true,
                                 main: pkg.citadel.main,
                                 renderer: pkg.citadel.renderer,
                                 enabled: pkg.citadel.enabled !== false,

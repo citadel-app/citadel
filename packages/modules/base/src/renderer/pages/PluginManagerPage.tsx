@@ -139,7 +139,14 @@ export const PluginManagerPage = () => {
                                      const rRes = await fetch(`https://raw.githubusercontent.com/citadel-app/citadel-marketplace/main/plugins/${dir.name}/README.md`);
                                      if (rRes.ok) readme = await rRes.text();
                                  } catch {}
-                                 return { ...pkg, readme };
+                                 return { 
+                                     ...pkg, 
+                                     // Also handle object-style authors in marketplace fetch
+                                     author: pkg.citadel?.author || (typeof pkg.author === 'object' ? pkg.author.name : pkg.author),
+                                     authorUrl: pkg.citadel?.authorUrl || (typeof pkg.author === 'object' ? pkg.author.url : undefined),
+                                     verified: pkg.citadel?.verified === true,
+                                     readme 
+                                 };
                              } catch { return null; }
                          })
                 );
@@ -331,7 +338,27 @@ export const PluginManagerPage = () => {
                                         {selectedPluginObj.citadel?.title || selectedPluginObj.name}
                                     </h1>
                                     <div className="flex items-center gap-3 mt-2 text-[13px] text-muted-foreground">
-                                        <span className="font-semibold text-foreground flex items-center gap-1.5"><Icon name="User" size={12} /> {selectedPluginObj.author || 'Unknown Publisher'}</span>
+                                        {selectedPluginObj.authorUrl ? (
+                                            <a 
+                                                href={selectedPluginObj.authorUrl} 
+                                                target="_blank" 
+                                                rel="noopener noreferrer" 
+                                                className="font-semibold text-foreground flex items-center gap-1.5 hover:text-primary transition-colors cursor-pointer"
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+                                                    window.open(selectedPluginObj.authorUrl, '_blank');
+                                                }}
+                                            >
+                                                <Icon name="User" size={12} /> {selectedPluginObj.author || 'Unknown Publisher'}
+                                            </a>
+                                        ) : (
+                                            <span className="font-semibold text-foreground flex items-center gap-1.5"><Icon name="User" size={12} /> {selectedPluginObj.author || 'Unknown Publisher'}</span>
+                                        )}
+                                        {selectedPluginObj.verified && (
+                                            <span className="flex items-center gap-1 text-[10px] uppercase tracking-wider font-bold text-blue-500 bg-blue-500/10 px-2 py-0.5 rounded-full border border-blue-500/20">
+                                                <Icon name="Check" size={10} /> Verified
+                                            </span>
+                                        )}
                                         <span className="opacity-40">&bull;</span>
                                         <span className="font-mono bg-muted px-1.5 py-0.5 rounded text-[11px] shadow-sm tracking-wider">v{selectedPluginObj.version || '1.0.0'}</span>
                                         <span className="opacity-40">&bull;</span>

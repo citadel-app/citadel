@@ -7,6 +7,8 @@ export default defineConfig({
   main: {
     resolve: {
       alias: {
+        '@citadel-app/core': resolve('packages/core/src/index.node.ts'),
+        '@citadel-app/ui': resolve('packages/ui/src/index.ts'),
         '@citadel-app/sdk': resolve('packages/sdk/src/index.ts'),
         '@shared': resolve('src/shared/index.ts')
       }
