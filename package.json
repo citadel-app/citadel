@@ -4,7 +4,7 @@
   "description": "a hackable second brain for software developers",
   "main": "./out/main/index.js",
   "author": "Citadel",
-  "homepage": "https://github.com/iwannabebot/citadel",
+  "homepage": "https://github.com/citadel-app/citadel",
   "scripts": {
     "format": "prettier --write .",
     "lint": "eslint --cache .",

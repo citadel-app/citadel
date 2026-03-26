@@ -5,7 +5,7 @@
 <h1 align="center">{{WORKSPACE_NAME}}</h1>
 
 <div align="center">
-  <strong>This workspace is managed by <a href="https://github.com/iwannabebot/citadel">Citadel</a></strong><br>
+  <strong>This workspace is managed by <a href="https://github.com/citadel-app/citadel">Citadel</a></strong><br>
   A smart, hackable workspace for software engineering and document discovery.
 </div>
 
@@ -23,7 +23,7 @@
 
 ### Open in Citadel
 
-1. **Download** [Citadel](https://github.com/iwannabebot/codex/releases/latest) (portable executable, no installation needed)
+1. **Download** [Citadel](https://github.com/citadel-app/citadel-desktop/releases/latest) (portable executable, no installation needed)
 2. **Launch** the app and sign in with GitHub
 3. **Choose** "Clone Repository Here" or paste the deep-link in your browser: `citadel://clone?url={{CLONE_URL}}`
 
@@ -56,5 +56,5 @@ The `README.md` and associated visual assets (such as banner images) are designe
 ---
 
 <div align="center">
-  <sub>⚡ Powered by <a href="https://github.com/iwannabebot/citadel">Citadel</a></sub>
+  <sub>⚡ Powered by <a href="https://github.com/citadel-app/citadel">Citadel</a></sub>
 </div>

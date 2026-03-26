@@ -54,5 +54,5 @@ jobs:
           curl -X POST \
             -H "Accept: application/vnd.github.v3+json" \
             -H "Authorization: token ${{ secrets.CITADEL_RELEASE_TOKEN }}" \
-            https://api.github.com/repos/iwannabebot/citadel/dispatches \
+            https://api.github.com/repos/citadel-app/citadel/dispatches \
             -d '{"event_type": "trigger-publish"}'

@@ -13,7 +13,7 @@ export function generateDefaultReadme(rootPath: string, config: WorkspaceConfig)
 
     return `# ${workspaceName}
 
-> Created with [Citadel](https://github.com/iwannabebot/citadel) — Smart hackable workspace for software engineers and others.
+> Created with [Citadel](https://github.com/citadel-app/citadel) — Smart hackable workspace for software engineers and others.
 
 ## Structure
 
