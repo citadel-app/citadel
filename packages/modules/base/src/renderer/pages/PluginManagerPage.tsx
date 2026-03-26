@@ -7,9 +7,9 @@ import { cn } from '@citadel-app/ui';
 const PluginSettingsView = ({ pluginId }: { pluginId: string }) => {
     const { settings, updateSetting } = useAppSettings();
     const config = appModuleRegistry.getPluginSettingsConfig(pluginId);
-    
+
     if (!config) return <div className="p-6 text-muted-foreground italic border border-dashed border-border m-6 rounded-lg text-center">This extension does not provide any configuration options.</div>;
-    
+
     const pluginSettings = settings.plugins?.[pluginId] || {};
 
     const handleUpdate = (fieldId: string, value: any) => {
@@ -40,7 +40,7 @@ const PluginSettingsView = ({ pluginId }: { pluginId: string }) => {
                 <h3 className="text-xl font-semibold flex items-center gap-2"><div className="w-1 h-5 bg-primary rounded-full"/> {config.title || 'Settings'}</h3>
                 <p className="text-sm text-muted-foreground mt-2">Configure behavior for {pluginId}</p>
             </div>
-            
+
             <div className="space-y-6">
                 {config.fields.map(field => {
                     const val = pluginSettings[field.id] ?? field.defaultValue ?? '';
@@ -48,7 +48,7 @@ const PluginSettingsView = ({ pluginId }: { pluginId: string }) => {
                         <div key={field.id} className="space-y-1.5 pb-6 border-b border-border/40 last:border-0 hover:bg-muted/10 p-4 -mx-4 rounded-xl transition-colors">
                             <label className="text-sm font-semibold">{field.label}</label>
                             {field.description && <p className="text-xs text-muted-foreground mb-3">{field.description}</p>}
-                            
+
                             {field.type === 'string' && (
                                 <input type="text" className="w-full max-w-md bg-muted/50 border border-input rounded px-3 py-2 text-sm focus:border-primary outline-none" placeholder={field.placeholder} value={val} onChange={e => handleUpdate(field.id, e.target.value)} />
                             )}
@@ -97,7 +97,7 @@ export const PluginManagerPage = () => {
     const [activeTab, setActiveTab] = useState<'installed' | 'marketplace'>('installed');
     const [loading, setLoading] = useState(true);
     const [loadingMarketplace, setLoadingMarketplace] = useState(false);
-    
+
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedPluginId, setSelectedPluginId] = useState<string | null>(null);
     const [detailTab, setDetailTab] = useState<'readme' | 'settings' | 'permissions'>('readme');
@@ -125,7 +125,7 @@ export const PluginManagerPage = () => {
                 const res = await fetch('https://api.github.com/repos/citadel-app/citadel-marketplace/contents/plugins');
                 if (!res.ok) throw new Error("Failed to fetch marketplace directory");
                 const files = await res.json();
-                
+
                 const loaded = await Promise.all(
                     files.filter((f: any) => f.type === 'dir' && !f.name.startsWith('.'))
                          .map(async (dir: any) => {
@@ -139,13 +139,13 @@ export const PluginManagerPage = () => {
                                      const rRes = await fetch(`https://raw.githubusercontent.com/citadel-app/citadel-marketplace/main/plugins/${dir.name}/README.md`);
                                      if (rRes.ok) readme = await rRes.text();
                                  } catch {}
-                                 return { 
-                                     ...pkg, 
+                                 return {
+                                     ...pkg,
                                      // Also handle object-style authors in marketplace fetch
                                      author: pkg.citadel?.author || (typeof pkg.author === 'object' ? pkg.author.name : pkg.author),
                                      authorUrl: pkg.citadel?.authorUrl || (typeof pkg.author === 'object' ? pkg.author.url : undefined),
                                      verified: pkg.citadel?.verified === true,
-                                     readme 
+                                     readme
                                  };
                              } catch { return null; }
                          })
@@ -206,16 +206,16 @@ export const PluginManagerPage = () => {
         return title.toLowerCase().includes(q) || desc.toLowerCase().includes(q);
     });
 
-    const selectedPluginObj = plugins.find(p => p.id === selectedPluginId || p.name === selectedPluginId) 
+    const selectedPluginObj = plugins.find(p => p.id === selectedPluginId || p.name === selectedPluginId)
         || marketplacePlugins.find(p => (p.citadel?.id || p.name) === selectedPluginId);
 
-    const isInstalledSelected = selectedPluginObj && plugins.some(p => 
-        p.id === selectedPluginObj.id || 
-        p.id === selectedPluginObj.citadel?.id || 
+    const isInstalledSelected = selectedPluginObj && plugins.some(p =>
+        p.id === selectedPluginObj.id ||
+        p.id === selectedPluginObj.citadel?.id ||
         p.name === selectedPluginObj.name
     );
     const hasSettings = isInstalledSelected && appModuleRegistry.getPluginSettingsConfig(selectedPluginObj?.id || selectedPluginId!);
-    
+
     return (
         <div className="flex-1 flex h-full w-full bg-background overflow-hidden text-foreground">
             {/* LEFT SIDEBAR (MASTER LIST) */}
@@ -226,16 +226,16 @@ export const PluginManagerPage = () => {
                             <Icon name="Puzzle" size={14} /> EXTENSIONS
                         </h2>
                     </div>
-                    
+
                     <div className="bg-muted/50 p-1 rounded-md flex mb-4">
-                        <button 
-                            onClick={() => setActiveTab('installed')} 
+                        <button
+                            onClick={() => setActiveTab('installed')}
                             className={cn("flex-1 text-xs font-medium py-1.5 rounded transition-all", activeTab === 'installed' ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground")}
                         >
                             Installed
                         </button>
-                        <button 
-                            onClick={() => setActiveTab('marketplace')} 
+                        <button
+                            onClick={() => setActiveTab('marketplace')}
                             className={cn("flex-1 text-xs font-medium py-1.5 rounded transition-all", activeTab === 'marketplace' ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground")}
                         >
                             Marketplace
@@ -244,8 +244,8 @@ export const PluginManagerPage = () => {
 
                     <div className="relative">
                         <Icon name="Search" size={14} className="absolute left-2.5 top-[7px] text-muted-foreground/70" />
-                        <input 
-                            type="text" 
+                        <input
+                            type="text"
                             placeholder="Search extensions by name..."
                             value={searchQuery}
                             onChange={e => setSearchQuery(e.target.value)}
@@ -265,13 +265,13 @@ export const PluginManagerPage = () => {
                         filteredList.map(plugin => {
                             const isSelected = selectedPluginId === (plugin.id || plugin.name);
                                         const iconVal = plugin.citadel?.icon || plugin.icon;
-                                        const iconSrc = iconVal 
-                                            ? (plugin._absolutePath 
+                                        const iconSrc = iconVal
+                                            ? (plugin._absolutePath
                                                 ? `codex://${plugin._absolutePath.replace(/\\/g, '/')}/${iconVal}`
                                                 : `https://raw.githubusercontent.com/citadel-app/citadel-marketplace/main/plugins/${plugin.name}/${iconVal}`)
                                             : null;
                                         return (
-                                            <div 
+                                            <div
                                                 key={plugin.citadel?.id || plugin.id || plugin.name}
                                                 onClick={() => { setSelectedPluginId(plugin.citadel?.id || plugin.id || plugin.name); setDetailTab('readme'); }}
                                                 className={cn(
@@ -319,7 +319,7 @@ export const PluginManagerPage = () => {
                             <div className="flex gap-6 items-start">
                                 {selectedPluginObj.citadel?.icon || selectedPluginObj.icon ? (
                                     <>
-                                        <img src={selectedPluginObj.citadel?.icon || selectedPluginObj.icon ? (selectedPluginObj._absolutePath 
+                                        <img src={selectedPluginObj.citadel?.icon || selectedPluginObj.icon ? (selectedPluginObj._absolutePath
                                             ? `codex://${selectedPluginObj._absolutePath.replace(/\\/g, '/')}/${selectedPluginObj.citadel?.icon || selectedPluginObj.icon}`
                                             : `https://raw.githubusercontent.com/citadel-app/citadel-marketplace/main/plugins/${selectedPluginObj.name}/${selectedPluginObj.citadel?.icon || selectedPluginObj.icon}`
                                         ) : undefined} onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.nextElementSibling?.classList.remove('hidden'); e.currentTarget.nextElementSibling?.classList.add('flex'); }} className="w-24 h-24 rounded-2xl object-cover bg-background border border-border overflow-hidden shadow-md" alt="" />
@@ -332,17 +332,17 @@ export const PluginManagerPage = () => {
                                         <div style={{opacity: 0.8}}><Icon name="Package" size={48} /></div>
                                     </div>
                                 )}
-                                
+
                                 <div className="flex-1 min-w-0 pt-1">
                                     <h1 className="text-3xl font-bold truncate tracking-tight flex items-center gap-3">
                                         {selectedPluginObj.citadel?.title || selectedPluginObj.name}
                                     </h1>
                                     <div className="flex items-center gap-3 mt-2 text-[13px] text-muted-foreground">
                                         {selectedPluginObj.authorUrl ? (
-                                            <a 
-                                                href={selectedPluginObj.authorUrl} 
-                                                target="_blank" 
-                                                rel="noopener noreferrer" 
+                                            <a
+                                                href={selectedPluginObj.authorUrl}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
                                                 className="font-semibold text-foreground flex items-center gap-1.5 hover:text-primary transition-colors cursor-pointer"
                                                 onClick={(e) => {
                                                     e.preventDefault();
@@ -360,12 +360,12 @@ export const PluginManagerPage = () => {
                                             </span>
                                         )}
                                         <span className="opacity-40">&bull;</span>
-                                        <span className="font-mono bg-muted px-1.5 py-0.5 rounded text-[11px] shadow-sm tracking-wider">v{selectedPluginObj.version || '1.0.0'}</span>
+                                        <span className="font-mono bg-muted px-1.5 py-0.5 rounded text-[11px] shadow-sm tracking-wider">v{selectedPluginObj.version || '1.0.1'}</span>
                                         <span className="opacity-40">&bull;</span>
                                         <span className="font-mono text-muted-foreground/70">{selectedPluginObj.id || selectedPluginObj.name}</span>
                                     </div>
                                     <p className="mt-4 text-sm max-w-2xl leading-relaxed text-muted-foreground/90 font-medium">{selectedPluginObj.description || 'No description provided.'}</p>
-                                    
+
                                     <div className="flex items-center gap-3 mt-6">
                                         {!isInstalledSelected ? (
                                             <Button onClick={() => handleInstall(selectedPluginObj)} className="gap-2 px-8 font-semibold shadow-md whitespace-nowrap">
@@ -373,15 +373,15 @@ export const PluginManagerPage = () => {
                                             </Button>
                                         ) : (
                                             <>
-                                                <Button 
-                                                    variant={selectedPluginObj.enabled ? 'outline' : 'default'} 
+                                                <Button
+                                                    variant={selectedPluginObj.enabled ? 'outline' : 'default'}
                                                     className="gap-2 w-[140px] font-semibold"
                                                     onClick={() => handleToggle(selectedPluginObj.id, !selectedPluginObj.enabled)}
                                                 >
                                                     <Icon name={selectedPluginObj.enabled ? "PowerOff" : "Power"} size={16} />
                                                     {selectedPluginObj.enabled ? 'Disable' : 'Enable'}
                                                 </Button>
-                                                
+
                                                 <Button variant="ghost" className="text-destructive hover:bg-destructive/10 hover:border-destructive/30 border border-transparent font-semibold gap-2 transition-all" onClick={() => handleUninstall(selectedPluginObj.id)}>
                                                     <Icon name="Trash2" size={16} /> Uninstall
                                                 </Button>
@@ -458,7 +458,7 @@ export const PluginManagerPage = () => {
                                             </div>
                                         ) : <div className="p-6 bg-muted/10 border border-dashed border-border rounded-xl text-sm text-muted-foreground font-medium text-center">No external permissions requested.</div>}
                                     </div>
-                                    
+
                                     <div className="p-5 bg-amber-500/10 border border-amber-500/20 rounded-xl flex gap-4 mt-12 items-start shadow-sm">
                                         <div className="text-amber-500 shrink-0 mt-0.5"><Icon name="ShieldAlert" size={20} /></div>
                                         <div>
