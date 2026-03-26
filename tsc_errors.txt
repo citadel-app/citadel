@@ -1,0 +1,491 @@
+../../../node_modules/@dnd-kit/core/dist/components/DndContext/DndContext.d.ts(1,8): error TS1259: Module '"C:/code/citadel/citadel/node_modules/@types/react/index"' can only be default-imported using the 'esModuleInterop' flag
+../../../node_modules/@dnd-kit/core/dist/components/DragOverlay/components/AnimationManager/AnimationManager.d.ts(1,8): error TS1259: Module '"C:/code/citadel/citadel/node_modules/@types/react/index"' can only be default-imported using the 'esModuleInterop' flag
+../../../node_modules/@dnd-kit/core/dist/components/DragOverlay/components/NullifiedContextProvider/NullifiedContextProvider.d.ts(1,8): error TS1259: Module '"C:/code/citadel/citadel/node_modules/@types/react/index"' can only be default-imported using the 'esModuleInterop' flag
+../../../node_modules/@dnd-kit/core/dist/components/DragOverlay/components/PositionedOverlay/PositionedOverlay.d.ts(1,8): error TS1259: Module '"C:/code/citadel/citadel/node_modules/@types/react/index"' can only be default-imported using the 'esModuleInterop' flag
+../../../node_modules/@dnd-kit/core/dist/components/DragOverlay/DragOverlay.d.ts(1,8): error TS1259: Module '"C:/code/citadel/citadel/node_modules/@types/react/index"' can only be default-imported using the 'esModuleInterop' flag
+../../../node_modules/@dnd-kit/sortable/dist/components/SortableContext.d.ts(1,8): error TS1259: Module '"C:/code/citadel/citadel/node_modules/@types/react/index"' can only be default-imported using the 'esModuleInterop' flag
+../../../node_modules/@napi-rs/canvas/index.d.ts(495,55): error TS2304: Cannot find name 'Float16Array'.
+../../../node_modules/@tiptap/react/dist/index.d.ts(5,8): error TS1259: Module '"C:/code/citadel/citadel/node_modules/@types/react/index"' can only be default-imported using the 'esModuleInterop' flag
+../../../node_modules/@tiptap/react/dist/index.d.ts(89,20): error TS2344: Type 'T' does not satisfy the constraint 'keyof IntrinsicElements | JSXElementConstructor<any>'.
+  Type 'string | number | symbol' is not assignable to type 'keyof IntrinsicElements | JSXElementConstructor<any>'.
+    Type 'string' is not assignable to type 'keyof IntrinsicElements | JSXElementConstructor<any>'.
+../../../node_modules/@tldraw/editor/dist-cjs/index.d.ts(9,8): error TS1259: Module '"C:/code/citadel/citadel/node_modules/eventemitter3/index"' can only be default-imported using the 'esModuleInterop' flag
+../../../node_modules/@tldraw/editor/dist-cjs/index.d.ts(13,10): error TS2305: Module '"react"' has no exported member 'FragmentProps'.
+../../../node_modules/@tldraw/editor/dist-cjs/index.d.ts(25,21): error TS1259: Module '"C:/code/citadel/citadel/node_modules/@types/react/index"' can only be default-imported using the 'esModuleInterop' flag
+../../../node_modules/@tldraw/editor/dist-cjs/index.d.ts(4169,5): error TS2416: Property 'render' in type 'ErrorBoundary' is not assignable to the same property in base type 'Component<PropsWithChildren<TLErrorBoundaryProps>, { error: Error; }, any>'.
+  Type '() => string | number | bigint | boolean | Element | Iterable<ReactNode> | Promise<string | number | bigint | boolean | ReactPortal | Iterable<...> | ReactElement<...>>' is not assignable to type '() => ReactNode'.
+    Type 'string | number | bigint | boolean | Element | Iterable<ReactNode> | Promise<string | number | bigint | boolean | ReactPortal | Iterable<ReactNode> | ReactElement<...>>' is not assignable to type 'ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+../../../node_modules/@tldraw/state-react/dist-cjs/index.d.ts(6,21): error TS1259: Module '"C:/code/citadel/citadel/node_modules/@types/react/index"' can only be default-imported using the 'esModuleInterop' flag
+../../../node_modules/dexie-react-hooks/dist/useDocument.d.ts(1,30): error TS2307: Cannot find module 'y-dexie' or its corresponding type declarations.
+../../../node_modules/dexie-react-hooks/dist/useDocument.d.ts(2,20): error TS2307: Cannot find module 'yjs' or its corresponding type declarations.
+../../../node_modules/pdfjs-dist/types/src/display/annotation_layer.d.ts(113,5): error TS18028: Private identifiers are only available when targeting ECMAScript 2015 and higher.
+../../../node_modules/pdfjs-dist/types/src/display/annotation_layer.d.ts(134,5): error TS18028: Private identifiers are only available when targeting ECMAScript 2015 and higher.
+../../../node_modules/pdfjs-dist/types/src/display/annotation_layer.d.ts(225,5): error TS18028: Private identifiers are only available when targeting ECMAScript 2015 and higher.
+../../../node_modules/pdfjs-dist/types/src/display/annotation_storage.d.ts(74,5): error TS18028: Private identifiers are only available when targeting ECMAScript 2015 and higher.
+../../../node_modules/pdfjs-dist/types/src/display/annotation_storage.d.ts(93,5): error TS18028: Private identifiers are only available when targeting ECMAScript 2015 and higher.
+../../../node_modules/pdfjs-dist/types/src/display/api.d.ts(714,5): error TS18028: Private identifiers are only available when targeting ECMAScript 2015 and higher.
+../../../node_modules/pdfjs-dist/types/src/display/api.d.ts(1410,5): error TS18028: Private identifiers are only available when targeting ECMAScript 2015 and higher.
+../../../node_modules/pdfjs-dist/types/src/display/api.d.ts(1476,5): error TS18028: Private identifiers are only available when targeting ECMAScript 2015 and higher.
+../../../node_modules/pdfjs-dist/types/src/display/api.d.ts(1508,5): error TS18028: Private identifiers are only available when targeting ECMAScript 2015 and higher.
+../../../node_modules/pdfjs-dist/types/src/display/api.d.ts(1562,5): error TS18028: Private identifiers are only available when targeting ECMAScript 2015 and higher.
+../../../node_modules/pdfjs-dist/types/src/display/canvas_factory.d.ts(15,5): error TS18028: Private identifiers are only available when targeting ECMAScript 2015 and higher.
+../../../node_modules/pdfjs-dist/types/src/display/draw_layer.d.ts(24,5): error TS18028: Private identifiers are only available when targeting ECMAScript 2015 and higher.
+../../../node_modules/pdfjs-dist/types/src/display/editor/annotation_editor_layer.d.ts(223,5): error TS18028: Private identifiers are only available when targeting ECMAScript 2015 and higher.
+../../../node_modules/pdfjs-dist/types/src/display/editor/color_picker.d.ts(19,5): error TS18028: Private identifiers are only available when targeting ECMAScript 2015 and higher.
+../../../node_modules/pdfjs-dist/types/src/display/editor/draw.d.ts(106,5): error TS18028: Private identifiers are only available when targeting ECMAScript 2015 and higher.
+../../../node_modules/pdfjs-dist/types/src/display/editor/draw.d.ts(118,5): error TS18028: Private identifiers are only available when targeting ECMAScript 2015 and higher.
+../../../node_modules/pdfjs-dist/types/src/display/editor/drawers/inkdraw.d.ts(83,5): error TS18028: Private identifiers are only available when targeting ECMAScript 2015 and higher.
+../../../node_modules/pdfjs-dist/types/src/display/editor/drawers/inkdraw.d.ts(126,5): error TS18028: Private identifiers are only available when targeting ECMAScript 2015 and higher.
+../../../node_modules/pdfjs-dist/types/src/display/editor/editor.d.ts(467,5): error TS18028: Private identifiers are only available when targeting ECMAScript 2015 and higher.
+../../../node_modules/pdfjs-dist/types/src/display/editor/freetext.d.ts(57,5): error TS18028: Private identifiers are only available when targeting ECMAScript 2015 and higher.
+../../../node_modules/pdfjs-dist/types/src/display/editor/highlight.d.ts(68,5): error TS18028: Private identifiers are only available when targeting ECMAScript 2015 and higher.
+../../../node_modules/pdfjs-dist/types/src/display/editor/ink.d.ts(27,5): error TS18028: Private identifiers are only available when targeting ECMAScript 2015 and higher.
+../../../node_modules/pdfjs-dist/types/src/display/editor/stamp.d.ts(47,5): error TS18028: Private identifiers are only available when targeting ECMAScript 2015 and higher.
+../../../node_modules/pdfjs-dist/types/src/display/editor/toolbar.d.ts(12,5): error TS18028: Private identifiers are only available when targeting ECMAScript 2015 and higher.
+../../../node_modules/pdfjs-dist/types/src/display/editor/toolbar.d.ts(18,5): error TS18028: Private identifiers are only available when targeting ECMAScript 2015 and higher.
+../../../node_modules/pdfjs-dist/types/src/display/editor/tools.d.ts(313,5): error TS18028: Private identifiers are only available when targeting ECMAScript 2015 and higher.
+../../../node_modules/pdfjs-dist/types/src/display/editor/tools.d.ts(388,5): error TS18028: Private identifiers are only available when targeting ECMAScript 2015 and higher.
+../../../node_modules/pdfjs-dist/types/src/display/editor/tools.d.ts(413,5): error TS18028: Private identifiers are only available when targeting ECMAScript 2015 and higher.
+../../../node_modules/pdfjs-dist/types/src/display/filter_factory.d.ts(28,5): error TS18028: Private identifiers are only available when targeting ECMAScript 2015 and higher.
+../../../node_modules/pdfjs-dist/types/src/display/metadata.d.ts(10,5): error TS18028: Private identifiers are only available when targeting ECMAScript 2015 and higher.
+../../../node_modules/pdfjs-dist/types/src/display/optional_content_config.d.ts(17,5): error TS18028: Private identifiers are only available when targeting ECMAScript 2015 and higher.
+../../../node_modules/pdfjs-dist/types/src/display/text_layer.d.ts(84,5): error TS18028: Private identifiers are only available when targeting ECMAScript 2015 and higher.
+../../../node_modules/pdfjs-dist/types/src/display/touch_manager.d.ts(13,5): error TS18028: Private identifiers are only available when targeting ECMAScript 2015 and higher.
+../../../node_modules/pdfjs-dist/types/src/shared/message_handler.d.ts(41,5): error TS18028: Private identifiers are only available when targeting ECMAScript 2015 and higher.
+../../../node_modules/pdfjs-dist/types/web/event_utils.d.ts(47,5): error TS18028: Private identifiers are only available when targeting ECMAScript 2015 and higher.
+../../../node_modules/pdfjs-dist/types/web/event_utils.d.ts(55,5): error TS18028: Private identifiers are only available when targeting ECMAScript 2015 and higher.
+../../../node_modules/pdfjs-dist/types/web/l10n.d.ts(33,5): error TS18028: Private identifiers are only available when targeting ECMAScript 2015 and higher.
+../../../node_modules/pdfjs-dist/types/web/pdf_find_controller.d.ts(131,5): error TS18028: Private identifiers are only available when targeting ECMAScript 2015 and higher.
+../../../node_modules/pdfjs-dist/types/web/pdf_scripting_manager.d.ts(56,5): error TS18028: Private identifiers are only available when targeting ECMAScript 2015 and higher.
+../../../node_modules/pdfjs-dist/types/web/pdf_thumbnail_viewer.d.ts(96,5): error TS18028: Private identifiers are only available when targeting ECMAScript 2015 and higher.
+../../../node_modules/pdfjs-dist/types/web/pdf_viewer.d.ts(183,5): error TS18028: Private identifiers are only available when targeting ECMAScript 2015 and higher.
+../../../node_modules/pdfjs-dist/types/web/pdf_viewer.d.ts(518,5): error TS18028: Private identifiers are only available when targeting ECMAScript 2015 and higher.
+../../../node_modules/pdfjs-dist/types/web/struct_tree_layer_builder.d.ts(8,5): error TS18028: Private identifiers are only available when targeting ECMAScript 2015 and higher.
+../../../node_modules/pdfjs-dist/types/web/text_accessibility.d.ts(43,5): error TS18028: Private identifiers are only available when targeting ECMAScript 2015 and higher.
+../../../node_modules/react-pdf-highlighter-extended/dist/esm/components/AreaHighlight.d.ts(1,8): error TS1259: Module '"C:/code/citadel/citadel/node_modules/@types/react/index"' can only be default-imported using the 'esModuleInterop' flag
+../../../node_modules/react-pdf-highlighter-extended/dist/esm/components/MonitoredHighlightContainer.d.ts(1,8): error TS1259: Module '"C:/code/citadel/citadel/node_modules/@types/react/index"' can only be default-imported using the 'esModuleInterop' flag
+../../../node_modules/react-pdf-highlighter-extended/dist/esm/components/PdfHighlighter.d.ts(5,8): error TS1259: Module '"C:/code/citadel/citadel/node_modules/@types/react/index"' can only be default-imported using the 'esModuleInterop' flag
+../../../node_modules/react-pdf-highlighter-extended/dist/esm/components/PdfLoader.d.ts(1,8): error TS1259: Module '"C:/code/citadel/citadel/node_modules/@types/react/index"' can only be default-imported using the 'esModuleInterop' flag
+../../../node_modules/react-pdf-highlighter-extended/dist/esm/components/TextHighlight.d.ts(1,8): error TS1259: Module '"C:/code/citadel/citadel/node_modules/@types/react/index"' can only be default-imported using the 'esModuleInterop' flag
+../../../node_modules/react-router-dom/dist/index.d.ts(1,69): error TS2307: Cannot find module 'react-router/dom' or its corresponding type declarations.
+  There are types at 'C:/code/citadel/citadel/node_modules/react-router/dist/development/dom-export.d.mts', but this result could not be resolved under your current 'moduleResolution' setting. Consider updating to 'node16', 'nodenext', or 'bundler'.
+../../../node_modules/react-router/dist/development/index.d.ts(4,8): error TS1259: Module '"C:/code/citadel/citadel/node_modules/@types/react/index"' can only be default-imported using the 'esModuleInterop' flag
+../../../node_modules/react-router/dist/development/instrumentation--6Pioq_G.d.ts(413,5): error TS18028: Private identifiers are only available when targeting ECMAScript 2015 and higher.
+../../../node_modules/tldraw/dist-cjs/index.d.ts(39,21): error TS1259: Module '"C:/code/citadel/citadel/node_modules/@types/react/index"' can only be default-imported using the 'esModuleInterop' flag
+../../../node_modules/zod/v4/locales/index.d.cts(1,21): error TS1259: Module '"C:/code/citadel/citadel/node_modules/zod/v4/locales/ar"' can only be default-imported using the 'esModuleInterop' flag
+../../../node_modules/zod/v4/locales/index.d.cts(2,21): error TS1259: Module '"C:/code/citadel/citadel/node_modules/zod/v4/locales/az"' can only be default-imported using the 'esModuleInterop' flag
+../../../node_modules/zod/v4/locales/index.d.cts(3,21): error TS1259: Module '"C:/code/citadel/citadel/node_modules/zod/v4/locales/be"' can only be default-imported using the 'esModuleInterop' flag
+../../../node_modules/zod/v4/locales/index.d.cts(4,21): error TS1259: Module '"C:/code/citadel/citadel/node_modules/zod/v4/locales/bg"' can only be default-imported using the 'esModuleInterop' flag
+../../../node_modules/zod/v4/locales/index.d.cts(5,21): error TS1259: Module '"C:/code/citadel/citadel/node_modules/zod/v4/locales/ca"' can only be default-imported using the 'esModuleInterop' flag
+../../../node_modules/zod/v4/locales/index.d.cts(6,21): error TS1259: Module '"C:/code/citadel/citadel/node_modules/zod/v4/locales/cs"' can only be default-imported using the 'esModuleInterop' flag
+../../../node_modules/zod/v4/locales/index.d.cts(7,21): error TS1259: Module '"C:/code/citadel/citadel/node_modules/zod/v4/locales/da"' can only be default-imported using the 'esModuleInterop' flag
+../../../node_modules/zod/v4/locales/index.d.cts(8,21): error TS1259: Module '"C:/code/citadel/citadel/node_modules/zod/v4/locales/de"' can only be default-imported using the 'esModuleInterop' flag
+../../../node_modules/zod/v4/locales/index.d.cts(9,21): error TS1259: Module '"C:/code/citadel/citadel/node_modules/zod/v4/locales/en"' can only be default-imported using the 'esModuleInterop' flag
+../../../node_modules/zod/v4/locales/index.d.cts(10,21): error TS1259: Module '"C:/code/citadel/citadel/node_modules/zod/v4/locales/eo"' can only be default-imported using the 'esModuleInterop' flag
+../../../node_modules/zod/v4/locales/index.d.cts(11,21): error TS1259: Module '"C:/code/citadel/citadel/node_modules/zod/v4/locales/es"' can only be default-imported using the 'esModuleInterop' flag
+../../../node_modules/zod/v4/locales/index.d.cts(12,21): error TS1259: Module '"C:/code/citadel/citadel/node_modules/zod/v4/locales/fa"' can only be default-imported using the 'esModuleInterop' flag
+../../../node_modules/zod/v4/locales/index.d.cts(13,21): error TS1259: Module '"C:/code/citadel/citadel/node_modules/zod/v4/locales/fi"' can only be default-imported using the 'esModuleInterop' flag
+../../../node_modules/zod/v4/locales/index.d.cts(14,21): error TS1259: Module '"C:/code/citadel/citadel/node_modules/zod/v4/locales/fr"' can only be default-imported using the 'esModuleInterop' flag
+../../../node_modules/zod/v4/locales/index.d.cts(15,21): error TS1259: Module '"C:/code/citadel/citadel/node_modules/zod/v4/locales/fr-CA"' can only be default-imported using the 'esModuleInterop' flag
+../../../node_modules/zod/v4/locales/index.d.cts(16,21): error TS1259: Module '"C:/code/citadel/citadel/node_modules/zod/v4/locales/he"' can only be default-imported using the 'esModuleInterop' flag
+../../../node_modules/zod/v4/locales/index.d.cts(17,21): error TS1259: Module '"C:/code/citadel/citadel/node_modules/zod/v4/locales/hu"' can only be default-imported using the 'esModuleInterop' flag
+../../../node_modules/zod/v4/locales/index.d.cts(18,21): error TS1259: Module '"C:/code/citadel/citadel/node_modules/zod/v4/locales/hy"' can only be default-imported using the 'esModuleInterop' flag
+../../../node_modules/zod/v4/locales/index.d.cts(19,21): error TS1259: Module '"C:/code/citadel/citadel/node_modules/zod/v4/locales/id"' can only be default-imported using the 'esModuleInterop' flag
+../../../node_modules/zod/v4/locales/index.d.cts(20,21): error TS1259: Module '"C:/code/citadel/citadel/node_modules/zod/v4/locales/is"' can only be default-imported using the 'esModuleInterop' flag
+../../../node_modules/zod/v4/locales/index.d.cts(21,21): error TS1259: Module '"C:/code/citadel/citadel/node_modules/zod/v4/locales/it"' can only be default-imported using the 'esModuleInterop' flag
+../../../node_modules/zod/v4/locales/index.d.cts(22,21): error TS1259: Module '"C:/code/citadel/citadel/node_modules/zod/v4/locales/ja"' can only be default-imported using the 'esModuleInterop' flag
+../../../node_modules/zod/v4/locales/index.d.cts(23,21): error TS1259: Module '"C:/code/citadel/citadel/node_modules/zod/v4/locales/ka"' can only be default-imported using the 'esModuleInterop' flag
+../../../node_modules/zod/v4/locales/index.d.cts(24,21): error TS1259: Module '"C:/code/citadel/citadel/node_modules/zod/v4/locales/kh"' can only be default-imported using the 'esModuleInterop' flag
+../../../node_modules/zod/v4/locales/index.d.cts(25,21): error TS1259: Module '"C:/code/citadel/citadel/node_modules/zod/v4/locales/km"' can only be default-imported using the 'esModuleInterop' flag
+../../../node_modules/zod/v4/locales/index.d.cts(26,21): error TS1259: Module '"C:/code/citadel/citadel/node_modules/zod/v4/locales/ko"' can only be default-imported using the 'esModuleInterop' flag
+../../../node_modules/zod/v4/locales/index.d.cts(27,21): error TS1259: Module '"C:/code/citadel/citadel/node_modules/zod/v4/locales/lt"' can only be default-imported using the 'esModuleInterop' flag
+../../../node_modules/zod/v4/locales/index.d.cts(28,21): error TS1259: Module '"C:/code/citadel/citadel/node_modules/zod/v4/locales/mk"' can only be default-imported using the 'esModuleInterop' flag
+../../../node_modules/zod/v4/locales/index.d.cts(29,21): error TS1259: Module '"C:/code/citadel/citadel/node_modules/zod/v4/locales/ms"' can only be default-imported using the 'esModuleInterop' flag
+../../../node_modules/zod/v4/locales/index.d.cts(30,21): error TS1259: Module '"C:/code/citadel/citadel/node_modules/zod/v4/locales/nl"' can only be default-imported using the 'esModuleInterop' flag
+../../../node_modules/zod/v4/locales/index.d.cts(31,21): error TS1259: Module '"C:/code/citadel/citadel/node_modules/zod/v4/locales/no"' can only be default-imported using the 'esModuleInterop' flag
+../../../node_modules/zod/v4/locales/index.d.cts(32,21): error TS1259: Module '"C:/code/citadel/citadel/node_modules/zod/v4/locales/ota"' can only be default-imported using the 'esModuleInterop' flag
+../../../node_modules/zod/v4/locales/index.d.cts(33,21): error TS1259: Module '"C:/code/citadel/citadel/node_modules/zod/v4/locales/ps"' can only be default-imported using the 'esModuleInterop' flag
+../../../node_modules/zod/v4/locales/index.d.cts(34,21): error TS1259: Module '"C:/code/citadel/citadel/node_modules/zod/v4/locales/pl"' can only be default-imported using the 'esModuleInterop' flag
+../../../node_modules/zod/v4/locales/index.d.cts(35,21): error TS1259: Module '"C:/code/citadel/citadel/node_modules/zod/v4/locales/pt"' can only be default-imported using the 'esModuleInterop' flag
+../../../node_modules/zod/v4/locales/index.d.cts(36,21): error TS1259: Module '"C:/code/citadel/citadel/node_modules/zod/v4/locales/ru"' can only be default-imported using the 'esModuleInterop' flag
+../../../node_modules/zod/v4/locales/index.d.cts(37,21): error TS1259: Module '"C:/code/citadel/citadel/node_modules/zod/v4/locales/sl"' can only be default-imported using the 'esModuleInterop' flag
+../../../node_modules/zod/v4/locales/index.d.cts(38,21): error TS1259: Module '"C:/code/citadel/citadel/node_modules/zod/v4/locales/sv"' can only be default-imported using the 'esModuleInterop' flag
+../../../node_modules/zod/v4/locales/index.d.cts(39,21): error TS1259: Module '"C:/code/citadel/citadel/node_modules/zod/v4/locales/ta"' can only be default-imported using the 'esModuleInterop' flag
+../../../node_modules/zod/v4/locales/index.d.cts(40,21): error TS1259: Module '"C:/code/citadel/citadel/node_modules/zod/v4/locales/th"' can only be default-imported using the 'esModuleInterop' flag
+../../../node_modules/zod/v4/locales/index.d.cts(41,21): error TS1259: Module '"C:/code/citadel/citadel/node_modules/zod/v4/locales/tr"' can only be default-imported using the 'esModuleInterop' flag
+../../../node_modules/zod/v4/locales/index.d.cts(42,21): error TS1259: Module '"C:/code/citadel/citadel/node_modules/zod/v4/locales/ua"' can only be default-imported using the 'esModuleInterop' flag
+../../../node_modules/zod/v4/locales/index.d.cts(43,21): error TS1259: Module '"C:/code/citadel/citadel/node_modules/zod/v4/locales/uk"' can only be default-imported using the 'esModuleInterop' flag
+../../../node_modules/zod/v4/locales/index.d.cts(44,21): error TS1259: Module '"C:/code/citadel/citadel/node_modules/zod/v4/locales/ur"' can only be default-imported using the 'esModuleInterop' flag
+../../../node_modules/zod/v4/locales/index.d.cts(45,21): error TS1259: Module '"C:/code/citadel/citadel/node_modules/zod/v4/locales/uz"' can only be default-imported using the 'esModuleInterop' flag
+../../../node_modules/zod/v4/locales/index.d.cts(46,21): error TS1259: Module '"C:/code/citadel/citadel/node_modules/zod/v4/locales/vi"' can only be default-imported using the 'esModuleInterop' flag
+../../../node_modules/zod/v4/locales/index.d.cts(47,21): error TS1259: Module '"C:/code/citadel/citadel/node_modules/zod/v4/locales/zh-CN"' can only be default-imported using the 'esModuleInterop' flag
+../../../node_modules/zod/v4/locales/index.d.cts(48,21): error TS1259: Module '"C:/code/citadel/citadel/node_modules/zod/v4/locales/zh-TW"' can only be default-imported using the 'esModuleInterop' flag
+../../../node_modules/zod/v4/locales/index.d.cts(49,21): error TS1259: Module '"C:/code/citadel/citadel/node_modules/zod/v4/locales/yo"' can only be default-imported using the 'esModuleInterop' flag
+src/main/db.ts(1,8): error TS1259: Module '"C:/code/citadel/citadel/node_modules/@types/better-sqlite3/index"' can only be default-imported using the 'esModuleInterop' flag
+src/main/db.ts(2,8): error TS1259: Module '"path"' can only be default-imported using the 'esModuleInterop' flag
+src/main/db.ts(3,8): error TS1192: Module '"C:/code/citadel/citadel/node_modules/@types/fs-extra/index"' has no default export.
+src/main/services/FeedService.ts(1,8): error TS1259: Module '"C:/code/citadel/citadel/node_modules/@types/better-sqlite3/index"' can only be default-imported using the 'esModuleInterop' flag
+src/main/services/GuardrailService.ts(2,8): error TS1259: Module '"path"' can only be default-imported using the 'esModuleInterop' flag
+src/main/services/GuardrailService.ts(3,8): error TS1192: Module '"os"' has no default export.
+src/main/services/GuardrailService.ts(4,8): error TS1192: Module '"C:/code/citadel/citadel/node_modules/@types/fs-extra/index"' has no default export.
+src/main/services/GuardrailService.ts(86,30): error TS2802: Type 'Set<string>' can only be iterated through when using the '--downlevelIteration' flag or with a '--target' of 'es2015' or higher.
+src/renderer/ai/components/GrammarDialog.tsx(69,44): error TS2322: Type '{ name: string; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/ai/components/GrammarDialog.tsx(75,60): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/ai/components/GrammarDialog.tsx(92,72): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/ai/components/IndexStatusBadge.tsx(69,48): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/ai/components/IndexStatusBadge.tsx(77,49): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/ai/components/SmartActionsMenu.tsx(66,56): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/ai/components/SmartActionsMenu.tsx(75,61): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/ai/components/SmartActionsMenu.tsx(84,58): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/ai/components/SmartTagsDialog.tsx(189,47): error TS2322: Type '{ name: string; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/ai/components/SmartTagsDialog.tsx(195,61): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/ai/components/SmartTagsDialog.tsx(202,60): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/ai/components/SmartTagsDialog.tsx(271,74): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/ai/components/SummaryDialog.tsx(129,47): error TS2322: Type '{ name: string; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/ai/components/SummaryDialog.tsx(135,61): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/ai/components/SummaryDialog.tsx(142,60): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/BaseAppHost.tsx(19,29): error TS2307: Cannot find module '@app/lib/core-services-factory' or its corresponding type declarations.
+src/renderer/commands/CommandRegistry.ts(111,20): error TS2551: Property 'electron' does not exist on type 'Window & typeof globalThis'. Did you mean 'Electron'?
+src/renderer/components/browser/EntryTable.tsx(1,8): error TS1259: Module '"C:/code/citadel/citadel/node_modules/@types/react/index"' can only be default-imported using the 'esModuleInterop' flag
+src/renderer/components/browser/EntryTable.tsx(207,41): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/components/browser/EntryTable.tsx(213,41): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/components/ChatMessageItem.tsx(26,33): error TS2802: Type 'RegExpStringIterator<RegExpExecArray>' can only be iterated through when using the '--downlevelIteration' flag or with a '--target' of 'es2015' or higher.
+src/renderer/components/ChatMessageItem.tsx(95,65): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/components/CommandProposal.tsx(1,8): error TS1259: Module '"C:/code/citadel/citadel/node_modules/@types/react/index"' can only be default-imported using the 'esModuleInterop' flag
+src/renderer/components/CreateEntryDialog.tsx(327,59): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/components/CreateEntryDialog.tsx(364,76): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/components/CreateEntryDialog.tsx(424,67): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/components/CreateEntryDialog.tsx(497,80): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/components/CreateEntryDialog.tsx(531,80): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/components/DiffView.tsx(222,54): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/components/DiffView.tsx(272,80): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/components/DiffView.tsx(297,48): error TS2322: Type '{ name: string; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/components/EntryHeader.tsx(456,61): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/components/EntryHeader.tsx(684,62): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/components/EntrySelectorDialog.tsx(117,59): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/components/EntrySelectorDialog.tsx(142,63): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/components/git/BranchManagerModal.tsx(160,116): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/components/kanban/CreateBoardDialog.tsx(87,57): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/components/kanban/CreateBoardDialog.tsx(128,68): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/components/kanban/KanbanLane.tsx(121,54): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/components/kanban/KanbanLane.tsx(187,75): error TS2322: Type '{ name: any; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/components/layout/StatusBar.tsx(124,58): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/components/layout/StatusBar.tsx(172,51): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/components/MainLayout.tsx(204,63): error TS2322: Type '{ name: string; size: number; strokeWidth: number; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'strokeWidth' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/components/MainLayout.tsx(230,61): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/components/modules/WebviewModule.tsx(192,45): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/components/modules/WebviewModule.tsx(289,55): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/components/notebook/CreateNotebookDialog.tsx(61,57): error TS2322: Type '{ name: string; size: number; strokeWidth: number; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'strokeWidth' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/components/notebook/CreateNotebookDialog.tsx(195,56): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/components/notebook/CreateNotebookDialog.tsx(206,59): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/components/notebook/CreateNotebookDialog.tsx(231,74): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/components/notebook/NotebookContent.tsx(29,53): error TS2322: Type '{ name: string; size: number; strokeWidth: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'strokeWidth' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/components/notebook/NotebookContent.tsx(30,54): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/components/notebook/NotebookContent.tsx(48,53): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/components/notebook/NotebookContent.tsx(53,57): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/components/notebook/NotebookContent.tsx(55,57): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/components/notebook/NotebookContent.tsx(74,54): error TS2322: Type '{ name: string; size: number; strokeWidth: number; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'strokeWidth' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/components/notebook/NotebookSidebar.tsx(235,37): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/components/notebook/NotebookSidebar.tsx(263,37): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/components/notebook/NotebookSidebar.tsx(271,71): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/components/notebook/NotebookSidebar.tsx(361,21): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/components/notebook/NotebookSidebar.tsx(363,47): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/components/notebook/NotebookSidebar.tsx(402,17): error TS2322: Type '{ name: any; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/components/QuickAskModal.tsx(1,8): error TS1259: Module '"C:/code/citadel/citadel/node_modules/@types/react/index"' can only be default-imported using the 'esModuleInterop' flag
+src/renderer/components/QuickAskModal.tsx(87,48): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/components/QuickAskModal.tsx(106,62): error TS2322: Type '{ name: string; size: number; strokeWidth: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'strokeWidth' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/components/QuickAskModal.tsx(121,56): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/components/SafeCloseHandler.tsx(44,39): error TS2551: Property 'electron' does not exist on type 'Window & typeof globalThis'. Did you mean 'Electron'?
+src/renderer/components/SafeCloseHandler.tsx(51,16): error TS2551: Property 'electron' does not exist on type 'Window & typeof globalThis'. Did you mean 'Electron'?
+src/renderer/components/SafeCloseHandler.tsx(97,52): error TS2322: Type '{ name: string; className: string; size: number; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/components/SafeCloseHandler.tsx(109,50): error TS2322: Type '{ name: string; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/components/sections/SectionContainer.tsx(1,8): error TS1259: Module '"C:/code/citadel/citadel/node_modules/@types/react/index"' can only be default-imported using the 'esModuleInterop' flag
+src/renderer/components/sections/SectionContainer.tsx(45,58): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/components/sections/SectionsPanel.tsx(241,67): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/components/sections/SectionsPanel.tsx(293,57): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/components/SectionView.tsx(126,69): error TS2322: Type '{ name: string; className: string; size: number; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/components/settings/editors/SectionListEditor.tsx(1,8): error TS1259: Module '"C:/code/citadel/citadel/node_modules/@types/react/index"' can only be default-imported using the 'esModuleInterop' flag
+src/renderer/components/settings/EntryTypeEditor.tsx(1,8): error TS1259: Module '"C:/code/citadel/citadel/node_modules/@types/react/index"' can only be default-imported using the 'esModuleInterop' flag
+src/renderer/components/settings/EntryTypeList.tsx(1,8): error TS1259: Module '"C:/code/citadel/citadel/node_modules/@types/react/index"' can only be default-imported using the 'esModuleInterop' flag
+src/renderer/components/settings/ModelSelect.tsx(2,8): error TS1259: Module '"C:/code/citadel/citadel/node_modules/@types/react/index"' can only be default-imported using the 'esModuleInterop' flag
+src/renderer/components/settings/ModelSelect.tsx(59,56): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/components/settings/ModelSelect.tsx(71,59): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/components/settings/ModelSelect.tsx(92,74): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/components/settings/ModelSelect.tsx(141,85): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/components/settings/ModelSelect.tsx(142,82): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/components/settings/TagCategorySettings.tsx(1,8): error TS1259: Module '"C:/code/citadel/citadel/node_modules/@types/react/index"' can only be default-imported using the 'esModuleInterop' flag
+src/renderer/components/settings/TagCategorySettings.tsx(131,52): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/components/TitleBar.tsx(16,21): error TS2307: Cannot find module '../../../../../../resources/icon.png' or its corresponding type declarations.
+src/renderer/components/TitleBar.tsx(167,71): error TS2322: Type '{ name: string; size: number; strokeWidth: number; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'strokeWidth' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/components/TitleBar.tsx(232,76): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/components/TitleBar.tsx(234,87): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/components/TitleBar.tsx(241,76): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/components/TitleBar.tsx(256,103): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/components/TitleBar.tsx(275,89): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/components/TitleBar.tsx(302,52): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/components/Versions.tsx(5,38): error TS2551: Property 'electron' does not exist on type 'Window & typeof globalThis'. Did you mean 'Electron'?
+src/renderer/context/GitContext.tsx(1,8): error TS1259: Module '"C:/code/citadel/citadel/node_modules/@types/react/index"' can only be default-imported using the 'esModuleInterop' flag
+src/renderer/context/TagCategoryContext.tsx(1,8): error TS1259: Module '"C:/code/citadel/citadel/node_modules/@types/react/index"' can only be default-imported using the 'esModuleInterop' flag
+src/renderer/context/TagCategoryContext.tsx(102,46): error TS2802: Type 'Set<string>' can only be iterated through when using the '--downlevelIteration' flag or with a '--target' of 'es2015' or higher.
+src/renderer/context/TagCategoryContext.tsx(144,46): error TS2802: Type 'Set<string>' can only be iterated through when using the '--downlevelIteration' flag or with a '--target' of 'es2015' or higher.
+src/renderer/lib/data-manager.ts(3,8): error TS1259: Module '"C:/code/citadel/citadel/node_modules/gray-matter/gray-matter"' can only be default-imported using the 'esModuleInterop' flag
+src/renderer/pages/DebugDatabasePage.tsx(56,57): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/pages/DebugDatabasePage.tsx(103,55): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/pages/DebugDatabasePage.tsx(162,62): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/pages/DesignSystemPage.tsx(1,8): error TS1259: Module '"C:/code/citadel/citadel/node_modules/@types/react/index"' can only be default-imported using the 'esModuleInterop' flag
+src/renderer/pages/DesignSystemPage.tsx(106,60): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/pages/DesignSystemPage.tsx(424,93): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/pages/DesignSystemPage.tsx(428,96): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/pages/DesignSystemPage.tsx(432,95): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/pages/DesignSystemPage.tsx(446,93): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/pages/DesignSystemPage.tsx(450,96): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/pages/DesignSystemPage.tsx(456,94): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/pages/DesignSystemPage.tsx(460,95): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/pages/EntryBrowserPage.tsx(277,56): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/pages/HomePage.tsx(16,22): error TS2307: Cannot find module '../assets/branding/logo-main.png' or its corresponding type declarations.
+src/renderer/pages/HomePage.tsx(17,25): error TS2307: Cannot find module '../assets/branding/logo-offline.png' or its corresponding type declarations.
+src/renderer/pages/KanbanPage.tsx(199,61): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/pages/KanbanPage.tsx(279,62): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/pages/NotebookPage.tsx(204,65): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/pages/NotebookPage.tsx(226,69): error TS2322: Type '{ name: string; size: number; strokeWidth: number; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'strokeWidth' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/pages/NotebookPage.tsx(244,65): error TS2322: Type '{ name: string; size: number; strokeWidth: number; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'strokeWidth' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/pages/NotesPage.tsx(229,62): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/pages/NotesPage.tsx(256,68): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/pages/NotesPage.tsx(268,89): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/pages/NotesPage.tsx(283,68): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/pages/NotesPage.tsx(289,65): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/pages/NotesPage.tsx(293,65): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/pages/PluginManagerPage.tsx(239,55): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/pages/SettingsPage.tsx(10,8): error TS1259: Module '"C:/code/citadel/citadel/node_modules/@types/react/index"' can only be default-imported using the 'esModuleInterop' flag
+src/renderer/pages/SettingsPage.tsx(203,86): error TS2322: Type '{ name: string; size: number; strokeWidth: number; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'strokeWidth' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/pages/SettingsPage.tsx(461,76): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/pages/SettingsPage.tsx(669,124): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/pages/SettingsPage.tsx(674,117): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/pages/SettingsPage.tsx(675,123): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/pages/SettingsPage.tsx(683,79): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/pages/SettingsPage.tsx(787,89): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/pages/SettingsPage.tsx(798,89): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/pages/SettingsPage.tsx(828,134): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/pages/SettingsPage.tsx(833,127): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/pages/SettingsPage.tsx(834,133): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/pages/SettingsPage.tsx(853,78): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/pages/SettingsPage.tsx(917,81): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/pages/SettingsPage.tsx(952,77): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/pages/SettingsPage.tsx(976,94): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/pages/SettingsPage.tsx(987,82): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/pages/SettingsPage.tsx(995,69): error TS2339: Property 'api' does not exist on type 'Window & typeof globalThis'.
+src/renderer/pages/SourceControlPage.tsx(333,51): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/pages/SourceControlPage.tsx(368,70): error TS2322: Type '{ name: string; className: string; size: number; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/pages/SourceControlPage.tsx(381,50): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/pages/SourceControlPage.tsx(423,74): error TS2322: Type '{ name: string; className: string; size: number; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/pages/SourceControlPage.tsx(447,60): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/pages/SourceControlPage.tsx(461,58): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/pages/SourceControlPage.tsx(470,58): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/pages/SourceControlPage.tsx(500,56): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/pages/SourceControlPage.tsx(561,49): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/pages/SystemStatusPage.tsx(435,152): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/pages/SystemStatusPage.tsx(485,152): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/pages/SystemStatusPage.tsx(572,64): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/pages/SystemStatusPage.tsx(628,70): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/pages/SystemStatusPage.tsx(651,67): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/pages/SystemStatusPage.tsx(692,120): error TS2322: Type '{ name: string; size: number; strokeWidth: number; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'strokeWidth' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/pages/TagGraphPage.tsx(1,8): error TS1259: Module '"C:/code/citadel/citadel/node_modules/@types/react/index"' can only be default-imported using the 'esModuleInterop' flag
+src/renderer/pages/TagGraphPage.tsx(171,51): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/pages/TagManagerPage.tsx(384,56): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/pages/TagManagerPage.tsx(418,63): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/pages/TagManagerPage.tsx(508,111): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/pages/TagManagerPage.tsx(548,80): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/pages/TagManagerPage.tsx(588,65): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/pages/TagManagerPage.tsx(649,110): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/pages/WelcomePage.tsx(1,8): error TS1259: Module '"C:/code/citadel/citadel/node_modules/@types/react/index"' can only be default-imported using the 'esModuleInterop' flag
+src/renderer/pages/WelcomePage.tsx(8,22): error TS2307: Cannot find module '../assets/branding/banner-inverted.png' or its corresponding type declarations.
+src/renderer/pages/WorkspaceBuilderPage.tsx(12,22): error TS2307: Cannot find module '../assets/branding/banner-inverted.png' or its corresponding type declarations.
+src/renderer/search/components/InlineSearchIntellisense.tsx(46,33): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/search/components/SearchHelpDialog.tsx(29,54): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/search/components/SearchInput.tsx(149,47): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/search/components/SearchInput.tsx(203,45): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/search/components/SearchInput.tsx(248,63): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/search/components/SearchInput.tsx(274,71): error TS2322: Type '{ name: string; size: number; className: string; }' is not assignable to type 'IntrinsicAttributes & IconProps'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & IconProps'.
+src/renderer/services/content-extractor.ts(95,13): error TS1343: The 'import.meta' meta-property is only allowed when the '--module' option is 'es2020', 'es2022', 'esnext', 'system', 'node16', 'node18', 'node20', or 'nodenext'.
+src/renderer/services/content-extractor.ts(152,44): error TS2307: Cannot find module 'pdfjs-dist/build/pdf.worker.mjs?url' or its corresponding type declarations.
+../../ui/dist/components/git/VirtualizedFileList.d.ts(1,8): error TS1259: Module '"C:/code/citadel/citadel/node_modules/@types/react/index"' can only be default-imported using the 'esModuleInterop' flag
+../../ui/dist/components/IconRegistry.d.ts(1,8): error TS1259: Module '"C:/code/citadel/citadel/node_modules/@types/react/index"' can only be default-imported using the 'esModuleInterop' flag
+../../ui/dist/components/IconRegistry.d.ts(8,47): error TS2339: Property 'className' does not exist on type 'IconProps'.
+../../ui/dist/components/IconRegistry.d.ts(23,92): error TS2339: Property 'className' does not exist on type 'DynamicIconProps'.
+../../ui/dist/components/IconRegistry.d.ts(23,103): error TS2339: Property 'style' does not exist on type 'DynamicIconProps'.
+../../ui/dist/components/OnboardingTour.d.ts(1,8): error TS1259: Module '"C:/code/citadel/citadel/node_modules/@types/react/index"' can only be default-imported using the 'esModuleInterop' flag
+../../ui/dist/components/SplashScreen.d.ts(1,8): error TS1259: Module '"C:/code/citadel/citadel/node_modules/@types/react/index"' can only be default-imported using the 'esModuleInterop' flag
+../../ui/dist/components/ui/alert.d.ts(5,12): error TS2307: Cannot find module 'class-variance-authority/types' or its corresponding type declarations.
+  There are types at 'C:/code/citadel/citadel/node_modules/class-variance-authority/dist/types.d.ts', but this result could not be resolved under your current 'moduleResolution' setting. Consider updating to 'node16', 'nodenext', or 'bundler'.
+../../ui/dist/components/ui/badge.d.ts(6,12): error TS2307: Cannot find module 'class-variance-authority/types' or its corresponding type declarations.
+  There are types at 'C:/code/citadel/citadel/node_modules/class-variance-authority/dist/types.d.ts', but this result could not be resolved under your current 'moduleResolution' setting. Consider updating to 'node16', 'nodenext', or 'bundler'.
+../../ui/dist/components/ui/button.d.ts(8,12): error TS2307: Cannot find module 'class-variance-authority/types' or its corresponding type declarations.
+  There are types at 'C:/code/citadel/citadel/node_modules/class-variance-authority/dist/types.d.ts', but this result could not be resolved under your current 'moduleResolution' setting. Consider updating to 'node16', 'nodenext', or 'bundler'.
+../../ui/dist/components/ui/checkbox.d.ts(5,12): error TS2307: Cannot find module 'class-variance-authority/types' or its corresponding type declarations.
+  There are types at 'C:/code/citadel/citadel/node_modules/class-variance-authority/dist/types.d.ts', but this result could not be resolved under your current 'moduleResolution' setting. Consider updating to 'node16', 'nodenext', or 'bundler'.
+../../ui/dist/components/ui/ErrorBoundary.d.ts(1,8): error TS1259: Module '"C:/code/citadel/citadel/node_modules/@types/react/index"' can only be default-imported using the 'esModuleInterop' flag
+../../ui/dist/components/ui/input.d.ts(6,12): error TS2307: Cannot find module 'class-variance-authority/types' or its corresponding type declarations.
+  There are types at 'C:/code/citadel/citadel/node_modules/class-variance-authority/dist/types.d.ts', but this result could not be resolved under your current 'moduleResolution' setting. Consider updating to 'node16', 'nodenext', or 'bundler'.
+../../ui/dist/components/ui/MarkdownViewer.d.ts(1,8): error TS1259: Module '"C:/code/citadel/citadel/node_modules/@types/react/index"' can only be default-imported using the 'esModuleInterop' flag
+../../ui/dist/components/ui/MermaidRenderer.d.ts(1,8): error TS1259: Module '"C:/code/citadel/citadel/node_modules/@types/react/index"' can only be default-imported using the 'esModuleInterop' flag
+../../ui/dist/components/ui/radio-group.d.ts(5,12): error TS2307: Cannot find module 'class-variance-authority/types' or its corresponding type declarations.
+  There are types at 'C:/code/citadel/citadel/node_modules/class-variance-authority/dist/types.d.ts', but this result could not be resolved under your current 'moduleResolution' setting. Consider updating to 'node16', 'nodenext', or 'bundler'.
+../../ui/dist/components/ui/select.d.ts(6,12): error TS2307: Cannot find module 'class-variance-authority/types' or its corresponding type declarations.
+  There are types at 'C:/code/citadel/citadel/node_modules/class-variance-authority/dist/types.d.ts', but this result could not be resolved under your current 'moduleResolution' setting. Consider updating to 'node16', 'nodenext', or 'bundler'.
+../../ui/dist/components/ui/switch.d.ts(5,12): error TS2307: Cannot find module 'class-variance-authority/types' or its corresponding type declarations.
+  There are types at 'C:/code/citadel/citadel/node_modules/class-variance-authority/dist/types.d.ts', but this result could not be resolved under your current 'moduleResolution' setting. Consider updating to 'node16', 'nodenext', or 'bundler'.
+../../ui/dist/components/ui/textarea.d.ts(6,12): error TS2307: Cannot find module 'class-variance-authority/types' or its corresponding type declarations.
+  There are types at 'C:/code/citadel/citadel/node_modules/class-variance-authority/dist/types.d.ts', but this result could not be resolved under your current 'moduleResolution' setting. Consider updating to 'node16', 'nodenext', or 'bundler'.
+../../ui/dist/components/ui/toggle.d.ts(8,12): error TS2307: Cannot find module 'class-variance-authority/types' or its corresponding type declarations.
+  There are types at 'C:/code/citadel/citadel/node_modules/class-variance-authority/dist/types.d.ts', but this result could not be resolved under your current 'moduleResolution' setting. Consider updating to 'node16', 'nodenext', or 'bundler'.
+../../ui/dist/components/ui/UploadButton.d.ts(1,8): error TS1259: Module '"C:/code/citadel/citadel/node_modules/@types/react/index"' can only be default-imported using the 'esModuleInterop' flag
+../../ui/dist/contexts/ToastContext.d.ts(1,8): error TS1259: Module '"C:/code/citadel/citadel/node_modules/@types/react/index"' can only be default-imported using the 'esModuleInterop' flag
+../../ui/dist/lib/utils.d.ts(1,8): error TS1259: Module '"C:/code/citadel/citadel/node_modules/@types/react/index"' can only be default-imported using the 'esModuleInterop' flag

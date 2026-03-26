@@ -17,11 +17,17 @@ export class ExecutionSidecar extends AbstractDockerSidecar {
     }
 
     protected buildDockerRunArgs(): string[] {
-        // Execution container needs access to the host's Docker socket to spawn sub-containers
-        const dockerSocket = process.platform === 'win32' ? '//var/run/docker.sock:/var/run/docker.sock' : '/var/run/docker.sock:/var/run/docker.sock';
-        this.config.volumes = [dockerSocket];
+        const args = super.buildDockerRunArgs();
         
-        return super.buildDockerRunArgs();
+        // Execution container needs access to the host's Docker socket
+        const dockerSocket = process.platform === 'win32' 
+            ? '//var/run/docker.sock:/var/run/docker.sock' 
+            : '/var/run/docker.sock:/var/run/docker.sock';
+            
+        // Insert volume mapping after 'run' but before image name
+        args.splice(1, 0, '-v', dockerSocket);
+        
+        return args;
     }
 
     protected async onBeforeStart(): Promise<boolean> {

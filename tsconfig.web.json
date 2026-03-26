@@ -1,5 +1,5 @@
 {
-  "extends": "@electron-toolkit/tsconfig/tsconfig.web.json",
+  "extends": "./tsconfig.base.json",
   "include": [
     "src/renderer/src/env.d.ts",
     "src/renderer/src/**/*",
@@ -14,17 +14,9 @@
     "packages/modules/*/src/renderer/index.ts"
   ],
   "compilerOptions": { "skipLibCheck": true,
-    "composite": true,
     "moduleResolution": "bundler",
     "jsx": "react-jsx",
-    "baseUrl": ".",
     "paths": {
-      "@citadel-app/core": [
-        "packages/core/src/index.ts"
-      ],
-      "@citadel-app/ui": [
-        "packages/ui/src/index.ts"
-      ],
       "@citadel-app/excalidraw": [
         "packages/modules/excalidraw/src/renderer/index.ts"
       ],
@@ -37,21 +29,12 @@
       "@citadel-app/code": [
         "packages/modules/code/src/renderer/index.ts"
       ],
-      "@citadel-app/core/*": [
-        "packages/core/src/*"
-      ],
-      "@citadel-app/ui/*": [
-        "packages/ui/src/*"
-      ],
       "@renderer/*": [
         "packages/modules/base/src/renderer/*",
         "src/renderer/src/*"
       ],
       "@app/*": [
         "src/renderer/src/*"
-      ],
-      "@shared": [
-        "src/shared/index.ts"
       ]
     },
     "noUnusedLocals": false,
