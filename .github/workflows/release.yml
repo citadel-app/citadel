@@ -23,11 +23,15 @@ jobs:
 
       - name: Install Dependencies
         run: npm install --legacy-peer-deps
+        env:
+          CITADEL_RELEASE_TOKEN: ${{ secrets.CITADEL_RELEASE_TOKEN }}
 
       - name: Build
         run: npm run build
         env:
           MAIN_VITE_GITHUB_CLIENT_ID: ${{ secrets.CITADEL_GITHUB_CLIENT_ID }}
+          GITHUB_TOKEN: ${{ secrets.CITADEL_RELEASE_TOKEN}}
+          CITADEL_RELEASE_TOKEN: ${{ secrets.CITADEL_RELEASE_TOKEN}}
 
       - name: Get Version
         id: get_version
