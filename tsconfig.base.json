@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "useDefineForClassFields": true,
+    "module": "ESNext",
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
+    "skipLibCheck": true,
+    "moduleResolution": "Bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": false,
+    "baseUrl": ".",
+    "paths": {
+      "@citadel-app/core": ["packages/core/src/index.node.ts"],
+      "@citadel-app/ui": ["packages/ui/src/index.ts"],
+      "@citadel-app/base": ["packages/modules/base/src/main/index.ts"],
+      "@citadel-app/code": ["packages/modules/code/src/main/index.ts"],
+      "@citadel-app/core/*": ["packages/core/src/*"],
+      "@citadel-app/ui/*": ["packages/ui/src/*"]
+    }
+  }
+}

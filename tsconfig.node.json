@@ -1,5 +1,5 @@
 {
-  "extends": "@electron-toolkit/tsconfig/tsconfig.node.json",
+  "extends": "./tsconfig.base.json",
   "include": [
     "electron.vite.config.*",
     "src/main/**/*",
@@ -11,25 +11,8 @@
     "packages/modules/base/src/main/**/*"
   ],
   "compilerOptions": {
-    "composite": true,
-    "baseUrl": ".",
     "types": [
       "electron-vite/node"
-    ],
-    "paths": {
-      "@citadel-app/sdk": [
-        "packages/sdk/src/index.ts"
-      ],
-      "@citadel-app/*": [
-        "packages/*",
-        "packages/modules/*"
-      ],
-      "@shared": [
-        "src/shared/index.ts"
-      ],
-      "@shared/*": [
-        "src/shared/*"
-      ]
-    }
+    ]
   }
 }
