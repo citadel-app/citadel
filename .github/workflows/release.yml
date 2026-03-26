@@ -26,6 +26,8 @@ jobs:
 
       - name: Build
         run: npm run build
+        env:
+          MAIN_VITE_GITHUB_CLIENT_ID: ${{ secrets.CITADEL_GITHUB_CLIENT_ID }}
 
       - name: Get Version
         id: get_version
