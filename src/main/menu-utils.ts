@@ -61,7 +61,7 @@ export function setupMacOSMenu() {
         {
           label: 'Documentation',
           click: async () => {
-            await shell.openExternal('https://github.com/iwannabebot/citadel');
+            await shell.openExternal('https://github.com/citadel-app/citadel');
           }
         }
       ]
