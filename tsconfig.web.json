@@ -17,6 +17,12 @@
     "moduleResolution": "bundler",
     "jsx": "react-jsx",
     "paths": {
+      "@citadel-app/core": [
+        "packages/core/src/index.ts"
+      ],
+      "@citadel-app/ui": [
+        "packages/ui/src/index.ts"
+      ],
       "@citadel-app/excalidraw": [
         "packages/modules/excalidraw/src/renderer/index.ts"
       ],
