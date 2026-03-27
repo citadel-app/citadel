@@ -28,7 +28,7 @@ function findAvailablePort(startPort: number): Promise<number> {
 
 export const CodeMainModule: IModule = {
     id: '@citadel-app/code',
-    version: '1.0.7',
+    version: '1.0.8',
     ipcs: [
         "kernel.start", "kernel.execute", "kernel.stop", "kernel.status",
         "latex:check", "latex:compile",

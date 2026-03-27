@@ -3,7 +3,7 @@ import { lazy } from 'react';
 
 export const ExcalidrawModule: IModule = {
     id: '@citadel-app/excalidraw',
-    version: '1.0.7',
+    version: '1.0.8',
     ipcs: [],
     permissions: {
         ipc: [
