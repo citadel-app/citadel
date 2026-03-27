@@ -13,6 +13,13 @@ export const IPC_CHANNELS = {
     APP_CLOSE_REQUEST: 'app:close-request',
     APP_CLOSE_CONFIRMED: 'app:close-confirmed',
     APP_PING: 'ping',
+    APP_CHECK_FOR_UPDATES: 'app:checkForUpdates',
+    APP_DOWNLOAD_UPDATE: 'app:downloadUpdate',
+    APP_ON_UPDATE_AVAILABLE: 'app:onUpdateAvailable',
+    APP_ON_UPDATE_NOT_AVAILABLE: 'app:onUpdateNotAvailable',
+    APP_ON_UPDATE_DOWNLOADED: 'app:onUpdateDownloaded',
+    APP_ON_UPDATE_ERROR: 'app:onUpdateError',
+    APP_QUIT_AND_INSTALL: 'app:quitAndInstall',
 
     // Secrets
     SECRETS_GET: 'secrets:get',

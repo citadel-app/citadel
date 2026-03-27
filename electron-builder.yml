@@ -1,5 +1,10 @@
 appId: com.citadel.app
 productName: Citadel
+publish:
+  provider: github
+  owner: citadel-app
+  repo: citadel-desktop
+  releaseType: draft
 # Application version is automatically pulled from package.json
 directories:
   buildResources: build

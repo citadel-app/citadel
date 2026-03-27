@@ -246,6 +246,49 @@ export const SettingsPage = () => {
                                     </div>
                                 </div>
 
+                                <section className="pt-6 border-t border-border">
+                                    <h3 className="text-sm font-semibold mb-4 flex items-center gap-2">
+                                        <Icon name="RefreshCw" size={16} />
+                                        Software Updates
+                                    </h3>
+                                    <div className="bg-muted/50 border border-border rounded-xl p-5 space-y-4">
+                                        <div className="flex items-center justify-between gap-4">
+                                            <div className="space-y-1">
+                                                <p className="text-sm font-medium">Current Version</p>
+                                                <p className="text-xs text-muted-foreground font-mono">v1.1.0</p>
+                                            </div>
+                                            <button
+                                                onClick={async () => {
+                                                    const btn = document.getElementById('btn-check-updates') as HTMLButtonElement;
+                                                    if (btn) {
+                                                        btn.disabled = true;
+                                                        const originalText = btn.textContent;
+                                                        btn.textContent = "Checking...";
+                                                        try {
+                                                            const res = await __hostApi.app.checkForUpdates();
+                                                            if (res.success && !res.updateInfo) {
+                                                                toast("You are on the latest version!", { type: 'success' });
+                                                            } else if (!res.success) {
+                                                                toast(`Update check failed: ${res.error}`, { type: 'error' });
+                                                            }
+                                                        } finally {
+                                                            btn.disabled = false;
+                                                            btn.textContent = originalText;
+                                                        }
+                                                    }
+                                                }}
+                                                id="btn-check-updates"
+                                                className="px-4 py-2 bg-secondary text-secondary-foreground rounded-lg text-xs font-medium hover:bg-secondary/80 transition-colors shrink-0"
+                                            >
+                                                Check for Updates
+                                            </button>
+                                        </div>
+                                        <div className="text-xs text-muted-foreground leading-relaxed">
+                                            Citadel is an evergreen application. It periodically checks for updates and notifies you when a new version is available.
+                                        </div>
+                                    </div>
+                                </section>
+
                                 <div className="grid gap-2">
                                     <label className="text-sm font-medium">System Status Poll Interval</label>
                                     <div className="flex items-center gap-2">
@@ -992,14 +1035,13 @@ export const SettingsPage = () => {
                                             <div className="flex flex-wrap gap-3">
                                                 <button
                                                     onClick={async () => {
-                                                        if (!window.api?.system?.deployStack) { toast("Deploy feature not available in this build.", { type: 'error' }); return; }
                                                         const btn = document.getElementById('btn-deploy-qdrant-2') as HTMLButtonElement;
                                                         if (btn) { btn.disabled = true; btn.textContent = "Deploying..."; }
                                                         try {
                                                             const res = await __hostApi.module.invoke('@citadel-app/base', 'system.deployStack', 'qdrant');
                                                             if (res.success) { toast("Qdrant vector database is starting up!", { type: 'success' }); }
-                                                            else { toast("Qdrant Deploy Failed: " + res.error + ". Make sure Docker Desktop is running.", { type: 'error' }); }
-                                                        } catch (e) { toast("Error: " + e, { type: 'error' }); }
+                                                            else { toast(`Qdrant Deploy Failed: ${res.error}. Make sure Docker Desktop is running.`, { type: 'error' }); }
+                                                        } catch (e) { toast(`Error: ${e}`, { type: 'error' }); }
                                                         finally { if (btn) { btn.disabled = false; btn.textContent = "Deploy Qdrant"; } }
                                                     }}
                                                     id="btn-deploy-qdrant-2"

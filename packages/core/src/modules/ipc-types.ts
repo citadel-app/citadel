@@ -115,6 +115,8 @@ export interface BaseModuleAPI {
     'plugins.uninstall': (pluginId: string) => Promise<void>;
     'plugins.toggle': (pluginId: string, enabled: boolean) => Promise<void>;
     'plugins.readRenderer': (pluginId: string) => Promise<string | null>;
+    'plugins.getCitadelVersion': () => Promise<string>;
+    'plugins.validateCompatibility': (engines: any) => Promise<boolean>;
 }
 
 export interface CodeModuleAPI {

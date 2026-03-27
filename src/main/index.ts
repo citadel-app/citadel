@@ -7,6 +7,7 @@ import fs from 'fs-extra'
 import { IPC_CHANNELS } from '@citadel-app/core';
 import { mainModuleRegistry } from './main-module-registry';
 import { setupMacOSMenu } from './menu-utils';
+import { autoUpdaterManager } from './AutoUpdaterManager';
 
 // Determine initial workspace from CLI
 let initialWorkspacePath: string | null = null
@@ -263,6 +264,10 @@ function createWindow(): void {
       splashWindow = null;
     }
     mainWindow!.show();
+    autoUpdaterManager.setMainWindow(mainWindow!);
+    
+    // Check for updates on startup
+    autoUpdaterManager.checkForUpdatesSilently();
 
     // Check if we have a deep link from startup that needs to be processed
     if (!deepLinkUrl && process.platform !== 'darwin') {

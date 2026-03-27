@@ -12,6 +12,7 @@ import { TagCategoryProvider } from './context/TagCategoryContext';
 import { PeerProvider } from './context/PeerContext';
 import { ToastProvider, useToast as useToastHook } from '@citadel-app/ui';
 import { CoreServicesContext } from '@citadel-app/ui';
+import { IPC_CHANNELS } from '@citadel-app/core';
 import { dataManager } from './lib/data-manager';
 import { db } from './lib/db';
 import { commandRegistry } from './commands/CommandRegistry';
@@ -222,6 +223,31 @@ const AppContent = ({ logoSrc }: { logoSrc?: string }) => {
     });
     return cleanup;
   }, [setVaultPath, vaultPath, setPendingDeepLink]);
+
+  // -- Autoupdate Listeners --
+  const { toast } = useToastHook();
+  useEffect(() => {
+    const unsubs: (() => void)[] = [];
+
+    unsubs.push(__hostApi.on(IPC_CHANNELS.APP_ON_UPDATE_AVAILABLE, (info: any) => {
+      toast(`Update Available: v${info.version}. Download it in Settings.`, {
+        type: 'info'
+      });
+    }));
+
+    unsubs.push(__hostApi.on(IPC_CHANNELS.APP_ON_UPDATE_DOWNLOADED, () => {
+      toast(`Update Downloaded! Restart the app to apply.`, {
+        type: 'success'
+      });
+    }));
+
+    unsubs.push(__hostApi.on(IPC_CHANNELS.APP_ON_UPDATE_ERROR, (err: string) => {
+      console.error('[UpdateListener] Update error:', err);
+      // Don't toast every error unless manual check was performed
+    }));
+
+    return () => unsubs.forEach(unsub => unsub());
+  }, [toast]);
 
   if (isLoading || (!vaultPath && !stepResolved)) {
     return <SplashScreen logoSrc={logoSrc} />;

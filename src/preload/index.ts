@@ -21,6 +21,9 @@ const api = {
     getDownloadsPath: () => ipcRenderer.invoke(IPC_CHANNELS.APP_GET_DOWNLOADS_PATH),
     openWorkspace: (path: string) => ipcRenderer.invoke(IPC_CHANNELS.APP_OPEN_WORKSPACE, path),
     setActiveWorkspace: (path: string) => ipcRenderer.invoke(IPC_CHANNELS.APP_SET_ACTIVE_WORKSPACE, path),
+    checkForUpdates: () => ipcRenderer.invoke(IPC_CHANNELS.APP_CHECK_FOR_UPDATES),
+    downloadUpdate: () => ipcRenderer.invoke(IPC_CHANNELS.APP_DOWNLOAD_UPDATE),
+    quitAndInstall: () => ipcRenderer.send(IPC_CHANNELS.APP_QUIT_AND_INSTALL),
     isMac: process.platform === 'darwin'
   },
   net: {

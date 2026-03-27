@@ -15,11 +15,18 @@ export interface PluginManifest {
     renderer?: string;   // Path to renderer process entry
     enabled: boolean;
     icon?: string;       // Path to local svg asset representing the plugin
+    permissions?: string[];
+    engines?: {
+        citadel?: string; // semver range, e.g. ">=1.1.0"
+    };
 }
+
+import * as semver from 'semver';
 
 export class PluginManagerService {
     private pluginsDir: string;
     private plugins: Map<string, PluginManifest> = new Map();
+    private citadelVersion: string = app.getVersion();
 
     constructor(private registrar: MainRegistrar<'@citadel-app/base'>) {
         this.pluginsDir = path.join(app.getPath('userData'), 'plugins');
@@ -35,41 +42,20 @@ export class PluginManagerService {
     }
 
     private registerIpcs() {
+        this.registrar.handle('plugins.getCitadelVersion', async () => {
+            return this.getCitadelVersion();
+        });
+
+        this.registrar.handle('plugins.validateCompatibility', async (engines: any) => {
+            return this.validateCompatibility({ engines } as any);
+        });
+
         this.registrar.handle('plugins.list', async () => {
             return Array.from(this.plugins.values());
         });
 
         this.registrar.handle('plugins.install', async (pluginId: string, downloadUrl: string) => {
-            try {
-                const res = await fetch(downloadUrl);
-                if (!res.ok) throw new Error(`Failed to download plugin zip: ${res.statusText}`);
-
-                const arrayBuffer = await res.arrayBuffer();
-                const buffer = Buffer.from(arrayBuffer);
-                
-                const tempZipPath = path.join(app.getPath('temp'), `${pluginId}-${Date.now()}.zip`);
-                await fs.writeFile(tempZipPath, buffer);
-                
-                const extract = require('extract-zip');
-                const targetPath = path.join(this.pluginsDir, pluginId.replace(/[^a-zA-Z0-9_-]/g, ''));
-                
-                if (fs.existsSync(targetPath)) {
-                    await fs.remove(targetPath);
-                }
-                await fs.mkdirp(targetPath);
-                
-                try {
-                    await extract(tempZipPath, { dir: targetPath });
-                } finally {
-                    await fs.remove(tempZipPath);
-                }
-                
-                await this.loadPlugins();
-                return;
-            } catch (e) {
-                console.error("Plugin installation error:", e);
-                throw e;
-            }
+            await this.installPlugin(pluginId, downloadUrl);
         });
 
         this.registrar.handle('plugins.uninstall', async (pluginId: string) => {
@@ -117,6 +103,96 @@ export class PluginManagerService {
         });
     }
 
+    public getInstalledPlugins(): PluginManifest[] {
+        return Array.from(this.plugins.values());
+    }
+
+    public async installPlugin(pluginId: string, downloadUrl: string) {
+        console.log(`[PluginManager] Installing/Updating plugin: ${pluginId} from ${downloadUrl}`);
+        
+        try {
+            const res = await fetch(downloadUrl);
+            if (!res.ok) throw new Error(`Failed to download plugin zip: ${res.statusText}`);
+
+            const arrayBuffer = await res.arrayBuffer();
+            const buffer = Buffer.from(arrayBuffer);
+            
+            const tempZipPath = path.join(app.getPath('temp'), `${pluginId}-${Date.now()}.zip`);
+            await fs.writeFile(tempZipPath, buffer);
+            
+            const extract = require('extract-zip');
+            const targetPath = path.join(this.pluginsDir, pluginId.replace(/[^a-zA-Z0-9_-]/g, ''));
+            
+            if (fs.existsSync(targetPath)) {
+                await fs.remove(targetPath);
+            }
+            await fs.mkdirp(targetPath);
+            
+            try {
+                await extract(tempZipPath, { dir: targetPath });
+
+                // After extraction, read the manifest to validate compatibility
+                const manifestPath = path.join(targetPath, 'manifest.json');
+                const packagePath = path.join(targetPath, 'package.json');
+                let manifest: PluginManifest | null = null;
+
+                if (await fs.pathExists(manifestPath)) {
+                    manifest = await fs.readJSON(manifestPath);
+                } else if (await fs.pathExists(packagePath)) {
+                    const pkg = await fs.readJSON(packagePath);
+                    if (pkg.citadel) {
+                        manifest = {
+                            id: pkg.citadel.id || pkg.name,
+                            version: pkg.citadel.version || pkg.version,
+                            name: pkg.citadel.title || pkg.citadel.name || pkg.name,
+                            description: pkg.citadel.description || pkg.description,
+                            author: pkg.citadel.author || (typeof pkg.author === 'object' ? pkg.author.name : pkg.author),
+                            authorUrl: pkg.citadel.authorUrl || (typeof pkg.author === 'object' ? pkg.author.url : undefined),
+                            verified: pkg.citadel.verified === true,
+                            main: pkg.citadel.main,
+                            renderer: pkg.citadel.renderer,
+                            enabled: pkg.citadel.enabled !== false,
+                            icon: pkg.citadel.icon,
+                            permissions: pkg.citadel.permissions
+                        };
+                    }
+                }
+
+                if (!manifest) {
+                    throw new Error('Plugin manifest not found after extraction.');
+                }
+
+                if (!this.validateCompatibility(manifest)) {
+                    await fs.remove(targetPath); // Remove the incompatible plugin
+                    throw new Error(`Plugin ${manifest.id} (v${manifest.version}) is incompatible with Citadel v${this.citadelVersion}. Required: ${manifest.engines?.citadel}`);
+                }
+
+            } finally {
+                await fs.remove(tempZipPath);
+            }
+            
+            await this.loadPlugins();
+            return { success: true };
+        } catch (e) {
+            console.error(`[PluginManager] Installation failed: ${e}`);
+            throw e;
+        }
+    }
+
+    public validateCompatibility(manifest: PluginManifest): boolean {
+        if (!manifest.engines?.citadel) return true; // Assume compatible if not specified
+        try {
+            return semver.satisfies(this.citadelVersion, manifest.engines.citadel);
+        } catch (e) {
+            console.error(`[PluginManager] Failed to validate compatibility for ${manifest.id}:`, e);
+            return true; // Default to true on error to avoid bricking
+        }
+    }
+
+    public getCitadelVersion(): string {
+        return this.citadelVersion;
+    }
+
     public async loadPlugins() {
         this.plugins.clear();
         
@@ -156,7 +232,12 @@ export class PluginManagerService {
                         const pluginEntry: PluginManifest & { _folder?: string, _absolutePath?: string } = manifest;
                         pluginEntry._folder = entry.name;
                         pluginEntry._absolutePath = pluginPath;
-                        this.plugins.set(pluginEntry.id, pluginEntry);
+                        // Validate compatibility
+                        if (!this.validateCompatibility(manifest)) {
+                            console.warn(`[PluginManager] Warning: Loaded plugin ${manifest.id} (v${manifest.version}) may be incompatible with Citadel v${this.citadelVersion}. Required: ${manifest.engines?.citadel}`);
+                        }
+
+                        this.plugins.set(manifest.id, manifest);
                         
                         // Load backend script if enabled
                         if (pluginEntry.enabled && pluginEntry.main) {
