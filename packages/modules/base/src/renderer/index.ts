@@ -4,7 +4,7 @@ import { BaseAppHost } from './BaseAppHost';
 
 export const BaseModule: IModule = {
     id: '@citadel-app/base',
-    version: '1.1.0',
+    version: '1.1.1',
     globalComponents: [
         { region: 'app-host', component: BaseAppHost }
     ],
