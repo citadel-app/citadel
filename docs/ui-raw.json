@@ -1059,10 +1059,10 @@
           "name": "() => string"
         }
       },
-      "__@iterator@18456": {
+      "__@iterator@18457": {
         "defaultValue": null,
         "description": "Iterator",
-        "name": "__@iterator@18456",
+        "name": "__@iterator@18457",
         "parent": {
           "fileName": "citadel/node_modules/typescript/lib/lib.es2015.iterable.d.ts",
           "name": "String"
@@ -19191,6 +19191,14 @@
         }
       }
     }
+  },
+  {
+    "tags": {},
+    "filePath": "C:/code/citadel/citadel/packages/ui/src/components/shapes/ArchitectureShape.tsx",
+    "description": "The type of the shape util, which should match the shape's type.",
+    "displayName": "ArchitectureShapeUtil.type",
+    "methods": [],
+    "props": {}
   },
   {
     "tags": {},
@@ -274463,6 +274471,290 @@
   },
   {
     "tags": {},
+    "filePath": "C:/code/citadel/citadel/packages/ui/src/components/sections/RelatedLinksSection.tsx",
+    "description": "",
+    "displayName": "RelatedLinksSection",
+    "methods": [],
+    "props": {
+      "links": {
+        "defaultValue": null,
+        "description": "",
+        "name": "links",
+        "parent": {
+          "fileName": "citadel/packages/ui/src/components/sections/RelatedLinksSection.tsx",
+          "name": "RelatedLinksSectionProps"
+        },
+        "declarations": [
+          {
+            "fileName": "citadel/packages/ui/src/components/sections/RelatedLinksSection.tsx",
+            "name": "RelatedLinksSectionProps"
+          }
+        ],
+        "required": true,
+        "type": {
+          "name": "RelatedLink[]"
+        }
+      },
+      "onAddLink": {
+        "defaultValue": null,
+        "description": "",
+        "name": "onAddLink",
+        "parent": {
+          "fileName": "citadel/packages/ui/src/components/sections/RelatedLinksSection.tsx",
+          "name": "RelatedLinksSectionProps"
+        },
+        "declarations": [
+          {
+            "fileName": "citadel/packages/ui/src/components/sections/RelatedLinksSection.tsx",
+            "name": "RelatedLinksSectionProps"
+          }
+        ],
+        "required": true,
+        "type": {
+          "name": "(link: Omit<RelatedLink, \"id\">) => void"
+        }
+      },
+      "onRemoveLink": {
+        "defaultValue": null,
+        "description": "",
+        "name": "onRemoveLink",
+        "parent": {
+          "fileName": "citadel/packages/ui/src/components/sections/RelatedLinksSection.tsx",
+          "name": "RelatedLinksSectionProps"
+        },
+        "declarations": [
+          {
+            "fileName": "citadel/packages/ui/src/components/sections/RelatedLinksSection.tsx",
+            "name": "RelatedLinksSectionProps"
+          }
+        ],
+        "required": true,
+        "type": {
+          "name": "(id: string) => void"
+        }
+      },
+      "className": {
+        "defaultValue": null,
+        "description": "",
+        "name": "className",
+        "parent": {
+          "fileName": "citadel/packages/ui/src/components/sections/RelatedLinksSection.tsx",
+          "name": "RelatedLinksSectionProps"
+        },
+        "declarations": [
+          {
+            "fileName": "citadel/packages/ui/src/components/sections/RelatedLinksSection.tsx",
+            "name": "RelatedLinksSectionProps"
+          }
+        ],
+        "required": false,
+        "type": {
+          "name": "string"
+        }
+      }
+    }
+  },
+  {
+    "tags": {},
+    "filePath": "C:/code/citadel/citadel/packages/ui/src/components/git/VirtualizedFileList.tsx",
+    "description": "",
+    "displayName": "VirtualizedFileList",
+    "methods": [],
+    "props": {
+      "items": {
+        "defaultValue": null,
+        "description": "",
+        "name": "items",
+        "parent": {
+          "fileName": "citadel/packages/ui/src/components/git/VirtualizedFileList.tsx",
+          "name": "VirtualizedFileListProps"
+        },
+        "declarations": [
+          {
+            "fileName": "citadel/packages/ui/src/components/git/VirtualizedFileList.tsx",
+            "name": "VirtualizedFileListProps"
+          }
+        ],
+        "required": true,
+        "type": {
+          "name": "GitItem[]"
+        }
+      },
+      "height": {
+        "defaultValue": null,
+        "description": "",
+        "name": "height",
+        "parent": {
+          "fileName": "citadel/packages/ui/src/components/git/VirtualizedFileList.tsx",
+          "name": "VirtualizedFileListProps"
+        },
+        "declarations": [
+          {
+            "fileName": "citadel/packages/ui/src/components/git/VirtualizedFileList.tsx",
+            "name": "VirtualizedFileListProps"
+          }
+        ],
+        "required": true,
+        "type": {
+          "name": "number"
+        }
+      },
+      "onSelect": {
+        "defaultValue": null,
+        "description": "",
+        "name": "onSelect",
+        "parent": {
+          "fileName": "citadel/packages/ui/src/components/git/VirtualizedFileList.tsx",
+          "name": "VirtualizedFileListProps"
+        },
+        "declarations": [
+          {
+            "fileName": "citadel/packages/ui/src/components/git/VirtualizedFileList.tsx",
+            "name": "VirtualizedFileListProps"
+          }
+        ],
+        "required": true,
+        "type": {
+          "name": "(file: { path: string; status: \"index\" | \"working_dir\"; gitStatus: string; }) => void"
+        }
+      },
+      "selectedFile": {
+        "defaultValue": null,
+        "description": "",
+        "name": "selectedFile",
+        "parent": {
+          "fileName": "citadel/packages/ui/src/components/git/VirtualizedFileList.tsx",
+          "name": "VirtualizedFileListProps"
+        },
+        "declarations": [
+          {
+            "fileName": "citadel/packages/ui/src/components/git/VirtualizedFileList.tsx",
+            "name": "VirtualizedFileListProps"
+          }
+        ],
+        "required": true,
+        "type": {
+          "name": "{ path: string; status: \"index\" | \"working_dir\"; }"
+        }
+      },
+      "onAction": {
+        "defaultValue": null,
+        "description": "",
+        "name": "onAction",
+        "parent": {
+          "fileName": "citadel/packages/ui/src/components/git/VirtualizedFileList.tsx",
+          "name": "VirtualizedFileListProps"
+        },
+        "declarations": [
+          {
+            "fileName": "citadel/packages/ui/src/components/git/VirtualizedFileList.tsx",
+            "name": "VirtualizedFileListProps"
+          }
+        ],
+        "required": false,
+        "type": {
+          "name": "(file: string, e: MouseEvent<Element, MouseEvent>) => void"
+        }
+      },
+      "actionIcon": {
+        "defaultValue": null,
+        "description": "",
+        "name": "actionIcon",
+        "parent": {
+          "fileName": "citadel/packages/ui/src/components/git/VirtualizedFileList.tsx",
+          "name": "VirtualizedFileListProps"
+        },
+        "declarations": [
+          {
+            "fileName": "citadel/packages/ui/src/components/git/VirtualizedFileList.tsx",
+            "name": "VirtualizedFileListProps"
+          }
+        ],
+        "required": false,
+        "type": {
+          "name": "(section: \"index\" | \"working_dir\") => string"
+        }
+      },
+      "actionTitle": {
+        "defaultValue": null,
+        "description": "",
+        "name": "actionTitle",
+        "parent": {
+          "fileName": "citadel/packages/ui/src/components/git/VirtualizedFileList.tsx",
+          "name": "VirtualizedFileListProps"
+        },
+        "declarations": [
+          {
+            "fileName": "citadel/packages/ui/src/components/git/VirtualizedFileList.tsx",
+            "name": "VirtualizedFileListProps"
+          }
+        ],
+        "required": false,
+        "type": {
+          "name": "(section: \"index\" | \"working_dir\") => string"
+        }
+      },
+      "onSecondaryAction": {
+        "defaultValue": null,
+        "description": "",
+        "name": "onSecondaryAction",
+        "parent": {
+          "fileName": "citadel/packages/ui/src/components/git/VirtualizedFileList.tsx",
+          "name": "VirtualizedFileListProps"
+        },
+        "declarations": [
+          {
+            "fileName": "citadel/packages/ui/src/components/git/VirtualizedFileList.tsx",
+            "name": "VirtualizedFileListProps"
+          }
+        ],
+        "required": false,
+        "type": {
+          "name": "(file: string, e: MouseEvent<Element, MouseEvent>) => void"
+        }
+      },
+      "secondaryActionIcon": {
+        "defaultValue": null,
+        "description": "",
+        "name": "secondaryActionIcon",
+        "parent": {
+          "fileName": "citadel/packages/ui/src/components/git/VirtualizedFileList.tsx",
+          "name": "VirtualizedFileListProps"
+        },
+        "declarations": [
+          {
+            "fileName": "citadel/packages/ui/src/components/git/VirtualizedFileList.tsx",
+            "name": "VirtualizedFileListProps"
+          }
+        ],
+        "required": false,
+        "type": {
+          "name": "(section: \"index\" | \"working_dir\") => string"
+        }
+      },
+      "secondaryActionTitle": {
+        "defaultValue": null,
+        "description": "",
+        "name": "secondaryActionTitle",
+        "parent": {
+          "fileName": "citadel/packages/ui/src/components/git/VirtualizedFileList.tsx",
+          "name": "VirtualizedFileListProps"
+        },
+        "declarations": [
+          {
+            "fileName": "citadel/packages/ui/src/components/git/VirtualizedFileList.tsx",
+            "name": "VirtualizedFileListProps"
+          }
+        ],
+        "required": false,
+        "type": {
+          "name": "(section: \"index\" | \"working_dir\") => string"
+        }
+      }
+    }
+  },
+  {
+    "tags": {},
     "filePath": "C:/code/citadel/citadel/packages/ui/src/components/layout/SplitPane.tsx",
     "description": "",
     "displayName": "SplitPaneProvider",
@@ -274709,298 +275001,6 @@
           {
             "fileName": "citadel/packages/ui/src/components/layout/SplitPane.tsx",
             "name": "SplitPaneLayoutProps"
-          }
-        ],
-        "required": false,
-        "type": {
-          "name": "string"
-        }
-      }
-    }
-  },
-  {
-    "tags": {},
-    "filePath": "C:/code/citadel/citadel/packages/ui/src/components/shapes/ArchitectureShape.tsx",
-    "description": "The type of the shape util, which should match the shape's type.",
-    "displayName": "ArchitectureShapeUtil.type",
-    "methods": [],
-    "props": {}
-  },
-  {
-    "tags": {},
-    "filePath": "C:/code/citadel/citadel/packages/ui/src/components/git/VirtualizedFileList.tsx",
-    "description": "",
-    "displayName": "VirtualizedFileList",
-    "methods": [],
-    "props": {
-      "items": {
-        "defaultValue": null,
-        "description": "",
-        "name": "items",
-        "parent": {
-          "fileName": "citadel/packages/ui/src/components/git/VirtualizedFileList.tsx",
-          "name": "VirtualizedFileListProps"
-        },
-        "declarations": [
-          {
-            "fileName": "citadel/packages/ui/src/components/git/VirtualizedFileList.tsx",
-            "name": "VirtualizedFileListProps"
-          }
-        ],
-        "required": true,
-        "type": {
-          "name": "GitItem[]"
-        }
-      },
-      "height": {
-        "defaultValue": null,
-        "description": "",
-        "name": "height",
-        "parent": {
-          "fileName": "citadel/packages/ui/src/components/git/VirtualizedFileList.tsx",
-          "name": "VirtualizedFileListProps"
-        },
-        "declarations": [
-          {
-            "fileName": "citadel/packages/ui/src/components/git/VirtualizedFileList.tsx",
-            "name": "VirtualizedFileListProps"
-          }
-        ],
-        "required": true,
-        "type": {
-          "name": "number"
-        }
-      },
-      "onSelect": {
-        "defaultValue": null,
-        "description": "",
-        "name": "onSelect",
-        "parent": {
-          "fileName": "citadel/packages/ui/src/components/git/VirtualizedFileList.tsx",
-          "name": "VirtualizedFileListProps"
-        },
-        "declarations": [
-          {
-            "fileName": "citadel/packages/ui/src/components/git/VirtualizedFileList.tsx",
-            "name": "VirtualizedFileListProps"
-          }
-        ],
-        "required": true,
-        "type": {
-          "name": "(file: { path: string; status: \"index\" | \"working_dir\"; gitStatus: string; }) => void"
-        }
-      },
-      "selectedFile": {
-        "defaultValue": null,
-        "description": "",
-        "name": "selectedFile",
-        "parent": {
-          "fileName": "citadel/packages/ui/src/components/git/VirtualizedFileList.tsx",
-          "name": "VirtualizedFileListProps"
-        },
-        "declarations": [
-          {
-            "fileName": "citadel/packages/ui/src/components/git/VirtualizedFileList.tsx",
-            "name": "VirtualizedFileListProps"
-          }
-        ],
-        "required": true,
-        "type": {
-          "name": "{ path: string; status: \"index\" | \"working_dir\"; }"
-        }
-      },
-      "onAction": {
-        "defaultValue": null,
-        "description": "",
-        "name": "onAction",
-        "parent": {
-          "fileName": "citadel/packages/ui/src/components/git/VirtualizedFileList.tsx",
-          "name": "VirtualizedFileListProps"
-        },
-        "declarations": [
-          {
-            "fileName": "citadel/packages/ui/src/components/git/VirtualizedFileList.tsx",
-            "name": "VirtualizedFileListProps"
-          }
-        ],
-        "required": false,
-        "type": {
-          "name": "(file: string, e: MouseEvent<Element, MouseEvent>) => void"
-        }
-      },
-      "actionIcon": {
-        "defaultValue": null,
-        "description": "",
-        "name": "actionIcon",
-        "parent": {
-          "fileName": "citadel/packages/ui/src/components/git/VirtualizedFileList.tsx",
-          "name": "VirtualizedFileListProps"
-        },
-        "declarations": [
-          {
-            "fileName": "citadel/packages/ui/src/components/git/VirtualizedFileList.tsx",
-            "name": "VirtualizedFileListProps"
-          }
-        ],
-        "required": false,
-        "type": {
-          "name": "(section: \"index\" | \"working_dir\") => string"
-        }
-      },
-      "actionTitle": {
-        "defaultValue": null,
-        "description": "",
-        "name": "actionTitle",
-        "parent": {
-          "fileName": "citadel/packages/ui/src/components/git/VirtualizedFileList.tsx",
-          "name": "VirtualizedFileListProps"
-        },
-        "declarations": [
-          {
-            "fileName": "citadel/packages/ui/src/components/git/VirtualizedFileList.tsx",
-            "name": "VirtualizedFileListProps"
-          }
-        ],
-        "required": false,
-        "type": {
-          "name": "(section: \"index\" | \"working_dir\") => string"
-        }
-      },
-      "onSecondaryAction": {
-        "defaultValue": null,
-        "description": "",
-        "name": "onSecondaryAction",
-        "parent": {
-          "fileName": "citadel/packages/ui/src/components/git/VirtualizedFileList.tsx",
-          "name": "VirtualizedFileListProps"
-        },
-        "declarations": [
-          {
-            "fileName": "citadel/packages/ui/src/components/git/VirtualizedFileList.tsx",
-            "name": "VirtualizedFileListProps"
-          }
-        ],
-        "required": false,
-        "type": {
-          "name": "(file: string, e: MouseEvent<Element, MouseEvent>) => void"
-        }
-      },
-      "secondaryActionIcon": {
-        "defaultValue": null,
-        "description": "",
-        "name": "secondaryActionIcon",
-        "parent": {
-          "fileName": "citadel/packages/ui/src/components/git/VirtualizedFileList.tsx",
-          "name": "VirtualizedFileListProps"
-        },
-        "declarations": [
-          {
-            "fileName": "citadel/packages/ui/src/components/git/VirtualizedFileList.tsx",
-            "name": "VirtualizedFileListProps"
-          }
-        ],
-        "required": false,
-        "type": {
-          "name": "(section: \"index\" | \"working_dir\") => string"
-        }
-      },
-      "secondaryActionTitle": {
-        "defaultValue": null,
-        "description": "",
-        "name": "secondaryActionTitle",
-        "parent": {
-          "fileName": "citadel/packages/ui/src/components/git/VirtualizedFileList.tsx",
-          "name": "VirtualizedFileListProps"
-        },
-        "declarations": [
-          {
-            "fileName": "citadel/packages/ui/src/components/git/VirtualizedFileList.tsx",
-            "name": "VirtualizedFileListProps"
-          }
-        ],
-        "required": false,
-        "type": {
-          "name": "(section: \"index\" | \"working_dir\") => string"
-        }
-      }
-    }
-  },
-  {
-    "tags": {},
-    "filePath": "C:/code/citadel/citadel/packages/ui/src/components/sections/RelatedLinksSection.tsx",
-    "description": "",
-    "displayName": "RelatedLinksSection",
-    "methods": [],
-    "props": {
-      "links": {
-        "defaultValue": null,
-        "description": "",
-        "name": "links",
-        "parent": {
-          "fileName": "citadel/packages/ui/src/components/sections/RelatedLinksSection.tsx",
-          "name": "RelatedLinksSectionProps"
-        },
-        "declarations": [
-          {
-            "fileName": "citadel/packages/ui/src/components/sections/RelatedLinksSection.tsx",
-            "name": "RelatedLinksSectionProps"
-          }
-        ],
-        "required": true,
-        "type": {
-          "name": "RelatedLink[]"
-        }
-      },
-      "onAddLink": {
-        "defaultValue": null,
-        "description": "",
-        "name": "onAddLink",
-        "parent": {
-          "fileName": "citadel/packages/ui/src/components/sections/RelatedLinksSection.tsx",
-          "name": "RelatedLinksSectionProps"
-        },
-        "declarations": [
-          {
-            "fileName": "citadel/packages/ui/src/components/sections/RelatedLinksSection.tsx",
-            "name": "RelatedLinksSectionProps"
-          }
-        ],
-        "required": true,
-        "type": {
-          "name": "(link: Omit<RelatedLink, \"id\">) => void"
-        }
-      },
-      "onRemoveLink": {
-        "defaultValue": null,
-        "description": "",
-        "name": "onRemoveLink",
-        "parent": {
-          "fileName": "citadel/packages/ui/src/components/sections/RelatedLinksSection.tsx",
-          "name": "RelatedLinksSectionProps"
-        },
-        "declarations": [
-          {
-            "fileName": "citadel/packages/ui/src/components/sections/RelatedLinksSection.tsx",
-            "name": "RelatedLinksSectionProps"
-          }
-        ],
-        "required": true,
-        "type": {
-          "name": "(id: string) => void"
-        }
-      },
-      "className": {
-        "defaultValue": null,
-        "description": "",
-        "name": "className",
-        "parent": {
-          "fileName": "citadel/packages/ui/src/components/sections/RelatedLinksSection.tsx",
-          "name": "RelatedLinksSectionProps"
-        },
-        "declarations": [
-          {
-            "fileName": "citadel/packages/ui/src/components/sections/RelatedLinksSection.tsx",
-            "name": "RelatedLinksSectionProps"
           }
         ],
         "required": false,
