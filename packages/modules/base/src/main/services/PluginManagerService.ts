@@ -154,7 +154,9 @@ export class PluginManagerService {
                             renderer: pkg.citadel.renderer,
                             enabled: pkg.citadel.enabled !== false,
                             icon: pkg.citadel.icon,
-                            permissions: pkg.citadel.permissions
+                            permissions: pkg.citadel.permissions,
+                            capabilities: pkg.citadel.capabilities,
+                            engines: pkg.engines
                         };
                     }
                 }
@@ -225,7 +227,8 @@ export class PluginManagerService {
                                 enabled: pkg.citadel.enabled !== false,
                                 icon: pkg.citadel.icon,
                                 permissions: pkg.citadel.permissions,
-                            capabilities: pkg.citadel.capabilities
+                                capabilities: pkg.citadel.capabilities,
+                                engines: pkg.engines
                             };
                         }
                     }
