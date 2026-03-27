@@ -7,8 +7,7 @@ on:
     types: [trigger-publish]
   workflow_dispatch:
 
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+# Unified Node.js version for stability
 
 jobs:
   publish:
@@ -21,7 +20,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: "24"
+          node-version: "22"
           registry-url: "https://npm.pkg.github.com/"
           scope: "@citadel-app"
 

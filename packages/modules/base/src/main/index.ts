@@ -19,7 +19,7 @@ let feedService: FeedService;
 
 export const BaseMainModule: IModule = {
     id: '@citadel-app/base',
-    version: '1.0.7',
+    version: '1.0.8',
     ipcs: [
         "fs.readDirectory", "fs.readFile", "fs.readFileBinary", "fs.writeFile", "fs.writeAsset", "fs.createDirectory",
         "fs.scaffoldWorkspace", "fs.deleteFile", "fs.exists", "fs.stat", "fs.getDocumentsPath", "fs.watchPath",
