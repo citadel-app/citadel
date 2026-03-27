@@ -8,8 +8,8 @@
     "build": "tsc"
   },
   "dependencies": {
-    "@citadel-app/core": "1.1.1",
-    "@citadel-app/ui": "1.1.1",
+    "@citadel-app/core": "1.1.2",
+    "@citadel-app/ui": "1.1.2",
     "lucide-react": "^0.475.0",
     "pdfjs-dist": "^4.10.38",
     "react-pdf-highlighter-extended": "^8.1.0"
