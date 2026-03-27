@@ -10,12 +10,14 @@ import { AIOrchestrator } from './ai/AIOrchestrator';
 import { FileWatcherService } from './services/FileWatcherService';
 import { PluginManagerService } from './services/PluginManagerService';
 import { FeedService } from './services/FeedService';
+import { PluginUpdaterService } from './services/PluginUpdaterService';
 import * as fs from 'fs-extra';
 
 let appSettings: AppSettingsService;
 let guardrail: GuardrailService;
 let aiOrchestrator: AIOrchestrator;
 let feedService: FeedService;
+let pluginManager: PluginManagerService;
 
 export const BaseMainModule: IModule = {
     id: '@citadel-app/base',
@@ -42,7 +44,7 @@ export const BaseMainModule: IModule = {
         "system.getProcessStats", "system.startService", "system.stopService", "system.deployStack", "system.triggerDebugError",
         "models.checkStatus", "models.download",
         "service.start", "service.stop", "service.status",
-        "plugins.install", "plugins.uninstall", "plugins.setEnabled", "plugins.list", "plugins.toggle", "plugins.readRenderer"
+        "plugins.install", "plugins.uninstall", "plugins.setEnabled", "plugins.list", "plugins.toggle", "plugins.readRenderer", "plugins.getCitadelVersion", "plugins.validateCompatibility"
     ],
     onMainActivate: async (registrar: MainRegistrar<'@citadel-app/base'>, workspace: WorkspaceContext | null) => {
         if (!appSettings) {
@@ -52,7 +54,8 @@ export const BaseMainModule: IModule = {
             feedService = new FeedService(registrar);
 
             new FileWatcherService(registrar);
-            new PluginManagerService(registrar);
+            pluginManager = new PluginManagerService(registrar);
+            new PluginUpdaterService(pluginManager, appSettings);
 
             new GitService(guardrail, registrar);
             new GitHubService(registrar);
