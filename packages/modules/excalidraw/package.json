@@ -1,6 +1,6 @@
 {
   "name": "@citadel-app/excalidraw",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "exports": {
     ".": {
       "browser": "./src/renderer/index.ts",
@@ -13,8 +13,8 @@
     "clean": "tsc -b --clean"
   },
   "dependencies": {
-    "@citadel-app/core": "1.1.0",
-    "@citadel-app/ui": "1.1.0",
+    "@citadel-app/core": "1.1.1",
+    "@citadel-app/ui": "1.1.1",
     "@excalidraw/excalidraw": "*",
     "lucide-react": "^0.453.0",
     "lodash": "^4.17.21"

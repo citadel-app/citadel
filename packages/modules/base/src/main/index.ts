@@ -21,7 +21,7 @@ let pluginManager: PluginManagerService;
 
 export const BaseMainModule: IModule = {
     id: '@citadel-app/base',
-    version: '1.1.0',
+    version: '1.1.1',
     ipcs: [
         "fs.readDirectory", "fs.readFile", "fs.readFileBinary", "fs.writeFile", "fs.writeAsset", "fs.createDirectory",
         "fs.scaffoldWorkspace", "fs.deleteFile", "fs.exists", "fs.stat", "fs.getDocumentsPath", "fs.watchPath",

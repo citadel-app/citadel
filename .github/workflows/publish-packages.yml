@@ -27,11 +27,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-          registry-url: "https://npm.pkg.github.com/"
-          scope: "@citadel-app"
 
       - name: Install dependencies
         run: npm install --legacy-peer-deps --no-package-lock
+        env:
+          CITADEL_RELEASE_TOKEN: ${{ steps.app-token.outputs.token }}
 
       - name: Build Core
         run: npm run build
@@ -41,7 +41,7 @@ jobs:
         run: npm publish
         working-directory: packages/core
         env:
-          NODE_AUTH_TOKEN: ${{ steps.app-token.outputs.token }}
+          CITADEL_RELEASE_TOKEN: ${{ steps.app-token.outputs.token }}
           GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
 
       - name: Build UI
@@ -52,7 +52,7 @@ jobs:
         run: npm publish
         working-directory: packages/ui
         env:
-          NODE_AUTH_TOKEN: ${{ steps.app-token.outputs.token }}
+          CITADEL_RELEASE_TOKEN: ${{ steps.app-token.outputs.token }}
           GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
 
       - name: Build App
@@ -63,7 +63,7 @@ jobs:
       - name: Publish App
         run: npm publish
         env:
-          NODE_AUTH_TOKEN: ${{ steps.app-token.outputs.token }}
+          CITADEL_RELEASE_TOKEN: ${{ steps.app-token.outputs.token }}
           GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
 
       - name: Trigger Desktop Build

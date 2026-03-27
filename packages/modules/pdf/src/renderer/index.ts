@@ -4,7 +4,7 @@ import { PdfModelStatusWidget } from './components/PdfModelStatusWidget';
 
 export const PdfModule: IModule = {
     id: '@citadel-app/pdf',
-    version: '1.1.0',
+    version: '1.1.1',
     ipcs: [
         'pdf.tts.start',
         'pdf.tts.stop',

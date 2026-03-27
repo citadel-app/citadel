@@ -17,7 +17,7 @@ export interface PluginManifest {
     icon?: string;       // Path to local svg asset representing the plugin
     permissions?: string[];
     engines?: {
-        citadel?: string; // semver range, e.g. ">=1.1.0"
+        citadel?: string; // semver range, e.g. ">=1.1.1"
     };
 }
 

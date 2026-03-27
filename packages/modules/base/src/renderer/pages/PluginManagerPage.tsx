@@ -101,7 +101,7 @@ export const PluginManagerPage = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedPluginId, setSelectedPluginId] = useState<string | null>(null);
     const [detailTab, setDetailTab] = useState<'readme' | 'settings' | 'permissions'>('readme');
-    const [citadelVersion, setCitadelVersion] = useState<string>('1.1.0');
+    const [citadelVersion, setCitadelVersion] = useState<string>('1.1.1');
     const [isCompatible, setIsCompatible] = useState<boolean>(true);
 
     const isVersionNewer = (remote?: string, local?: string) => {
