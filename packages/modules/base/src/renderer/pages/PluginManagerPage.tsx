@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import semver from 'semver';
 import { Icon, Button, Switch, MarkdownViewer } from '@citadel-app/ui';
 import { hostApi as __hostApi, appModuleRegistry } from '../host-services';
 import { useAppSettings } from '../context/AppSettingsContext';
@@ -101,6 +102,9 @@ export const PluginManagerPage = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedPluginId, setSelectedPluginId] = useState<string | null>(null);
     const [detailTab, setDetailTab] = useState<'readme' | 'settings' | 'permissions'>('readme');
+    const [selectedVersion, setSelectedVersion] = useState<string | null>(null);
+    const [versionMetadata, setVersionMetadata] = useState<any>(null);
+    const [pluginVersions, setPluginVersions] = useState<any>(null);
     const [citadelVersion, setCitadelVersion] = useState<string>('1.1.1');
     const [isCompatible, setIsCompatible] = useState<boolean>(true);
 
@@ -223,21 +227,24 @@ export const PluginManagerPage = () => {
             window.location.reload();
         } catch (e) {
             console.error("Failed to uninstall plugin", e);
+            __hostApi.module.invoke('@citadel-app/base', 'toast.show', "Failed to uninstall extension: " + String(e), { type: 'error' });
         }
     };
 
-    const handleInstall = async (plugin: any) => {
+    const handleInstall = async (plugin: any, versionObj?: any) => {
         try {
-            const bundleUrl = plugin.citadel?.bundleUrl;
+            const bundleUrl = versionObj?.bundleUrl || plugin.citadel?.bundleUrl;
             if (!bundleUrl) {
-                alert("This extension is improperly configured (missing bundleUrl).");
+                __hostApi.module.invoke('@citadel-app/base', 'toast.show', 'This extension version is improperly configured (missing bundleUrl).', { type: 'error' });
                 return;
             }
+            __hostApi.module.invoke('@citadel-app/base', 'toast.show', `Starting installation of ${plugin.citadel?.title || plugin.name} v${versionObj?.version || plugin.version}...`);
             await __hostApi.module.invoke('@citadel-app/base', 'plugins.install', plugin.name, bundleUrl);
+            __hostApi.module.invoke('@citadel-app/base', 'toast.show', 'Extension installed successfully!', { type: 'success' });
             window.location.reload();
         } catch (e) {
             console.error("Install logic failed", e);
-            alert("Failed to install extension: " + String(e));
+            __hostApi.module.invoke('@citadel-app/base', 'toast.show', "Failed to install extension: " + String(e), { type: 'error' });
         }
     };
 
@@ -252,13 +259,54 @@ export const PluginManagerPage = () => {
     const selectedPluginObj = plugins.find(p => p.id === selectedPluginId || p.name === selectedPluginId)
         || marketplacePlugins.find(p => (p.citadel?.id || p.name) === selectedPluginId);
 
+
     useEffect(() => {
-        if (selectedPluginObj) {
-            __hostApi.module.invoke('@citadel-app/base', 'plugins.validateCompatibility', selectedPluginObj.engines || (selectedPluginObj.citadel?.engines))
+        if (!selectedPluginObj) {
+            setPluginVersions(null);
+            setSelectedVersion(null);
+            setVersionMetadata(null);
+            return;
+        }
+
+        const fetchVersions = async () => {
+            try {
+                const id = selectedPluginObj._marketplacePath || selectedPluginObj.id || selectedPluginObj.name;
+                const url = `https://raw.githubusercontent.com/citadel-app/citadel-marketplace/main/directory/${id}/versions.json`;
+                const res = await fetch(url);
+                if (res.ok) {
+                    const data = await res.json();
+                    setPluginVersions(data);
+                    setSelectedVersion(data.latest || selectedPluginObj.version);
+                } else {
+                    setPluginVersions(null);
+                    setSelectedVersion(selectedPluginObj.version);
+                }
+            } catch (e) {
+                console.error("Failed to fetch versions.json", e);
+                setPluginVersions(null);
+                setSelectedVersion(selectedPluginObj.version);
+            }
+        };
+
+        fetchVersions();
+    }, [selectedPluginObj?.id, selectedPluginObj?._marketplacePath]);
+
+    useEffect(() => {
+        if (selectedVersion && pluginVersions?.versions?.[selectedVersion]) {
+            setVersionMetadata(pluginVersions.versions[selectedVersion]);
+        } else {
+            setVersionMetadata(selectedPluginObj);
+        }
+    }, [selectedVersion, pluginVersions, selectedPluginObj]);
+
+    useEffect(() => {
+        if (versionMetadata) {
+            const engines = versionMetadata.engines || versionMetadata.citadelVersionRange || versionMetadata.citadel?.engines;
+            __hostApi.module.invoke('@citadel-app/base', 'plugins.validateCompatibility', engines)
                 .then(setIsCompatible)
                 .catch(() => setIsCompatible(true));
         }
-    }, [selectedPluginObj?.id, selectedPluginObj?.version]);
+    }, [versionMetadata]);
 
     const isInstalledSelected = selectedPluginObj && plugins.some(p =>
         p.id === selectedPluginObj.id ||
@@ -433,8 +481,22 @@ export const PluginManagerPage = () => {
                                             </span>
                                         )}
                                         <span className="opacity-40">&bull;</span>
-                                        <span className="font-mono bg-muted px-1.5 py-0.5 rounded text-[11px] shadow-sm tracking-wider">v{selectedPluginObj.version || '1.0.1'}</span>
-                                        {updateAvailable && (
+                                        <span className="font-mono bg-muted px-1.5 py-0.5 rounded text-[11px] shadow-sm tracking-wider">v{selectedVersion || selectedPluginObj.version || '1.0.1'}</span>
+                                        {pluginVersions && (
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-[10px] uppercase font-bold text-muted-foreground/60">Version</span>
+                                                <select
+                                                    value={selectedVersion || ''}
+                                                    onChange={(e) => setSelectedVersion(e.target.value)}
+                                                    className="bg-muted border border-border/40 rounded px-2 py-0.5 text-[11px] font-mono outline-none focus:border-primary transition-colors"
+                                                >
+                                                    {Object.keys(pluginVersions.versions).sort((a, b) => semver.compare(b, a)).map(v => (
+                                                        <option key={v} value={v}>v{v} {v === pluginVersions.latest ? '(Latest)' : ''}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                        )}
+                                        {updateAvailable && !pluginVersions && (
                                             <span className="text-amber-500 font-bold text-[11px] animate-pulse">
                                                 (Update Available: v{marketplaceMatch.version})
                                             </span>
@@ -456,8 +518,8 @@ export const PluginManagerPage = () => {
 
                                     <div className="flex items-center gap-3 mt-6">
                                         {!isInstalledSelected ? (
-                                            <Button onClick={() => handleInstall(selectedPluginObj)} disabled={!isCompatible} className="gap-2 px-8 font-semibold shadow-md whitespace-nowrap">
-                                                <Icon name="Download" size={16} /> {isCompatible ? 'Install Extension' : 'Incompatible'}
+                                            <Button onClick={() => handleInstall(selectedPluginObj, versionMetadata)} disabled={!isCompatible} className="gap-2 px-8 font-semibold shadow-md whitespace-nowrap">
+                                                <Icon name="Download" size={16} /> {isCompatible ? 'Install Selected' : 'Incompatible'}
                                             </Button>
                                         ) : (
                                             <>
