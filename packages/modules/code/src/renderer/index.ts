@@ -1,6 +1,23 @@
 import { IModule, RendererRegistrar, APP_VERSION } from '@citadel-app/core';
 import { lazy } from 'react';
-// ...
+import { CodeSolutionSection } from './components/CodeSolutionSection';
+import { CodeSectionEditor } from './components/CodeSectionEditor';
+import { CodeContentViewer } from './components/CodeContentViewer';
+import { ReplProvider } from './context/ReplContext';
+import { CodeStatusWidget } from './components/CodeStatusWidget';
+import { CodeExecutionWidget } from './components/CodeExecutionWidget';
+
+// @ts-ignore
+import editorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker';
+// @ts-ignore
+import jsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker';
+// @ts-ignore
+import cssWorker from 'monaco-editor/esm/vs/language/css/css.worker?worker';
+// @ts-ignore
+import htmlWorker from 'monaco-editor/esm/vs/language/html/html.worker?worker';
+// @ts-ignore
+import tsWorker from 'monaco-editor/esm/vs/language/typescript/ts.worker?worker';
+
 export const CodeModule: IModule = {
     id: '@citadel-app/code',
     version: APP_VERSION,
