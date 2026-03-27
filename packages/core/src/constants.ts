@@ -1,3 +1,5 @@
+export const APP_VERSION = '1.1.2';
+
 export const APP_CONSTANTS = {
   SEARCH_SUGGESTION_COUNT: 5,
   MAX_HISTORY_ITEMS: 10,

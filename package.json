@@ -1,6 +1,6 @@
 {
   "name": "@citadel-app/app",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "a hackable second brain for software developers",
   "main": "./out/main/index.js",
   "author": "Citadel",
@@ -15,6 +15,7 @@
   },
   "files": [
     "out",
+    "docs",
     "package.json"
   ],
   "scripts": {
@@ -25,13 +26,19 @@
     "typecheck": "npm run typecheck:node && npm run typecheck:web",
     "start": "electron-vite preview",
     "dev": "node scripts/dev-wrapper.js",
-    "build": "npm run typecheck && cross-env NODE_OPTIONS=\"--max-old-space-size=8192\" electron-vite build",
+    "build": "npm run version:sync && npm run typecheck && npm run docs:generate && cross-env NODE_OPTIONS=\"--max-old-space-size=8192\" electron-vite build",
     "build:unpack": "npm run build && electron-builder --dir",
     "copy-assets": "node scripts/copy-excalidraw-assets.js",
     "clean": "npm run clean:build",
     "clean:build": "node scripts/clean.js",
     "changelog:generate": "node scripts/generate-changelog-entries.js",
-    "generate-icons": "scripts/generate-icons.sh"
+    "generate-icons": "scripts/generate-icons.sh",
+    "docs:extract-logic": "tsx scripts/doc-builder.ts --stage extract-logic",
+    "docs:extract-ui": "tsx scripts/doc-builder.ts --stage extract-ui",
+    "docs:merge": "tsx scripts/doc-builder.ts --stage merge",
+    "docs:generate": "tsx scripts/doc-builder.ts",
+    "docs:watch": "nodemon --watch packages --ext ts,tsx --exec \"npm run docs:generate\"",
+    "version:sync": "npx tsx scripts/sync-all-versions.ts"
   },
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.2",
@@ -104,6 +111,7 @@
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.4.24",
+    "glob": "^13.0.6",
     "gray-matter": "^4.0.3",
     "katex": "^0.16.28",
     "liquidjs": "^10.24.0",
@@ -113,11 +121,13 @@
     "monaco-editor": "^0.55.1",
     "monaco-languageclient": "^10.7.0",
     "next-themes": "^0.4.6",
+    "nodemon": "^3.1.14",
     "pdfjs-dist": "4.10.38",
     "peerjs": "^1.5.5",
     "postcss": "^8.5.6",
     "prettier": "^3.7.4",
     "react": "^19.2.1",
+    "react-docgen-typescript": "^2.4.0",
     "react-dom": "^19.2.1",
     "react-markdown": "^10.1.0",
     "react-pdf-highlighter-extended": "^8.1.0",
@@ -133,6 +143,8 @@
     "tailwindcss": "^3.4.17",
     "tiptap-markdown": "^0.9.0",
     "tldraw": "^4.3.1",
+    "tsx": "^4.21.0",
+    "typedoc": "^0.28.18",
     "typescript": "^5.9.3",
     "vite": "^7.2.6",
     "vscode-jsonrpc": "^8.2.1",

@@ -1,4 +1,4 @@
-import { IModule, MainRegistrar, WorkspaceContext } from '@citadel-app/core';
+import { IModule, MainRegistrar, WorkspaceContext, APP_VERSION } from '@citadel-app/core';
 import { app, BrowserWindow } from 'electron';
 import * as http from 'http';
 import { LspServer } from './lsp/LspServer';
@@ -28,7 +28,7 @@ function findAvailablePort(startPort: number): Promise<number> {
 
 export const CodeMainModule: IModule = {
     id: '@citadel-app/code',
-    version: '1.1.1',
+    version: APP_VERSION,
     ipcs: [
         "kernel.start", "kernel.execute", "kernel.stop", "kernel.status",
         "latex:check", "latex:compile",

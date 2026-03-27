@@ -1,10 +1,10 @@
-import type { IModule } from '@citadel-app/core';
+import { IModule, APP_VERSION } from '@citadel-app/core';
 import { lazy } from 'react';
 import { BaseAppHost } from './BaseAppHost';
 
 export const BaseModule: IModule = {
     id: '@citadel-app/base',
-    version: '1.1.1',
+    version: APP_VERSION,
     globalComponents: [
         { region: 'app-host', component: BaseAppHost }
     ],

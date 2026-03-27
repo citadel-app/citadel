@@ -1,4 +1,4 @@
-import { IModule, MainRegistrar, WorkspaceContext } from '@citadel-app/core';
+import { IModule, MainRegistrar, WorkspaceContext, APP_VERSION } from '@citadel-app/core';
 import { AppSettingsService } from './services/AppSettingsService';
 import { GuardrailService } from './services/GuardrailService';
 import { coreDb } from './db';
@@ -21,7 +21,7 @@ let pluginManager: PluginManagerService;
 
 export const BaseMainModule: IModule = {
     id: '@citadel-app/base',
-    version: '1.1.1',
+    version: APP_VERSION,
     ipcs: [
         "fs.readDirectory", "fs.readFile", "fs.readFileBinary", "fs.writeFile", "fs.writeAsset", "fs.createDirectory",
         "fs.scaffoldWorkspace", "fs.deleteFile", "fs.exists", "fs.stat", "fs.getDocumentsPath", "fs.watchPath",
