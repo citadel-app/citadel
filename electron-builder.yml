@@ -29,6 +29,8 @@ asarUnpack:
   - resources/**
   - node_modules/better-sqlite3/**
 extraResources:
+  - from: docs
+    to: docs
   - from: docker-compose.yml
     to: tts-service/docker-compose.yml
 win:

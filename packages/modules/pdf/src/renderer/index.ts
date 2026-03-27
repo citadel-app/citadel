@@ -1,10 +1,10 @@
-import { IModule, RendererRegistrar, ScopedAPI } from '@citadel-app/core';
+import { IModule, RendererRegistrar, ScopedAPI, APP_VERSION } from '@citadel-app/core';
 import { lazy } from 'react';
 import { PdfModelStatusWidget } from './components/PdfModelStatusWidget';
 
 export const PdfModule: IModule = {
     id: '@citadel-app/pdf',
-    version: '1.1.1',
+    version: APP_VERSION,
     ipcs: [
         'pdf.tts.start',
         'pdf.tts.stop',

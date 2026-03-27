@@ -1,9 +1,9 @@
-import { IModule, RendererRegistrar, ScopedAPI } from '@citadel-app/core';
+import { IModule, RendererRegistrar, ScopedAPI, APP_VERSION } from '@citadel-app/core';
 import { lazy } from 'react';
 
 export const ExcalidrawModule: IModule = {
     id: '@citadel-app/excalidraw',
-    version: '1.1.1',
+    version: APP_VERSION,
     ipcs: [],
     permissions: {
         ipc: [

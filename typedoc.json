@@ -1,0 +1,11 @@
+{
+  "name": "Citadel API",
+  "entryPointStrategy": "resolve",
+  "entryPoints": ["packages/*", "packages/modules/*"],
+  "exclude": ["**/node_modules/**", "**/dist/**", "**/out/**", "**/*.test.ts", "**/*.spec.ts"],
+  "excludeInternal": true,
+  "githubPages": false,
+  "cleanOutputDir": true,
+  "searchInComments": true,
+  "skipErrorChecking": true
+}
