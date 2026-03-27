@@ -1,6 +1,6 @@
 {
   "name": "@citadel-app/app",
-  "version": "1.0.3",
+  "version": "1.0.6",
   "description": "a hackable second brain for software developers",
   "main": "./out/main/index.js",
   "author": "Citadel",
