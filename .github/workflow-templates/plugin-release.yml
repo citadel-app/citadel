@@ -1,0 +1,57 @@
+name: Plugin Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install Dependencies
+        run: npm install --legacy-peer-deps
+
+      - name: Build
+        run: npm run build
+        continue-on-error: true # In case the plugin only has a main/renderer script without a build step
+
+      - name: Get Version
+        id: get_version
+        run: |
+          if [ -f "manifest.json" ]; then
+            VERSION=$(node -p "require('./manifest.json').version")
+          elif [ -f "package.json" ]; then
+            VERSION=$(node -p "require('./package.json').version")
+          else
+            VERSION=${GITHUB_REF#refs/tags/v}
+          fi
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          
+          # Get pure name for the zip file
+          NAME=$(node -p "require('./package.json').name.replace(/@[^/]+\//, '')")
+          echo "NAME=$NAME" >> $GITHUB_OUTPUT
+
+      - name: Create Plugin Zip
+        run: |
+          # ZIP the relevant files (manifest, package.json, and the built out/dist directory)
+          zip -r "citadel-plugin-${{ steps.get_version.outputs.NAME }}.zip" . -x "*.git*" "node_modules/*" ".github/*"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: citadel-plugin-${{ steps.get_version.outputs.NAME }}.zip
+          generate_release_notes: true
+          draft: false
+          prerelease: false

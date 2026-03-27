@@ -56,6 +56,9 @@ jobs:
           files: |
             citadel-payload.zip
             package.json
+            docs/app-api.json
+            docs/core-api.json
+            docs/ui-api.json
           generate_release_notes: true
           draft: false
           prerelease: false

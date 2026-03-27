@@ -47,34 +47,8 @@ export const BaseMainModule: IModule = {
         "plugins.install", "plugins.uninstall", "plugins.setEnabled", "plugins.list", "plugins.toggle", "plugins.readRenderer", "plugins.getCitadelVersion", "plugins.validateCompatibility"
     ],
     onMainActivate: async (registrar: MainRegistrar<'@citadel-app/base'>, workspace: WorkspaceContext | null) => {
-        if (!appSettings) {
-            appSettings = new AppSettingsService(registrar);
-            guardrail = new GuardrailService(workspace?.path || null);
-            aiOrchestrator = new AIOrchestrator(appSettings, coreDb);
-            feedService = new FeedService(registrar);
-
-            new FileWatcherService(registrar);
-            pluginManager = new PluginManagerService(registrar);
-            new PluginUpdaterService(pluginManager, appSettings);
-
-            new GitService(guardrail, registrar);
-            new GitHubService(registrar);
-            new GitHubAuthService(registrar);
-            new SecretStorageService(registrar);
-
-            aiOrchestrator.registerHandlers(registrar);
-            coreDb.registerIpcHandlers(registrar);
-        }
-
-        if (workspace) {
-            guardrail.setActiveWorkspace(workspace.path);
-            coreDb.setGuardrail();
-            coreDb.init(workspace.path);
-            feedService.setActiveWorkspace(workspace.path);
-        } else {
-            coreDb.init('');
-            feedService.setActiveWorkspace('');
-        }
+        // --- Register Handlers Early for Robustness ---
+        // This ensures IPC handlers are available even if service initialization takes time or fails.
 
         // --- File System Handlers ---
         registrar.handle('fs.readDirectory', async (path: string) => {
@@ -132,6 +106,40 @@ export const BaseMainModule: IModule = {
         registrar.handle('fs.allowPath', async (targetPath: string) => {
             guardrail.setActiveWorkspace(targetPath);
         });
+
+        // --- Service Initialization ---
+        if (!appSettings) {
+            appSettings = new AppSettingsService(registrar);
+            guardrail = new GuardrailService(workspace?.path || null);
+            aiOrchestrator = new AIOrchestrator(appSettings, coreDb);
+            feedService = new FeedService(registrar);
+
+            new FileWatcherService(registrar);
+            pluginManager = new PluginManagerService(registrar);
+            new PluginUpdaterService(pluginManager, appSettings);
+
+            new GitService(guardrail, registrar);
+            new GitHubService(registrar);
+            new GitHubAuthService(registrar);
+            new SecretStorageService(registrar);
+
+            aiOrchestrator.registerHandlers(registrar);
+            coreDb.registerIpcHandlers(registrar);
+        }
+
+        if (workspace) {
+            guardrail.setActiveWorkspace(workspace.path);
+            coreDb.setGuardrail();
+            try {
+                coreDb.init(workspace.path);
+            } catch (err) {
+                console.error('[BaseModule] Failed to initialize database:', err);
+            }
+            feedService.setActiveWorkspace(workspace.path);
+        } else {
+            coreDb.init('');
+            feedService.setActiveWorkspace('');
+        }
     },
     onWorkspaceChanged: async (workspace: WorkspaceContext) => {
         if (workspace) {
