@@ -26,7 +26,7 @@ jobs:
           scope: "@citadel-app"
 
       - name: Install dependencies
-        run: npm install --legacy-peer-deps
+        run: npm install --legacy-peer-deps --no-package-lock
 
       - name: Build Core
         run: npm run build
