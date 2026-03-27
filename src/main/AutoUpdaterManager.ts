@@ -6,6 +6,8 @@ export class AutoUpdaterManager {
     private mainWindow: BrowserWindow | null = null;
 
     constructor() {
+        this.setupIpcHandlers();
+
         if (!app.isPackaged) {
             console.log('[Updater] Auto-updater is disabled in development mode.');
             return;
@@ -15,7 +17,6 @@ export class AutoUpdaterManager {
         autoUpdater.autoDownload = false;
 
         this.setupEventListeners();
-        this.setupIpcHandlers();
     }
 
     public setMainWindow(window: BrowserWindow) {
