@@ -122,33 +122,65 @@ export const PluginManagerPage = () => {
         const fetchMarketplace = async () => {
             setLoadingMarketplace(true);
             try {
-                const res = await fetch('https://api.github.com/repos/citadel-app/citadel-marketplace/contents/plugins');
+                // Fetch the contents of the 'directory' folder
+                const res = await fetch('https://api.github.com/repos/citadel-app/citadel-marketplace/contents/directory');
                 if (!res.ok) throw new Error("Failed to fetch marketplace directory");
                 const files = await res.json();
 
-                const loaded = await Promise.all(
-                    files.filter((f: any) => f.type === 'dir' && !f.name.startsWith('.'))
-                         .map(async (dir: any) => {
-                             try {
-                                 const pRes = await fetch(`https://raw.githubusercontent.com/citadel-app/citadel-marketplace/main/plugins/${dir.name}/package.json`);
-                                 if (!pRes.ok) return null;
-                                 const pkg = await pRes.json();
+                const pluginEntries: { name: string, path: string }[] = [];
 
-                                 let readme = '';
-                                 try {
-                                     const rRes = await fetch(`https://raw.githubusercontent.com/citadel-app/citadel-marketplace/main/plugins/${dir.name}/README.md`);
-                                     if (rRes.ok) readme = await rRes.text();
-                                 } catch {}
-                                 return {
-                                     ...pkg,
-                                     // Also handle object-style authors in marketplace fetch
-                                     author: pkg.citadel?.author || (typeof pkg.author === 'object' ? pkg.author.name : pkg.author),
-                                     authorUrl: pkg.citadel?.authorUrl || (typeof pkg.author === 'object' ? pkg.author.url : undefined),
-                                     verified: pkg.citadel?.verified === true,
-                                     readme
-                                 };
-                             } catch { return null; }
-                         })
+                // Step 1: Collect all plugin paths (handling @scope directories)
+                await Promise.all(files.map(async (file: any) => {
+                    if (file.type !== 'dir' || file.name.startsWith('.')) return;
+
+                    if (file.name.startsWith('@')) {
+                        // It's a scope directory, fetch its contents
+                        try {
+                            const scopeRes = await fetch(file.url);
+                            if (scopeRes.ok) {
+                                const scopeFiles = await scopeRes.json();
+                                scopeFiles.forEach((sf: any) => {
+                                    if (sf.type === 'dir' && !sf.name.startsWith('.')) {
+                                        pluginEntries.push({ name: sf.name, path: `${file.name}/${sf.name}` });
+                                    }
+                                });
+                            }
+                        } catch (e) {
+                            console.error(`Failed to fetch scope ${file.name}`, e);
+                        }
+                    } else {
+                        // It's a top-level plugin
+                        pluginEntries.push({ name: file.name, path: file.name });
+                    }
+                }));
+
+                // Step 2: Fetch metadata for each plugin
+                const loaded = await Promise.all(
+                    pluginEntries.map(async (entry) => {
+                        try {
+                            const pkgUrl = `https://raw.githubusercontent.com/citadel-app/citadel-marketplace/main/directory/${entry.path}/package.json`;
+                            const pRes = await fetch(pkgUrl);
+                            if (!pRes.ok) return null;
+                            const pkg = await pRes.json();
+
+                            let readme = '';
+                            try {
+                                const readmeUrl = `https://raw.githubusercontent.com/citadel-app/citadel-marketplace/main/directory/${entry.path}/README.md`;
+                                const rRes = await fetch(readmeUrl);
+                                if (rRes.ok) readme = await rRes.text();
+                            } catch {}
+
+                            return {
+                                ...pkg,
+                                // Store the actual path in the marketplace for icon resolution
+                                _marketplacePath: entry.path,
+                                author: pkg.citadel?.author || (typeof pkg.author === 'object' ? pkg.author.name : pkg.author),
+                                authorUrl: pkg.citadel?.authorUrl || (typeof pkg.author === 'object' ? pkg.author.url : undefined),
+                                verified: pkg.citadel?.verified === true,
+                                readme
+                            };
+                        } catch { return null; }
+                    })
                 );
                 setMarketplacePlugins(loaded.filter(Boolean));
             } catch (e) {
@@ -268,7 +300,7 @@ export const PluginManagerPage = () => {
                                         const iconSrc = iconVal
                                             ? (plugin._absolutePath
                                                 ? `codex://${plugin._absolutePath.replace(/\\/g, '/')}/${iconVal}`
-                                                : `https://raw.githubusercontent.com/citadel-app/citadel-marketplace/main/plugins/${plugin.name}/${iconVal}`)
+                                                : `https://raw.githubusercontent.com/citadel-app/citadel-marketplace/main/directory/${plugin._marketplacePath || plugin.name}/${iconVal}`)
                                             : null;
                                         return (
                                             <div
@@ -321,7 +353,7 @@ export const PluginManagerPage = () => {
                                     <>
                                         <img src={selectedPluginObj.citadel?.icon || selectedPluginObj.icon ? (selectedPluginObj._absolutePath
                                             ? `codex://${selectedPluginObj._absolutePath.replace(/\\/g, '/')}/${selectedPluginObj.citadel?.icon || selectedPluginObj.icon}`
-                                            : `https://raw.githubusercontent.com/citadel-app/citadel-marketplace/main/plugins/${selectedPluginObj.name}/${selectedPluginObj.citadel?.icon || selectedPluginObj.icon}`
+                                            : `https://raw.githubusercontent.com/citadel-app/citadel-marketplace/main/directory/${selectedPluginObj._marketplacePath || selectedPluginObj.name}/${selectedPluginObj.citadel?.icon || selectedPluginObj.icon}`
                                         ) : undefined} onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.nextElementSibling?.classList.remove('hidden'); e.currentTarget.nextElementSibling?.classList.add('flex'); }} className="w-24 h-24 rounded-2xl object-cover bg-background border border-border overflow-hidden shadow-md" alt="" />
                                         <div className="hidden w-24 h-24 rounded-2xl items-center justify-center bg-background border border-border text-muted-foreground shadow-md shrink-0">
                                             <div style={{opacity: 0.8}}><Icon name="Package" size={48} /></div>
