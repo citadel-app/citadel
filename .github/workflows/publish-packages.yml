@@ -31,7 +31,7 @@ jobs:
       - name: Install dependencies
         run: npm install --legacy-peer-deps --no-package-lock
         env:
-          CITADEL_RELEASE_TOKEN: ${{ steps.app-token.outputs.token }}
+          CITADEL_RELEASE_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build Core
         run: npm run build
@@ -41,8 +41,8 @@ jobs:
         run: npm publish
         working-directory: packages/core
         env:
-          CITADEL_RELEASE_TOKEN: ${{ steps.app-token.outputs.token }}
-          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
+          CITADEL_RELEASE_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build UI
         run: npm run build
@@ -52,8 +52,8 @@ jobs:
         run: npm publish
         working-directory: packages/ui
         env:
-          CITADEL_RELEASE_TOKEN: ${{ steps.app-token.outputs.token }}
-          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
+          CITADEL_RELEASE_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build App
         run: npm run build
@@ -63,8 +63,8 @@ jobs:
       - name: Publish App
         run: npm publish
         env:
-          CITADEL_RELEASE_TOKEN: ${{ steps.app-token.outputs.token }}
-          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
+          CITADEL_RELEASE_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Trigger Desktop Build
         run: |
