@@ -9,6 +9,7 @@ export * from './codex/presets';
 export * from './codex/constants';
 export * from './codex/templates';
 export * from './constants';
+export { APP_VERSION } from './constants';
 export * from './search-core';
 export * from './ipc-channels';
 export * from './types/feeds';

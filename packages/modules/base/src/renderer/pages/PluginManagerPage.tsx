@@ -535,25 +535,33 @@ export const PluginManagerPage = () => {
                                     <div className="space-y-4">
                                         <h3 className="text-sm font-bold tracking-widest uppercase flex items-center gap-3"><div className="w-1.5 h-1.5 bg-amber-500 rounded-full shadow-[0_0_10px_rgba(245,158,11,0.5)]"/> Capabilities Provided</h3>
                                         <p className="text-sm text-muted-foreground/80 leading-relaxed font-medium">System-level capabilities this extension registers into the application framework upon activation.</p>
-                                        {selectedPluginObj.citadel?.capabilities?.length ? (
-                                            <div className="grid grid-cols-2 gap-4 mt-4">
-                                                {selectedPluginObj.citadel.capabilities.map((cap: string) => (
-                                                    <div key={cap} className="px-4 py-3 bg-card border border-border/80 rounded-xl flex items-center font-mono text-[13px] shadow-sm font-medium">{cap}</div>
-                                                ))}
-                                            </div>
-                                        ) : <div className="p-6 bg-muted/10 border border-dashed border-border rounded-xl text-sm text-muted-foreground font-medium text-center">No capabilities declared.</div>}
+                                        {(() => {
+                                            const capabilities = selectedPluginObj.capabilities || selectedPluginObj.citadel?.capabilities;
+                                            if (!capabilities?.length) return <div className="p-6 bg-muted/10 border border-dashed border-border rounded-xl text-sm text-muted-foreground font-medium text-center">No capabilities declared.</div>;
+                                            return (
+                                                <div className="grid grid-cols-2 gap-4 mt-4">
+                                                    {capabilities.map((cap: string) => (
+                                                        <div key={cap} className="px-4 py-3 bg-card border border-border/80 rounded-xl flex items-center font-mono text-[13px] shadow-sm font-medium">{cap}</div>
+                                                    ))}
+                                                </div>
+                                            );
+                                        })()}
                                     </div>
 
                                     <div className="space-y-4">
                                         <h3 className="text-sm font-bold tracking-widest uppercase flex items-center gap-3"><div className="w-1.5 h-1.5 bg-blue-500 rounded-full shadow-[0_0_10px_rgba(59,130,246,0.5)]"/> Extrinsic Permissions</h3>
                                         <p className="text-sm text-muted-foreground/80 leading-relaxed font-medium">Protected Node.js backend IPC channels this module requires authorization to invoke.</p>
-                                        {selectedPluginObj.citadel?.permissions?.length ? (
-                                            <div className="grid grid-cols-2 gap-4 mt-4">
-                                                {selectedPluginObj.citadel.permissions.map((perm: string) => (
-                                                    <div key={perm} className="px-4 py-3 bg-blue-500/5 text-blue-600 dark:text-blue-400 border border-blue-500/20 rounded-xl flex items-center font-mono text-[13px] shadow-sm font-medium">{perm}</div>
-                                                ))}
-                                            </div>
-                                        ) : <div className="p-6 bg-muted/10 border border-dashed border-border rounded-xl text-sm text-muted-foreground font-medium text-center">No external permissions requested.</div>}
+                                        {(() => {
+                                            const permissions = selectedPluginObj.permissions || selectedPluginObj.citadel?.permissions;
+                                            if (!permissions?.length) return <div className="p-6 bg-muted/10 border border-dashed border-border rounded-xl text-sm text-muted-foreground font-medium text-center">No external permissions requested.</div>;
+                                            return (
+                                                <div className="grid grid-cols-2 gap-4 mt-4">
+                                                    {permissions.map((perm: string) => (
+                                                        <div key={perm} className="px-4 py-3 bg-blue-500/5 text-blue-600 dark:text-blue-400 border border-blue-500/20 rounded-xl flex items-center font-mono text-[13px] shadow-sm font-medium">{perm}</div>
+                                                    ))}
+                                                </div>
+                                            );
+                                        })()}
                                     </div>
 
                                     <div className="p-5 bg-amber-500/10 border border-amber-500/20 rounded-xl flex gap-4 mt-12 items-start shadow-sm">

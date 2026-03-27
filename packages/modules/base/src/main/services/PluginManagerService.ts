@@ -16,6 +16,7 @@ export interface PluginManifest {
     enabled: boolean;
     icon?: string;       // Path to local svg asset representing the plugin
     permissions?: string[];
+    capabilities?: string[];
     engines?: {
         citadel?: string; // semver range, e.g. ">=1.1.1"
     };
@@ -223,7 +224,8 @@ export class PluginManagerService {
                                 renderer: pkg.citadel.renderer,
                                 enabled: pkg.citadel.enabled !== false,
                                 icon: pkg.citadel.icon,
-                                permissions: pkg.citadel.permissions
+                                permissions: pkg.citadel.permissions,
+                            capabilities: pkg.citadel.capabilities
                             };
                         }
                     }
