@@ -24,13 +24,6 @@ asarUnpack:
   - resources/**
   - node_modules/better-sqlite3/**
 extraResources:
-  - from: src/python
-    to: tts-service/src/python
-    filter:
-      - "**/*"
-      - "!**/*.onnx"
-      - "!**/*.json"
-      - "!**/*.npz"
   - from: docker-compose.yml
     to: tts-service/docker-compose.yml
 win:

@@ -1,6 +1,6 @@
 {
   "name": "@citadel-app/code",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "main": "./src/main/index.ts",
   "types": "dist/main/index.d.ts",
   "exports": {
@@ -16,8 +16,8 @@
     "clean": "tsc -b --clean"
   },
   "dependencies": {
-    "@citadel-app/core": "1.0.6",
-    "@citadel-app/ui": "1.0.6",
+    "@citadel-app/core": "1.0.7",
+    "@citadel-app/ui": "1.0.7",
     "@monaco-editor/react": "^4.7.0",
     "@typescript/ata": "^0.9.8",
     "lucide-react": "^0.563.0",

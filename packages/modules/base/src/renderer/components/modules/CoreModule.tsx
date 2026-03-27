@@ -3,7 +3,7 @@ import type { IModule } from '@citadel-app/core';
 
 export const CoreModule: IModule = {
     id: '@citadel-app/core-ui',
-    version: '1.0.6',
+    version: '1.0.7',
     contentModules: {
         webview: {
             id: 'webview',
