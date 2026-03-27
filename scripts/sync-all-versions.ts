@@ -22,8 +22,30 @@ async function syncVersions() {
     const workspacePkgs = await glob(['packages/*/package.json', 'packages/modules/*/package.json'], { absolute: true });
     for (const pkgPath of workspacePkgs) {
         const pkg = await fs.readJson(pkgPath);
+        let changed = false;
+
         if (pkg.version !== version) {
             pkg.version = version;
+            changed = true;
+        }
+
+        // Sync internal dependencies
+        const dependencyTypes = ['dependencies', 'devDependencies', 'peerDependencies'];
+        for (const depType of dependencyTypes) {
+            if (pkg[depType]) {
+                for (const depName of Object.keys(pkg[depType])) {
+                    if (depName.startsWith('@citadel-app/')) {
+                        const currentDepVersion = pkg[depType][depName];
+                        if (currentDepVersion !== '*' && currentDepVersion !== version) {
+                            pkg[depType][depName] = version;
+                            changed = true;
+                        }
+                    }
+                }
+            }
+        }
+
+        if (changed) {
             await fs.writeJson(pkgPath, pkg, { spaces: 2 });
             console.log(`Updated ${path.relative(ROOT_DIR, pkgPath)}`);
         }

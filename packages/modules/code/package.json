@@ -16,8 +16,8 @@
     "clean": "tsc -b --clean"
   },
   "dependencies": {
-    "@citadel-app/core": "1.1.1",
-    "@citadel-app/ui": "1.1.1",
+    "@citadel-app/core": "1.1.2",
+    "@citadel-app/ui": "1.1.2",
     "@monaco-editor/react": "^4.7.0",
     "@typescript/ata": "^0.9.8",
     "lucide-react": "^0.563.0",
