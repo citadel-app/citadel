@@ -24,7 +24,7 @@
   ],
   "scripts": {
     "lint": "eslint src/",
-    "build": "tsc -b && vite build",
+    "build": "tsc -b --force && vite build",
     "clean": "tsc -b --clean"
   },
   "dependencies": {
