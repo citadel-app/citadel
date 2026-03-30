@@ -38,6 +38,15 @@ jobs:
         run: npm run build
         working-directory: packages/core
 
+      - name: Build UI
+        run: npm run build
+        working-directory: packages/ui
+
+      - name: Build App
+        run: npm run build
+        env:
+          MAIN_VITE_GITHUB_CLIENT_ID: ${{ secrets.CITADEL_GITHUB_CLIENT_ID }}
+
       - name: Publish Core
         run: npm publish
         working-directory: packages/core
@@ -45,21 +54,12 @@ jobs:
           CITADEL_RELEASE_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build UI
-        run: npm run build
-        working-directory: packages/ui
-
       - name: Publish UI
         run: npm publish
         working-directory: packages/ui
         env:
           CITADEL_RELEASE_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build App
-        run: npm run build
-        env:
-          MAIN_VITE_GITHUB_CLIENT_ID: ${{ secrets.CITADEL_GITHUB_CLIENT_ID }}
 
       - name: Publish App
         run: npm publish

@@ -45,7 +45,7 @@ export const BaseMainModule: IModule = {
         "models.checkStatus", "models.download",
         "service.start", "service.stop", "service.status",
         "system.getRegisteredIpcs", "system.getActiveModules",
-        "plugins.install", "plugins.uninstall", "plugins.setEnabled", "plugins.list", "plugins.toggle", "plugins.readRenderer", "plugins.getCitadelVersion", "plugins.validateCompatibility"
+        "plugins.install", "plugins.uninstall", "plugins.setEnabled", "plugins.list", "plugins.toggle", "plugins.readRenderer", "plugins.getCitadelVersion", "plugins.validateCompatibility", "plugins.getPluginPath"
 
     ],
     onMainActivate: async (registrar: MainRegistrar<'@citadel-app/base'>, workspace: WorkspaceContext | null) => {

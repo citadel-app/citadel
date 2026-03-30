@@ -12,7 +12,6 @@ import {
   ScopedAPI,
   CoreServices,
   ExternalDataHandler,
-  ExternalDataHandler,
   ModuleDefinition,
   SectionTemplate
 } from '@citadel-app/core'

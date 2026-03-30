@@ -15,7 +15,7 @@ export default defineConfig({
     },
     build: {
       rollupOptions: {
-        external: ['canvas', 'chokidar', 'fsevents']
+        external: ['canvas', 'chokidar', 'fsevents', 'pdfjs-dist']
       }
     }
   },
@@ -30,7 +30,7 @@ export default defineConfig({
     },
     build: {
       rollupOptions: {
-        external: ['canvas', 'chokidar', 'fsevents']
+        external: ['canvas', 'chokidar', 'fsevents', 'pdfjs-dist']
       }
     }
   },
@@ -56,7 +56,8 @@ export default defineConfig({
       react()
     ],
     optimizeDeps: {
-      include: ['es6-promise-pool']
+      include: ['es6-promise-pool'],
+      exclude: ['langium', 'vscode-jsonrpc']
     },
     build: {
       rollupOptions: {
