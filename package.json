@@ -1,6 +1,6 @@
 {
   "name": "@citadel-app/app",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "a hackable second brain for software developers",
   "main": "./out/main/index.js",
   "author": "Citadel",
@@ -40,8 +40,6 @@
     "version:sync": "npx tsx scripts/sync-all-versions.ts"
   },
   "dependencies": {
-    "@electron-toolkit/preload": "^3.0.2",
-    "@electron-toolkit/utils": "^4.0.0",
     "@tiptap/extension-bubble-menu": "^3.19.0",
     "better-sqlite3": "^12.6.2",
     "buffer": "^6.0.3",
@@ -58,6 +56,8 @@
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
+    "@electron-toolkit/preload": "^3.0.2",
+    "@electron-toolkit/utils": "^4.0.0",
     "@electron-toolkit/eslint-config-prettier": "^3.0.0",
     "@electron-toolkit/eslint-config-ts": "^3.1.0",
     "@electron-toolkit/tsconfig": "^2.0.0",
