@@ -1,6 +1,6 @@
 {
   "name": "@citadel-app/base",
-  "version": "1.1.5",
+  "version": "1.2.0",
   "description": "Base module for Citadel providing essential services and pages.",
   "main": "./src/main/index.ts",
   "module": "./src/renderer/index.ts",
@@ -13,6 +13,7 @@
   "dependencies": {
     "@citadel-app/core": "*",
     "@citadel-app/ui": "*",
+    "pdfjs-dist": "^4.10.38",
     "semver": "^7.5.4"
   },
   "exports": {

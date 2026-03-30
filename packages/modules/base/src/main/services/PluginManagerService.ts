@@ -15,6 +15,8 @@ export interface PluginManifest {
     renderer?: string;   // Path to renderer process entry
     enabled: boolean;
     icon?: string;       // Path to local svg asset representing the plugin
+    ipcs?: string[];     // Explicitly provided IPC names
+    sidecars?: any[];    // Sidecar services provided by the plugin
     permissions?: string[];
     capabilities?: string[];
     engines?: {
@@ -57,6 +59,11 @@ export class PluginManagerService {
 
         this.registrar.handle('plugins.install', async (pluginId: string, downloadUrl: string) => {
             await this.installPlugin(pluginId, downloadUrl);
+        });
+
+        this.registrar.handle('plugins.getPluginPath', async (pluginId: string) => {
+            const plugin = this.plugins.get(pluginId) as any;
+            return plugin?._absolutePath || null;
         });
 
         this.registrar.handle('plugins.uninstall', async (pluginId: string) => {
@@ -154,7 +161,9 @@ export class PluginManagerService {
                             renderer: pkg.citadel.renderer,
                             enabled: pkg.citadel.enabled !== false,
                             icon: pkg.citadel.icon,
-                            permissions: pkg.citadel.permissions,
+                            ipcs: pkg.citadel.providesIpcs || [],
+                            sidecars: pkg.citadel.sidecars || [],
+                            permissions: pkg.citadel.permissions || [],
                             capabilities: pkg.citadel.capabilities,
                             engines: pkg.engines
                         };

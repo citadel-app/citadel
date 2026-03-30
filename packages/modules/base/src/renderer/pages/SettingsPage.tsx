@@ -33,7 +33,6 @@ export const SettingsPage = () => {
     const [pullStatus, setPullStatus] = useState<string>('idle');
     const [availableModels, setAvailableModels] = useState<import('@citadel-app/core').AIModel[]>([]);
     const [testRemoteId, setTestRemoteId] = useState('');
-    const [confirmRemoveEnv, setConfirmRemoveEnv] = useState<string | null>(null);
     const [showRegenPeerConfirm, setShowRegenPeerConfirm] = useState(false);
 
     // Qdrant state
@@ -1280,22 +1279,6 @@ export const SettingsPage = () => {
                 </div>
             </Tabs.Root>
 
-            <ConfirmDialog
-                open={!!confirmRemoveEnv}
-                onOpenChange={(open) => !open && setConfirmRemoveEnv(null)}
-                title="Remove Environment"
-                description={`Are you sure you want to remove the ${confirmRemoveEnv} environment?`}
-                confirmLabel="Remove"
-                onConfirm={() => {
-                    if (confirmRemoveEnv) {
-                        const newEnvs = { ...settings.executionEnvironments };
-                        delete newEnvs[confirmRemoveEnv];
-                        updateSetting('executionEnvironments', newEnvs);
-                    }
-                    setConfirmRemoveEnv(null);
-                }}
-                variant="destructive"
-            />
 
             <ConfirmDialog
                 open={showRegenPeerConfirm}

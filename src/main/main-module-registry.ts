@@ -61,6 +61,21 @@ class MainModuleRegistry {
         }
     }
 
+    /**
+     * Returns a list of all registered IPC handler keys (moduleId:method).
+     */
+    getRegisteredHandlers(): string[] {
+        return Array.from(this.handlers.keys());
+    }
+
+    /**
+     * Returns the list of all active modules.
+     */
+    getModules(): IModule[] {
+        return this.modules;
+    }
+
+
     private createRegistrar<M extends keyof ModuleAPIRegistry>(mod: IModule): MainRegistrar<M> {
         return {
             handle: ((method: string, handler: any) => {
@@ -80,8 +95,19 @@ class MainModuleRegistry {
             }) as any,
             createChildRegistrar: (manifest: IModule) => this.createRegistrar<any>(manifest),
             registerSidecar: (sidecar: any) => {
+                const sidecarId = sidecar?.id;
+                
+                // Enforce that sidecar must be declared in the module's manifest
+                if (!mod.sidecars || !mod.sidecars.some(s => s.id === sidecarId)) {
+                    const errorMsg = `[Security] Module "${mod.id}" attempted to register sidecar "${sidecarId}", but it is not declared in its manifest.sidecars list!`;
+                    console.error(errorMsg);
+                    throw new Error(errorMsg);
+                }
+
+                console.log(`[MainModuleRegistry] [${mod.id}] Registered sidecar: ${sidecarId}`);
                 this.sidecars.registerSidecar(sidecar);
             }
+
         } as MainRegistrar<M>;
     }
 }

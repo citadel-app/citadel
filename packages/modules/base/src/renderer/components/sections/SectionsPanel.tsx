@@ -10,6 +10,8 @@ import { dataManager } from '../../lib/data-manager';
 import { metadataService, ragService } from '../../ai';
 import { type EntrySection } from '@citadel-app/core';
 import { useConfig } from '../../context/ConfigContext';
+import { appModuleRegistry } from '../../host-services';
+
 
 interface Highlight {
     id: string;
@@ -85,10 +87,10 @@ export const SectionsPanel = ({
     };
 
     const handleCreateCustomSection = () => {
-        let content = '';
-        if (newSectionType === 'code') content = '```javascript\n\n```';
-        else if (newSectionType === 'whiteboard') content = '```excalidraw\n{}\n```';
-        else if (newSectionType === 'list') content = '- Item 1';
+        const templates = appModuleRegistry.getSectionTemplates();
+        const selectedTemplate = templates.find((t: any) => t.id === newSectionType);
+        
+        const content = selectedTemplate?.content || '';
 
         onSectionAdd(newSectionTitle || 'New Section', content);
 
@@ -97,6 +99,7 @@ export const SectionsPanel = ({
         setNewSectionTitle('New Section');
         setNewSectionType('markdown');
     };
+
 
     const handleAiGenerateSection = async (title: string, instructions: string) => {
         setIsGenerating(title);
@@ -263,10 +266,11 @@ ${semanticContext}`;
                                         className="w-full h-9 px-3 text-sm bg-background border border-input rounded-md focus:outline-none focus:ring-1 focus:ring-primary/50 cursor-pointer"
                                     >
                                         <option value="markdown">Markdown Editor</option>
-                                        <option value="code">Code snippet</option>
-                                        <option value="list">Bulleted List</option>
-                                        <option value="whiteboard">Whiteboard</option>
+                                        {appModuleRegistry.getSectionTemplates().map((t: any) => (
+                                            <option key={t.id} value={t.id}>{t.label}</option>
+                                        ))}
                                     </select>
+
                                 </div>
                                 <div className="flex gap-2 w-full sm:w-auto mt-2 sm:mt-0">
                                     <button

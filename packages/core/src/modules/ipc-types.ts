@@ -100,6 +100,9 @@ export interface BaseModuleAPI {
     'system.stopService': (name: string) => Promise<void>;
     'system.deployStack': (service?: string) => Promise<void>;
     'system.triggerDebugError': (severity: 'warning' | 'error') => Promise<void>;
+    'system.getRegisteredIpcs': () => Promise<string[]>;
+    'system.getActiveModules': () => Promise<any[]>;
+
 
     // DB Init
     'db.initWorkspace': (path: string) => Promise<void>;
@@ -117,6 +120,7 @@ export interface BaseModuleAPI {
     'plugins.readRenderer': (pluginId: string) => Promise<string | null>;
     'plugins.getCitadelVersion': () => Promise<string>;
     'plugins.validateCompatibility': (engines: any) => Promise<boolean>;
+    'plugins.getPluginPath': (pluginId: string) => Promise<string | null>;
 }
 
 export interface CodeModuleAPI {

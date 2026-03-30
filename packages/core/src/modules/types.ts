@@ -199,6 +199,19 @@ export interface SettingsPanel {
 }
 
 /**
+ * Describes a templated section type provided by a module.
+ * Used by the host to render "Add Section" menus and detect section types from content patterns.
+ */
+export interface SectionTemplate {
+    id: string;          // machine-name (e.g. 'code', 'whiteboard')
+    label: string;       // display-name (e.g. 'Code snippet', 'Whiteboard')
+    icon?: string;       // optional icon name (e.g. 'Code', 'Palette')
+    content: string;     // default content template (e.g. '```javascript\n\n```')
+    pattern?: string;    // regex string or prefix to detect this section type from content (e.g. '^```excalidraw')
+}
+
+
+/**
  * A declarative schema dictating how the host dynamically builds generic setting forms for this module.
  */
 export interface PluginSettingsSchema {
@@ -260,6 +273,10 @@ export interface RendererRegistrar {
     /** Register an inline section editor for a specific section type (e.g. 'whiteboard') */
     registerSectionEditor: (sectionType: string, component: any) => void;
 
+    /** Register a section template for the "Add Section" menu. */
+    registerSectionTemplate: (template: SectionTemplate) => void;
+
+
     /** Register an external data handler for entry lifecycle (create/update/delete). */
     registerExternalDataHandler: (handler: ExternalDataHandler) => void;
 
@@ -311,6 +328,13 @@ export interface ModuleManifest {
      */
     ipcs?: string[];
 
+    /** 
+     * Native microservices associated with this module.
+     * Declared here for security validation when registering with SidecarManager.
+     */
+    sidecars?: any[];
+
+
     /**
      * Declare which window.api methods this module requires.
      * Only declared methods will be accessible via the scoped API proxy.
@@ -331,6 +355,8 @@ export interface IModule extends ModuleManifest {
 
     contentViewers?: Record<string, any>; // Entry Type (e.g. 'pdf') -> React Component
     sectionEditors?: Record<string, any>; // Section Type (e.g. 'whiteboard') -> React Component
+    sectionTemplates?: SectionTemplate[];
+
     settingsConfig?: PluginSettingsSchema;
     statusWidgets?: { id: string; group: string; component: any }[];
     globalComponents?: { region: string; component: any }[];

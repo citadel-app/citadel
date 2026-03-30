@@ -46,10 +46,23 @@ export const BaseModule: IModule = {
         'system.getProcessStats', 'system.startService', 'system.stopService', 'system.deployStack', 'system.triggerDebugError',
         'models.checkStatus', 'models.download',
         'service.start', 'service.stop', 'service.status',
-        'plugins.install', 'plugins.uninstall', 'plugins.setEnabled', 'plugins.list', 'plugins.toggle', 'plugins.readRenderer'
+        'plugins.install', 'plugins.uninstall', 'plugins.setEnabled', 'plugins.list', 'plugins.toggle', 'plugins.readRenderer',
+        'system.getRegisteredIpcs', 'system.getActiveModules'
+
+    ],
+    sectionTemplates: [
+        { id: 'list', label: 'Bulleted List', icon: 'List', content: '- Item 1' }
     ],
     contentViewers: {
+
         webview: lazy(() => import('./components/modules/WebviewModule').then(m => ({ default: m.WebviewModule }))),
         sections: lazy(() => import('./components/sections/SectionsPanel').then(m => ({ default: m.SectionsPanel })))
-    }
+    },
+    routes: [
+        { path: '/advanced', component: lazy(() => import('./pages/AdvancedPage').then(m => ({ default: m.AdvancedPage }))) }
+    ],
+    navigationItems: [
+        { id: 'advanced', label: 'Advanced', path: '/advanced', icon: 'ShieldAlert' }
+    ]
+
 };
