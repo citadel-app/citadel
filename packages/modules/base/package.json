@@ -1,6 +1,6 @@
 {
   "name": "@citadel-app/base",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Base module for Citadel providing essential services and pages.",
   "main": "./src/main/index.ts",
   "module": "./src/renderer/index.ts",
