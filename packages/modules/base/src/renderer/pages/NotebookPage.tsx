@@ -5,7 +5,7 @@ import { Icon } from '@citadel-app/ui';
 import { NotebookSidebar } from '../components/notebook/NotebookSidebar';
 import { NotebookContent } from '../components/notebook/NotebookContent';
 import { CreateNotebookDialog } from '../components/notebook/CreateNotebookDialog';
-import { Panel, Group, Separator } from 'react-resizable-panels';
+import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 
 export interface NotebookCompletion {
     completedAt: number;
@@ -128,13 +128,13 @@ export const NotebookPage = () => {
 
     return (
         <div className="flex-1 flex h-full overflow-hidden bg-background">
-            <Group orientation="horizontal">
+            <PanelGroup direction="horizontal">
                 {/* Sidebar Panel */}
                 {!isSidebarCollapsed && (
                     <Panel
-                        defaultSize="20"
-                        minSize="15"
-                        maxSize="40"
+                        defaultSize={20}
+                        minSize={15}
+                        maxSize={40}
                         className="flex flex-col bg-muted/5"
                     >
                         <div className="h-full flex flex-col border-r border-border/50 overflow-hidden">
@@ -188,9 +188,9 @@ export const NotebookPage = () => {
                 )}
 
                 {!isSidebarCollapsed && (
-                    <Separator className="w-1.5 hover:bg-primary/30 transition-colors border-r border-border/20 group relative cursor-col-resize flex items-center justify-center z-10">
+                    <PanelResizeHandle className="w-1.5 hover:bg-primary/30 transition-colors border-r border-border/20 group relative cursor-col-resize flex items-center justify-center z-10">
                         <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 w-[2px] bg-border group-hover:bg-primary/50 transition-colors" />
-                    </Separator>
+                    </PanelResizeHandle>
                 )}
 
                 {/* Content Panel */}
@@ -248,7 +248,7 @@ export const NotebookPage = () => {
                         </div>
                     )}
                 </Panel>
-            </Group>
+            </PanelGroup>
 
             <CreateNotebookDialog
                 open={isCreateOpen}

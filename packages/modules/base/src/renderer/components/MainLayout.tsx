@@ -28,7 +28,7 @@ export const MainLayout = () => {
 
     const location = useLocation();
     const navigate = useNavigate();
-    const { status } = useGit();
+    const { status, isRepo } = useGit();
     const { isCreateDialogOpen, setIsCreateDialogOpen } = useLayout();
 
     const changedFilesCount = status?.files?.length || 0;
@@ -164,14 +164,14 @@ export const MainLayout = () => {
                                 active={location.pathname.startsWith('/plugins')}
                             />
 
-                            {status?.files?.length > 0 && (settings && (settings.developerMode || !settings.autoCommitEnabled)) && (
+                            {isRepo && (settings && (settings.developerMode || !settings.autoCommitEnabled)) && (
                                 <ActivityBarItem
                                     to="/source-control"
                                     icon="Castle"
                                     title="The Bastion"
                                     tourId="tour-source-control"
                                     active={location.pathname === '/source-control'}
-                                    badge={changedFilesCount}
+                                    badge={changedFilesCount > 0 ? changedFilesCount : undefined}
                                 />
                             )}
 

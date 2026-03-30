@@ -229,7 +229,7 @@ export const SplitPaneLayout = ({
                 </div>
             )}
 
-            <PanelGroup orientation={splitOrientation} className="h-full">
+            <PanelGroup direction={splitOrientation} className="h-full">
                 {/* Left/Top Panel */}
                 <Panel defaultSize={defaultLeftSize} minSize={minSize}>
                     <div className="h-full flex flex-col min-h-0">
