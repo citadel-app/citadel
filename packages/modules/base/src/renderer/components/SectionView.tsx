@@ -25,12 +25,13 @@ export const SectionView = ({ section, entryType, entryId, filePath, onSave, onD
 
     // Automatically enter edit mode if it is a brand new templated block
     const [isEditing, setIsEditing] = useState(() => {
+        const templates = appModuleRegistry.getSectionTemplates();
         const trimmed = section.content.trim();
-        return trimmed === '```javascript\n\n```' ||
-            trimmed === '```excalidraw\n{}\n```' ||
-            trimmed === '- Item 1' ||
-            trimmed === '';
+        
+        const isTemplate = templates.some((t: any) => t.content.trim() === trimmed);
+        return isTemplate || trimmed === '';
     });
+
 
     const [editedContent, setEditedContent] = useState(section.content);
     const [editedTitle, setEditedTitle] = useState(section.title || '');
@@ -229,15 +230,25 @@ export const SectionView = ({ section, entryType, entryId, filePath, onSave, onD
                         if (!editorType) {
                             const current = isEditing ? editedContent : section.content;
                             const trimmed = current.trim();
-                            if (trimmed.startsWith('```excalidraw')) {
-                                editorType = 'whiteboard';
+                            
+                            const templates = appModuleRegistry.getSectionTemplates();
+                            const matchingTemplate = templates.find((t: any) => {
+                                if (t.pattern) {
+                                    return trimmed.match(new RegExp(t.pattern));
+                                }
+                                return trimmed.startsWith(t.content.split('\n')[0]); // Fallback to first line match
+                            });
+
+                            if (matchingTemplate) {
+                                editorType = matchingTemplate.id;
                             } else if (trimmed.match(/^```([a-z]+)?\n[\s\S]*```$/)) {
-                                // Assume it's a code block if it is entirely encapsulated in one
+                                // Assume it's a generic code block if it is entirely encapsulated in one
                                 editorType = 'code';
                             } else {
                                 editorType = 'markdown'; // default
                             }
                         }
+
 
                         if (editorType && editorType !== 'markdown' && editorType !== 'list') {
                             const DynamicEditor = appModuleRegistry.getSectionEditor(editorType);

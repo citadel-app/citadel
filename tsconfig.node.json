@@ -6,8 +6,6 @@
     "src/preload/**/*",
     "src/shared/**/*",
     "packages/core/src/**/*",
-    "packages/modules/rss/src/main/**/*",
-    "packages/modules/code/src/main/**/*",
     "packages/modules/base/src/main/**/*"
   ],
   "compilerOptions": {

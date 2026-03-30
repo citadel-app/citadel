@@ -598,17 +598,43 @@ export const PluginManagerPage = () => {
                                         <h3 className="text-sm font-bold tracking-widest uppercase flex items-center gap-3"><div className="w-1.5 h-1.5 bg-amber-500 rounded-full shadow-[0_0_10px_rgba(245,158,11,0.5)]"/> Capabilities Provided</h3>
                                         <p className="text-sm text-muted-foreground/80 leading-relaxed font-medium">System-level capabilities this extension registers into the application framework upon activation.</p>
                                         {(() => {
-                                            const capabilities = selectedPluginObj.capabilities || selectedPluginObj.citadel?.capabilities;
-                                            if (!capabilities?.length) return <div className="p-6 bg-muted/10 border border-dashed border-border rounded-xl text-sm text-muted-foreground font-medium text-center">No capabilities declared.</div>;
+                                            const rawIpcs = selectedPluginObj.citadel?.providesIpcs || selectedPluginObj.providesIpcs || [];
+                                            const rawCaps = selectedPluginObj.citadel?.capabilities || selectedPluginObj.capabilities || [];
+                                            const allCapabilities = Array.from(new Set([...rawIpcs, ...rawCaps]));
+
+                                            if (allCapabilities.length === 0) return <div className="p-6 bg-muted/10 border border-dashed border-border rounded-xl text-sm text-muted-foreground font-medium text-center">No capabilities declared.</div>;
                                             return (
-                                                <div className="grid grid-cols-2 gap-4 mt-4">
-                                                    {capabilities.map((cap: string) => (
-                                                        <div key={cap} className="px-4 py-3 bg-card border border-border/80 rounded-xl flex items-center font-mono text-[13px] shadow-sm font-medium">{cap}</div>
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
+                                                    {allCapabilities.map((cap: string) => (
+                                                        <div key={cap} className="px-4 py-3 bg-card border border-border/80 rounded-xl flex items-center font-mono text-[11px] shadow-sm font-medium">{cap}</div>
                                                     ))}
                                                 </div>
                                             );
                                         })()}
                                     </div>
+
+                                    <div className="space-y-4">
+                                        <h3 className="text-sm font-bold tracking-widest uppercase flex items-center gap-3"><div className="w-1.5 h-1.5 bg-purple-500 rounded-full shadow-[0_0_10px_rgba(168,85,247,0.5)]"/> Native Sidecars</h3>
+                                        <p className="text-sm text-muted-foreground/80 leading-relaxed font-medium">Background microservices or native dependencies this extension requires to function.</p>
+                                        {(() => {
+                                            const sidecars = selectedPluginObj.citadel?.sidecars || selectedPluginObj.sidecars;
+                                            if (!sidecars?.length) return <div className="p-6 bg-muted/10 border border-dashed border-border rounded-xl text-sm text-muted-foreground font-medium text-center">No sidecars required.</div>;
+                                            return (
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
+                                                    {sidecars.map((sidecar: any) => (
+                                                        <div key={sidecar.id} className="px-4 py-3 bg-card border border-border/80 rounded-xl flex items-center gap-3 shadow-sm">
+                                                            <Icon name={sidecar.type === 'docker' ? 'Container' : 'Cpu'} size={14} className="text-purple-500" />
+                                                            <div className="flex flex-col">
+                                                                <span className="font-mono text-[11px] font-bold">{sidecar.id}</span>
+                                                                <span className="text-[9px] uppercase tracking-wider text-muted-foreground opacity-60 font-black">{sidecar.type}</span>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            );
+                                        })()}
+                                    </div>
+
 
                                     <div className="space-y-4">
                                         <h3 className="text-sm font-bold tracking-widest uppercase flex items-center gap-3"><div className="w-1.5 h-1.5 bg-blue-500 rounded-full shadow-[0_0_10px_rgba(59,130,246,0.5)]"/> Extrinsic Permissions</h3>

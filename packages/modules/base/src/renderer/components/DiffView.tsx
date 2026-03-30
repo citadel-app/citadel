@@ -315,7 +315,7 @@ export const DiffView = ({ file, status, gitStatus, onClose, onDiscard, onSaveSu
                         })()
                     ) : (
                         <div className="flex h-full items-center justify-center text-muted-foreground p-4 text-center">
-                            Failed to load Monaco Diff Viewer. Ensure the Code module is loaded.
+                            Failed to load Monaco Diff Viewer. Ensure the Code Plugin <a href="/plugins?filter=installed" className="text-primary hover:underline"><code>@citadel-app/code</code></a> is installed.
                         </div>
                     )
                 )}

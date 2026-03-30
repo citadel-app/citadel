@@ -7,11 +7,7 @@
     "src/preload/*.d.ts",
     "src/shared/**/*",
     "packages/*/src/**/*",
-    "packages/modules/*/src/renderer/lib/**/*",
-    "packages/modules/*/src/renderer/context/**/*",
-    "packages/modules/*/src/renderer/components/**/*",
-    "packages/modules/*/src/renderer/pages/**/*",
-    "packages/modules/*/src/renderer/index.ts"
+    "packages/modules/base/src/renderer/index.ts"
   ],
   "compilerOptions": { "skipLibCheck": true,
     "moduleResolution": "bundler",
@@ -23,17 +19,8 @@
       "@citadel-app/ui": [
         "packages/ui/src/index.ts"
       ],
-      "@citadel-app/excalidraw": [
-        "packages/modules/excalidraw/src/renderer/index.ts"
-      ],
-      "@citadel-app/pdf": [
-        "packages/modules/pdf/src/renderer/index.ts"
-      ],
       "@citadel-app/base": [
         "packages/modules/base/src/renderer/index.ts"
-      ],
-      "@citadel-app/code": [
-        "packages/modules/code/src/renderer/index.ts"
       ],
       "@renderer/*": [
         "packages/modules/base/src/renderer/*",

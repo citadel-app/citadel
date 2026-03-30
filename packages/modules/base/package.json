@@ -13,6 +13,7 @@
   "dependencies": {
     "@citadel-app/core": "*",
     "@citadel-app/ui": "*",
+    "pdfjs-dist": "^4.10.38",
     "semver": "^7.5.4"
   },
   "exports": {

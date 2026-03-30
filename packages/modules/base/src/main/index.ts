@@ -44,7 +44,9 @@ export const BaseMainModule: IModule = {
         "system.getProcessStats", "system.startService", "system.stopService", "system.deployStack", "system.triggerDebugError",
         "models.checkStatus", "models.download",
         "service.start", "service.stop", "service.status",
+        "system.getRegisteredIpcs", "system.getActiveModules",
         "plugins.install", "plugins.uninstall", "plugins.setEnabled", "plugins.list", "plugins.toggle", "plugins.readRenderer", "plugins.getCitadelVersion", "plugins.validateCompatibility"
+
     ],
     onMainActivate: async (registrar: MainRegistrar<'@citadel-app/base'>, workspace: WorkspaceContext | null) => {
         // --- Register Handlers Early for Robustness ---
@@ -106,6 +108,17 @@ export const BaseMainModule: IModule = {
         registrar.handle('fs.allowPath', async (targetPath: string) => {
             guardrail.setActiveWorkspace(targetPath);
         });
+
+        registrar.handle('system.getRegisteredIpcs', async () => {
+            const { mainModuleRegistry } = require('../../../main/main-module-registry');
+            return mainModuleRegistry.getRegisteredHandlers();
+        });
+
+        registrar.handle('system.getActiveModules', async () => {
+            const { mainModuleRegistry } = require('../../../main/main-module-registry');
+            return mainModuleRegistry.getModules();
+        });
+
 
         // --- Service Initialization ---
         if (!appSettings) {

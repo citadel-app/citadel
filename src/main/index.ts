@@ -335,10 +335,9 @@ app.whenReady().then(() => {
   } : null;
 
   Promise.all([
-    import('../../packages/modules/base/src/main/index'),
-    import('../../packages/modules/code/src/main/index')
-  ]).then(([{ BaseMainModule }, { CodeMainModule }]) => {
-      mainModuleRegistry.loadModules([BaseMainModule, CodeMainModule], workspaceContext);
+    import('../../packages/modules/base/src/main/index')
+  ]).then(([{ BaseMainModule }]) => {
+      mainModuleRegistry.loadModules([BaseMainModule], workspaceContext);
   }).catch(err => {
       console.error('[Main] Failed to load modules:', err);
   });

@@ -4,10 +4,6 @@ import { SplashScreen, ErrorBoundary } from '@citadel-app/ui';
 import { appModuleRegistry } from './lib/module-registry';
 import { BaseModule } from '@citadel-app/base';
 
-import { ExcalidrawModule } from '@citadel-app/excalidraw';
-import { PdfModule } from '@citadel-app/pdf';
-// @ts-ignore
-import { CodeModule } from '@citadel-app/code';
 import { loadRuntimePlugins } from './lib/plugin-loader';
 import bannerImg from './assets/branding/banner.png';
 
@@ -18,9 +14,6 @@ export default function App() {
     loadRuntimePlugins().then((plugins) => {
       appModuleRegistry.loadModules([
         BaseModule, 
-        ExcalidrawModule, 
-        CodeModule, 
-        PdfModule, 
         ...plugins
       ]).then(() => setModulesLoaded(true));
     });
