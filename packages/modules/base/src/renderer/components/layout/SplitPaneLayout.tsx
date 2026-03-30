@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-import { Panel, Group, Separator } from 'react-resizable-panels';
+import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { useLayout } from '../../context/LayoutContext';
 import { LayoutControls } from './LayoutControls';
 import { cn } from '@citadel-app/ui';
@@ -73,7 +73,7 @@ export const SplitPaneLayout = ({
                 </div>
             )}
 
-            <Group orientation={splitOrientation} className="h-full">
+            <PanelGroup orientation={splitOrientation} className="h-full">
                 {/* Left/Top Panel */}
                 <Panel defaultSize={defaultLeftSize} minSize={minSize}>
                     <div className="h-full flex flex-col min-h-0">
@@ -81,7 +81,7 @@ export const SplitPaneLayout = ({
                     </div>
                 </Panel>
 
-                <Separator
+                <PanelResizeHandle
                     className={cn(
                         "bg-border hover:bg-primary/50 transition-colors z-10",
                         splitOrientation === 'vertical'
@@ -96,7 +96,7 @@ export const SplitPaneLayout = ({
                         {rightPanel}
                     </div>
                 </Panel>
-            </Group>
+            </PanelGroup>
         </div>
     );
 };

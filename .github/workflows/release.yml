@@ -62,7 +62,7 @@ jobs:
           generate_release_notes: true
           draft: false
           prerelease: false
-          overwrite_files: false
+          overwrite_files: true
         env:
           GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
 
