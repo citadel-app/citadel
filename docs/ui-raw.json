@@ -274389,91 +274389,6 @@
   },
   {
     "tags": {},
-    "filePath": "C:/code/citadel/citadel/packages/ui/src/components/sections/RelatedLinksSection.tsx",
-    "description": "",
-    "displayName": "RelatedLinksSection",
-    "methods": [],
-    "props": {
-      "links": {
-        "defaultValue": null,
-        "description": "",
-        "name": "links",
-        "parent": {
-          "fileName": "citadel/packages/ui/src/components/sections/RelatedLinksSection.tsx",
-          "name": "RelatedLinksSectionProps"
-        },
-        "declarations": [
-          {
-            "fileName": "citadel/packages/ui/src/components/sections/RelatedLinksSection.tsx",
-            "name": "RelatedLinksSectionProps"
-          }
-        ],
-        "required": true,
-        "type": {
-          "name": "RelatedLink[]"
-        }
-      },
-      "onAddLink": {
-        "defaultValue": null,
-        "description": "",
-        "name": "onAddLink",
-        "parent": {
-          "fileName": "citadel/packages/ui/src/components/sections/RelatedLinksSection.tsx",
-          "name": "RelatedLinksSectionProps"
-        },
-        "declarations": [
-          {
-            "fileName": "citadel/packages/ui/src/components/sections/RelatedLinksSection.tsx",
-            "name": "RelatedLinksSectionProps"
-          }
-        ],
-        "required": true,
-        "type": {
-          "name": "(link: Omit<RelatedLink, \"id\">) => void"
-        }
-      },
-      "onRemoveLink": {
-        "defaultValue": null,
-        "description": "",
-        "name": "onRemoveLink",
-        "parent": {
-          "fileName": "citadel/packages/ui/src/components/sections/RelatedLinksSection.tsx",
-          "name": "RelatedLinksSectionProps"
-        },
-        "declarations": [
-          {
-            "fileName": "citadel/packages/ui/src/components/sections/RelatedLinksSection.tsx",
-            "name": "RelatedLinksSectionProps"
-          }
-        ],
-        "required": true,
-        "type": {
-          "name": "(id: string) => void"
-        }
-      },
-      "className": {
-        "defaultValue": null,
-        "description": "",
-        "name": "className",
-        "parent": {
-          "fileName": "citadel/packages/ui/src/components/sections/RelatedLinksSection.tsx",
-          "name": "RelatedLinksSectionProps"
-        },
-        "declarations": [
-          {
-            "fileName": "citadel/packages/ui/src/components/sections/RelatedLinksSection.tsx",
-            "name": "RelatedLinksSectionProps"
-          }
-        ],
-        "required": false,
-        "type": {
-          "name": "string"
-        }
-      }
-    }
-  },
-  {
-    "tags": {},
     "filePath": "C:/code/citadel/citadel/packages/ui/src/components/git/VirtualizedFileList.tsx",
     "description": "",
     "displayName": "VirtualizedFileList",
@@ -274667,6 +274582,91 @@
         "required": false,
         "type": {
           "name": "(section: \"index\" | \"working_dir\") => string"
+        }
+      }
+    }
+  },
+  {
+    "tags": {},
+    "filePath": "C:/code/citadel/citadel/packages/ui/src/components/sections/RelatedLinksSection.tsx",
+    "description": "",
+    "displayName": "RelatedLinksSection",
+    "methods": [],
+    "props": {
+      "links": {
+        "defaultValue": null,
+        "description": "",
+        "name": "links",
+        "parent": {
+          "fileName": "citadel/packages/ui/src/components/sections/RelatedLinksSection.tsx",
+          "name": "RelatedLinksSectionProps"
+        },
+        "declarations": [
+          {
+            "fileName": "citadel/packages/ui/src/components/sections/RelatedLinksSection.tsx",
+            "name": "RelatedLinksSectionProps"
+          }
+        ],
+        "required": true,
+        "type": {
+          "name": "RelatedLink[]"
+        }
+      },
+      "onAddLink": {
+        "defaultValue": null,
+        "description": "",
+        "name": "onAddLink",
+        "parent": {
+          "fileName": "citadel/packages/ui/src/components/sections/RelatedLinksSection.tsx",
+          "name": "RelatedLinksSectionProps"
+        },
+        "declarations": [
+          {
+            "fileName": "citadel/packages/ui/src/components/sections/RelatedLinksSection.tsx",
+            "name": "RelatedLinksSectionProps"
+          }
+        ],
+        "required": true,
+        "type": {
+          "name": "(link: Omit<RelatedLink, \"id\">) => void"
+        }
+      },
+      "onRemoveLink": {
+        "defaultValue": null,
+        "description": "",
+        "name": "onRemoveLink",
+        "parent": {
+          "fileName": "citadel/packages/ui/src/components/sections/RelatedLinksSection.tsx",
+          "name": "RelatedLinksSectionProps"
+        },
+        "declarations": [
+          {
+            "fileName": "citadel/packages/ui/src/components/sections/RelatedLinksSection.tsx",
+            "name": "RelatedLinksSectionProps"
+          }
+        ],
+        "required": true,
+        "type": {
+          "name": "(id: string) => void"
+        }
+      },
+      "className": {
+        "defaultValue": null,
+        "description": "",
+        "name": "className",
+        "parent": {
+          "fileName": "citadel/packages/ui/src/components/sections/RelatedLinksSection.tsx",
+          "name": "RelatedLinksSectionProps"
+        },
+        "declarations": [
+          {
+            "fileName": "citadel/packages/ui/src/components/sections/RelatedLinksSection.tsx",
+            "name": "RelatedLinksSectionProps"
+          }
+        ],
+        "required": false,
+        "type": {
+          "name": "string"
         }
       }
     }
