@@ -125,11 +125,12 @@ export class PluginManagerService {
             const arrayBuffer = await res.arrayBuffer();
             const buffer = Buffer.from(arrayBuffer);
             
-            const tempZipPath = path.join(app.getPath('temp'), `${pluginId}-${Date.now()}.zip`);
+            const safeId = pluginId.replace(/[^a-zA-Z0-9_-]/g, '');
+            const tempZipPath = path.join(app.getPath('temp'), `${safeId}-${Date.now()}.zip`);
             await fs.writeFile(tempZipPath, buffer);
             
             const extract = require('extract-zip');
-            const targetPath = path.join(this.pluginsDir, pluginId.replace(/[^a-zA-Z0-9_-]/g, ''));
+            const targetPath = path.join(this.pluginsDir, safeId);
             
             if (fs.existsSync(targetPath)) {
                 await fs.remove(targetPath);
