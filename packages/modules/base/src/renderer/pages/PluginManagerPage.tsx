@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import semver from 'semver';
-import { Icon, Button, Switch, MarkdownViewer } from '@citadel-app/ui';
+import { Icon, Button, Switch, MarkdownViewer, useToast } from '@citadel-app/ui';
 import { hostApi as __hostApi, appModuleRegistry } from '../host-services';
 import { useAppSettings } from '../context/AppSettingsContext';
 import { cn } from '@citadel-app/ui';
 
 const PluginSettingsView = ({ pluginId }: { pluginId: string }) => {
     const { settings, updateSetting } = useAppSettings();
+    const { toast } = useToast();
     const config = appModuleRegistry.getPluginSettingsConfig(pluginId);
 
     if (!config) return <div className="p-6 text-muted-foreground italic border border-dashed border-border m-6 rounded-lg text-center">This extension does not provide any configuration options.</div>;
@@ -29,7 +30,7 @@ const PluginSettingsView = ({ pluginId }: { pluginId: string }) => {
             await __hostApi.module.invoke('@citadel-app/base', 'secrets.set', `${pluginId}.${fieldId}`, value);
             const el = document.getElementById(`secret-${fieldId}`) as HTMLInputElement;
             if (el) el.value = '';
-            __hostApi.module.invoke('@citadel-app/base', 'toast.show', 'Secret saved securely.');
+            toast('Secret saved securely.', { type: 'success' });
         } catch (e) {
             console.error("Failed to save secret", e);
         }
@@ -93,6 +94,7 @@ const PluginSettingsView = ({ pluginId }: { pluginId: string }) => {
 };
 
 export const PluginManagerPage = () => {
+    const { toast } = useToast();
     const [plugins, setPlugins] = useState<any[]>([]);
     const [marketplacePlugins, setMarketplacePlugins] = useState<any[]>([]);
     const [activeTab, setActiveTab] = useState<'installed' | 'marketplace'>('installed');
@@ -227,7 +229,7 @@ export const PluginManagerPage = () => {
             window.location.reload();
         } catch (e) {
             console.error("Failed to uninstall plugin", e);
-            __hostApi.module.invoke('@citadel-app/base', 'toast.show', "Failed to uninstall extension: " + String(e), { type: 'error' });
+            toast("Failed to uninstall extension: " + String(e), { type: 'error' });
         }
     };
 
@@ -235,16 +237,16 @@ export const PluginManagerPage = () => {
         try {
             const bundleUrl = versionObj?.bundleUrl || plugin.citadel?.bundleUrl;
             if (!bundleUrl) {
-                __hostApi.module.invoke('@citadel-app/base', 'toast.show', 'This extension version is improperly configured (missing bundleUrl).', { type: 'error' });
+                toast('This extension version is improperly configured (missing bundleUrl).', { type: 'error' });
                 return;
             }
-            __hostApi.module.invoke('@citadel-app/base', 'toast.show', `Starting installation of ${plugin.citadel?.title || plugin.name} v${versionObj?.version || plugin.version}...`);
+            toast(`Starting installation of ${plugin.citadel?.title || plugin.name} v${versionObj?.version || plugin.version}...`);
             await __hostApi.module.invoke('@citadel-app/base', 'plugins.install', plugin.name, bundleUrl);
-            __hostApi.module.invoke('@citadel-app/base', 'toast.show', 'Extension installed successfully!', { type: 'success' });
+            toast('Extension installed successfully!', { type: 'success' });
             window.location.reload();
         } catch (e) {
             console.error("Install logic failed", e);
-            __hostApi.module.invoke('@citadel-app/base', 'toast.show', "Failed to install extension: " + String(e), { type: 'error' });
+            toast("Failed to install extension: " + String(e), { type: 'error' });
         }
     };
 
